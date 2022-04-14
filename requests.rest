@@ -1,0 +1,118 @@
+###
+GET http://localhost:9000/equipments/
+
+###
+GET http://localhost:9000/customers/
+
+###
+GET http://localhost:9000/vendors
+
+
+###
+GET http://localhost:9000/users/
+
+
+###
+GET http://localhost:9000/projects/
+
+
+###
+GET http://localhost:9000/works/
+
+
+###
+POST http://localhost:9000/equipments/
+Content-Type: application/json
+
+{
+    "plateNumber":"RAC290Z", 
+    "eqtype":"Truck", 
+    "eqOwner":"Construck", 
+    "eqStatus":"Not available"
+}
+
+###
+POST http://localhost:9000/customers/
+Content-Type: application/json
+
+{
+    "fistName":"Bruce",
+    "lastName":"Test1",
+    "tinNumber":"100990229"
+}
+
+###
+POST http://localhost:9000/vendors/
+Content-Type: application/json
+
+{
+    "fistName":"Bruce",
+    "lastName":"Test1",
+    "tinNumber":"100990229"
+}
+
+
+###
+POST http://localhost:9000/users
+Content-Type: application/json
+
+{
+    "fistName":"Bruce2",
+    "lastName":"Higiro2",
+    "username":"bhigiro2",
+    "password":"password",
+    "email":"bruce@gmail.com",
+    "phone":"0783575582",
+    "userType":"driver",
+    "company":"construck",
+    "status":"active"
+}
+
+
+###
+POST http://localhost:9000/users/login
+Content-Type: application/json
+
+{
+    "password":"password",
+    "email":"higiro@gmail.com"
+}
+
+
+###
+PUT http://localhost:9000/users/status
+Content-Type: application/json
+
+{
+    
+    "user":{
+    "status": "inactive",
+    "_id": "6256b969b1de6f0b83c3c4b4",
+    "fistName": "Bruce",
+    "lastName": "Higiro",
+    "username": "bhigiro",
+    "password": "$2a$10$hcYw1TTtZAXtMdozpJ1u/eDog.lJgkI.UKqHCD9kbzYZVvXsYFdmW",
+    "email": "higiro@gmail.com",
+    "phone": "0783575582",
+    "userType": "driver",
+    "company": "construck",
+    "createdOn": "2022-04-13T11:51:55.070Z",
+    "__v": 0
+  },
+    "status":"active"
+}
+
+
+###
+POST http://localhost:9000/projects
+Content-Type: application/json
+
+{
+    "prjDescription":"Project 2",
+    "customer":"6256b240f86e0accd67d65ae",
+    "startDate": "2022-04-13T11:20:19.858Z",
+    "endDate":"2022-12-31T11:20:19.858Z",
+    "status":"ongoing"
+}
+
+
