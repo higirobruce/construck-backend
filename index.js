@@ -17,11 +17,11 @@ const dispatches = require("./routes/dispatches");
 const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 //Set up default mongoose connection
-var mongoDB =
-  "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
+// var mongoDB =
+//   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
-mongoDB =
-  "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck?retryWrites=true&w=majority";
+var mongoDB = "";
+mongoDB = process.env.CONS_MONGO_DB;
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
 var db = mongoose.connection;
