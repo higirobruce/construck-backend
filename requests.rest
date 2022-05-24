@@ -1,6 +1,5 @@
 ###
-GET http://localhost:9000/equipments/type/Truck
-
+GET http://localhost:9000/equipments/type/Truck/2022-05-17T00:00:00.000Z/dayShift
 ###
 GET http://localhost:9000/customers/
 
@@ -12,8 +11,7 @@ Content-Type: application/json
     "startDate": "2022-05-01",
     "endDate": "2022-05-07",
     "status": "approved",
-    "customer": "",
-    "owner": "Hired"
+    "project" : "kgl"
 }
 
 
@@ -30,7 +28,7 @@ GET http://localhost:9000/users/
 
 
 ###
-GET http://localhost:9000/projects/
+GET http://localhost:9000/projects/v2
 
 
 ###
@@ -84,8 +82,8 @@ POST http://localhost:9000/equipments/
 Content-Type: application/json
 
 {
-    "plateNumber":"RAB349W", 
-    "eqtype":"Machine", 
+    "plateNumber":"RAB 198 R", 
+    "eqtype":"Truck", 
     "eqOwner":"Construck", 
     "eqStatus":"Available",
     "rate":"45000",
@@ -93,14 +91,16 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:9000/customers/
+POST http://localhost:9000/customers/project
 Content-Type: application/json
 
 {
-    "name":"NPD Ltd",
-    "phone":"0783894488",
-    "email":"info@npd.co.rw",
-    "tinNumber":"100990229"
+    "id": "626003bd74e53acb4eac8719",
+    "project" : {
+        "prjDescription": "COK MWIZINDIRO",
+        "status": "ongoing"
+    }
+    
 }
 
 ###
@@ -136,8 +136,8 @@ POST http://localhost:9000/users/login
 Content-Type: application/json
 
 {
-    "password":"password",
-    "email":"eric@gmail.com"
+    "password":"passwod",
+    "email":"admin@npd.co.rw"
 }
 
 
@@ -211,6 +211,10 @@ Content-Type: application/json
     "drivers":[{  "_id": "6260051e74e53acb4eac871b",  "firstName": "Bruce",  "lastName": "Higiro2",  "username": "bhigiro2",  "password": "$2a$10$ZBS1QnZmc/xPVjB91GaIuu9QzL1f5wh1Am3FgNYr0Wu64EKw0oZCe",  "email": "bruce@gmail.com",  "phone": "0783575582",  "userType": "driver",  "company": "626003bd74e53acb4eac8719" ,  "status": "active",  "createdOn": "2022-04-20T12:54:53.182Z"}],
     "equipments":[{  "_id":  "625e7e3f5530102327618fb5",  "plateNumber": "RAF345A",  "eqtype": "Truck",  "eqOwner": "Construck",  "eqStatus": "Available",  "rate": 10000,  "createdOn":  "2022-04-19T09:02:53.285Z"}]
 }
+
+
+###
+PUT http://localhost:9000/equipments/assign/62723b4dd9c6ef3e218bd24b
 
 
 
