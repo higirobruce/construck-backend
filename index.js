@@ -3,6 +3,8 @@ var cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
 
+const PORT = process.env.PORT;
+
 var mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
 const users = require("./routes/users");
@@ -46,6 +48,6 @@ app.use("/reasons", reasons);
 app.use("/dispatches", dispatches);
 app.use("/jobtypes", jobTypes);
 
-app.listen(9000, () => {
-  console.log("listening on 9000");
+app.listen(PORT, () => {
+  console.log(`listening on ${PORT}`);
 });
