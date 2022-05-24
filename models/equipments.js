@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const prSchema = require("./projects");
 
 const EquipmentSchema = new mongoose.Schema({
   plateNumber: {
@@ -7,6 +8,12 @@ const EquipmentSchema = new mongoose.Schema({
     unique: true,
     dropDups: true,
   },
+  eqDescription: {
+    type: String,
+  },
+  assetClass: {
+    type: String,
+  },
   eqtype: {
     type: String,
   },
@@ -14,6 +21,24 @@ const EquipmentSchema = new mongoose.Schema({
     type: String, // can refer to vendors
   },
   eqStatus: {
+    type: String,
+  },
+  rate: {
+    type: Number,
+    default: 0,
+  },
+  supplierRate: {
+    type: Number,
+    default: 0,
+  },
+  uom: {
+    type: String,
+    required: true,
+  },
+  assignedDate: {
+    type: Date,
+  },
+  assignedShift: {
     type: String,
   },
   createdOn: {

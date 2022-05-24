@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const projectSchema = require("./projects").schema;
 const CustomerSchema = mongoose.Schema({
   name: {
     type: String,
@@ -24,6 +25,7 @@ const CustomerSchema = mongoose.Schema({
     unique: true,
     dropDups: true,
   },
+  projects: [projectSchema],
   createdOn: {
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),

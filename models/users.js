@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const UserSchema = mongoose.Schema({
-  fistName: {
+  firstName: {
     type: String,
   },
   lastName: {
@@ -31,7 +31,9 @@ const UserSchema = mongoose.Schema({
     type: String,
   },
   company: {
-    type: String,
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "customers",
   },
   status: {
     type: String,

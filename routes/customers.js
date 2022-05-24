@@ -23,17 +23,48 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let { fistName, lastName, tinNumber } = req.body;
+  let { name, phone, email, tinNumber } = req.body;
   try {
     let customerToCreate = new custData.model({
-      fistName,
-      lastName,
+      name,
+      phone,
+      email,
       tinNumber,
     });
     let customerCreated = await customerToCreate.save();
 
     res.status(201).send(customerCreated);
   } catch (err) {
+    console.log(err);
+    let error = findError(err.code);
+    let keyPattern = err.keyPattern;
+    let key = _.findKey(keyPattern, function (key) {
+      return key === 1;
+    });
+    res.send({
+      error,
+      key,
+    });
+  }
+});
+
+router.post("/project", async (req, res) => {
+  let { id, project } = req.body;
+  try {
+    let customer = await custData.model.findByIdAndUpdate(
+      { _id: id },
+      { $push: { projects: project } },
+      function (error, success) {
+        if (error) {
+          res.status(201).send(id);
+          console.log(error);
+        } else {
+          console.log(success);
+        }
+      }
+    );
+  } catch (err) {
+    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {

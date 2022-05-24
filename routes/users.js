@@ -6,7 +6,7 @@ const _ = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    let users = await userData.model.find();
+    let users = await userData.model.find().populate("company");
     res.status(200).send(users);
   } catch (err) {
     res.send(err);
@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    let user = await userData.model.findById(id);
+    let user = await userData.model.findById(id).populate("company");
     res.status(200).send(user);
   } catch (err) {
     res.send(err);
@@ -25,7 +25,7 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   let {
-    fistName,
+    firstName,
     lastName,
     username,
     password,
@@ -33,12 +33,13 @@ router.post("/", async (req, res) => {
     phone,
     userType,
     company,
+    status,
   } = req.body;
 
   try {
     let hashedPassword = await bcrypt.hash(password, 10);
     let userToCreate = new userData.model({
-      fistName,
+      firstName,
       lastName,
       username,
       password: hashedPassword,
@@ -46,6 +47,7 @@ router.post("/", async (req, res) => {
       phone,
       userType,
       company,
+      status,
     });
 
     let userCreated = await userToCreate.save();
@@ -66,7 +68,9 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
   let { email, password } = req.body;
   try {
-    let user = await userData.model.find({ email: email });
+    let user = await userData.model
+      .findOne({ email: email })
+      .populate("company");
 
     if (user.length === 0) {
       res.status(404).send({
@@ -76,11 +80,12 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    let allowed = await bcrypt.compare(password, user[0].password);
+    let allowed = await bcrypt.compare(password, user.password);
 
     if (allowed) {
-      if (user[0].status === "active") {
-        res.status(200).send(user[0]);
+      if (user.status === "active") {
+        // user.message = "Allowed";
+        res.status(200).send({ user, message: "Allowed" });
       } else {
         res.status(401).send({
           message: "Not activated!",

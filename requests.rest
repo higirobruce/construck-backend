@@ -1,8 +1,25 @@
 ###
-GET http://localhost:9000/equipments/
+GET http://localhost:9000/equipments/type/Truck
 
 ###
 GET http://localhost:9000/customers/
+
+###
+POST http://localhost:9000/works/getAnalytics
+Content-Type: application/json
+
+{
+    "startDate": "2022-05-01",
+    "endDate": "2022-05-07",
+    "status": "approved",
+    "customer": "",
+    "owner": "Hired"
+}
+
+
+
+###
+GET http://localhost:9000/jobtypes/eqType/Machine
 
 ###
 GET http://localhost:9000/vendors
@@ -17,7 +34,49 @@ GET http://localhost:9000/projects/
 
 
 ###
+GET http://localhost:9000/activities/
+
+
+###
+GET http://localhost:9000/reasons/
+
+
+
+###
 GET http://localhost:9000/works/
+
+###
+GET http://localhost:9000/dispatches/
+
+
+###
+POST http://localhost:9000/reasons/
+Content-Type: application/json
+
+{
+    "description":"Client Related"
+    
+}
+
+
+###
+POST http://localhost:9000/jobtypes/
+Content-Type: application/json
+
+{
+    "jobDescription":"Others-Machines",
+    "eqType":"Machine"    
+}
+
+
+###
+POST http://localhost:9000/activities/
+Content-Type: application/json
+
+{
+    "activityDescription":"Compacting"
+    
+}
 
 
 ###
@@ -25,10 +84,12 @@ POST http://localhost:9000/equipments/
 Content-Type: application/json
 
 {
-    "plateNumber":"RAC290Z", 
-    "eqtype":"Truck", 
+    "plateNumber":"RAB349W", 
+    "eqtype":"Machine", 
     "eqOwner":"Construck", 
-    "eqStatus":"Not available"
+    "eqStatus":"Available",
+    "rate":"45000",
+    "uom": "hour"
 }
 
 ###
@@ -36,8 +97,9 @@ POST http://localhost:9000/customers/
 Content-Type: application/json
 
 {
-    "fistName":"Bruce",
-    "lastName":"Test1",
+    "name":"NPD Ltd",
+    "phone":"0783894488",
+    "email":"info@npd.co.rw",
     "tinNumber":"100990229"
 }
 
@@ -57,14 +119,14 @@ POST http://localhost:9000/users
 Content-Type: application/json
 
 {
-    "fistName":"Bruce2",
-    "lastName":"Higiro2",
-    "username":"bhigiro2",
+    "firstName":"Cyubahiro",
+    "lastName":"",
+    "username":"cyubahiro",
     "password":"password",
-    "email":"bruce@gmail.com",
-    "phone":"0783575582",
+    "email":"cyubahiro@construck.co.rw",
+    "phone":"0783575513",
     "userType":"driver",
-    "company":"construck",
+    "company":"626003bd74e53acb4eac8719",
     "status":"active"
 }
 
@@ -75,7 +137,7 @@ Content-Type: application/json
 
 {
     "password":"password",
-    "email":"higiro@gmail.com"
+    "email":"eric@gmail.com"
 }
 
 
@@ -108,11 +170,49 @@ POST http://localhost:9000/projects
 Content-Type: application/json
 
 {
-    "prjDescription":"Project 2",
-    "customer":"6256b240f86e0accd67d65ae",
+    "prjDescription":"KIP/MAINTENANCE OF CITY ROADS",
+    "customer":"626003bd74e53acb4eac8719",
     "startDate": "2022-04-13T11:20:19.858Z",
     "endDate":"2022-12-31T11:20:19.858Z",
     "status":"ongoing"
 }
+
+
+###
+POST http://localhost:9000/works
+Content-Type: application/json
+
+{
+    "project":"62600a53e140d26799f2db2e",
+    "equipment":"6256aeb2ac1b8e911a9a56c0",
+    "workDone":"Excavation",
+    "startIndex":"99289",
+    "endIndex":"99490",
+    "driver":"6260051e74e53acb4eac871b",
+    "dispatch":"62669216fb920b6909ecbccc",
+    "status":"in progress"
+}
+
+###
+PUT http://localhost:9000/works/stop/6262822f14d42b892014233e
+Content-Type: application/x-www-form-urlencoded
+
+
+###
+POST http://localhost:9000/dispatches
+Content-Type: application/json
+
+{
+    "dispatchDescription":"Trucks for Soil removal2",
+    "project":"62600a53e140d26799f2db2e",
+    "fromSite":"",
+    "toSite":"",
+    "targetTrips":"8",
+    "drivers":[{  "_id": "6260051e74e53acb4eac871b",  "firstName": "Bruce",  "lastName": "Higiro2",  "username": "bhigiro2",  "password": "$2a$10$ZBS1QnZmc/xPVjB91GaIuu9QzL1f5wh1Am3FgNYr0Wu64EKw0oZCe",  "email": "bruce@gmail.com",  "phone": "0783575582",  "userType": "driver",  "company": "626003bd74e53acb4eac8719" ,  "status": "active",  "createdOn": "2022-04-20T12:54:53.182Z"}],
+    "equipments":[{  "_id":  "625e7e3f5530102327618fb5",  "plateNumber": "RAF345A",  "eqtype": "Truck",  "eqOwner": "Construck",  "eqStatus": "Available",  "rate": 10000,  "createdOn":  "2022-04-19T09:02:53.285Z"}]
+}
+
+
+
 
 

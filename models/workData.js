@@ -1,18 +1,27 @@
 const mongoose = require("mongoose");
+const prjSchema = require("./projects").schema;
+const dispSchema = require("./dispatches").schema;
+const eqSchema = require("./equipments").schema;
 
 const WorkSchema = new mongoose.Schema({
   project: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "projects",
+    type: Object,
   },
   equipment: {
+    type: Object,
+  },
+  dispatch: {
+    type: Object,
+  },
+  driver: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
-    ref: "equipments",
+    ref: "users",
   },
   workDone: {
-    type: String,
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "jobTypes",
   },
   startIndex: {
     type: Number,
@@ -22,19 +31,36 @@ const WorkSchema = new mongoose.Schema({
   },
   startTime: {
     type: mongoose.SchemaTypes.Date,
+    default: Date.now(),
   },
   endTime: {
     type: mongoose.SchemaTypes.Date,
+    default: Date.now(),
+  },
+  duration: {
+    type: Number,
+    default: 0,
+  },
+  tripsDone: {
+    type: Number,
+    default: 0,
+  },
+  totalRevenue: {
+    type: Number,
+  },
+  comment: {
+    type: String,
+  },
+  status: {
+    type: String,
+  },
+  uom: {
+    type: String,
   },
   rate: {
     type: Number,
   },
-  driver: {
-    type: mongoose.SchemaTypes.ObjectId,
-    transform: (v) => (v === "" ? null : v),
-    ref: "users",
-  },
-  status: {
+  reasonForRejection: {
     type: String,
   },
   appovedBy: {
