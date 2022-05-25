@@ -27,7 +27,7 @@ const EmployeeSchema = mongoose.Schema({
     unique: true,
     dropDups: true,
   },
-  userType: {
+  type: {
     type: String,
   },
   title: {
