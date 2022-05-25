@@ -16,7 +16,7 @@ const WorkSchema = new mongoose.Schema({
   driver: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
-    ref: "users",
+    ref: "employees",
   },
   workDone: {
     type: mongoose.SchemaTypes.ObjectId,
