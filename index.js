@@ -3,7 +3,7 @@ var cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT ? process.env.PORT : 9000;
 
 var mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
@@ -16,6 +16,7 @@ const activities = require("./routes/activities");
 const dispatches = require("./routes/dispatches");
 const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
+const employees = require("./routes/employees");
 //Set up default mongoose connection
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
@@ -47,6 +48,7 @@ app.use("/activities", activities);
 app.use("/reasons", reasons);
 app.use("/dispatches", dispatches);
 app.use("/jobtypes", jobTypes);
+app.use("/employees", employees);
 
 app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);
