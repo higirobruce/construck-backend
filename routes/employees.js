@@ -27,9 +27,9 @@ router.post("/", async (req, res) => {
   try {
     let hashedPassword = await bcrypt.hash(req.body.password, 10);
     let employeeToCreate = new employeeData.model(req.body);
-
+    employeeToCreate.password = hashedPassword;
     let employeeCreated = await employeeToCreate.save();
-    employeeCreated.password = hashedPassword;
+
     res.status(201).send(employeeCreated);
   } catch (err) {
     console.log(err);
