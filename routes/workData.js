@@ -28,6 +28,39 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/v2", async (req, res) => {
+  try {
+    let workList = await workData.model
+      .find()
+      // .populate("project")
+      // .populate({
+      //   path: "project",
+      //   populate: {
+      //     path: "customer",
+      //     model: "customers",
+      //   },
+      // })
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("workDone")
+      .sort([["_id", "descending"]])
+      .select({
+        workDone: 1,
+        _id: 1,
+        status: 1,
+        project: 1,
+        createdOn: 1,
+        equipment: 1,
+        driver: 1,
+      });
+    res.status(200).send(workList);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
