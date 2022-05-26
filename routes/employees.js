@@ -62,7 +62,14 @@ router.post("/login", async (req, res) => {
     if (allowed) {
       if (employee.status === "active") {
         // employee.message = "Allowed";
-        res.status(200).send({ employee, message: "Allowed" });
+        res.status(200).send({
+          employee: {
+            _id: employee._id,
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+          },
+          message: "Allowed",
+        });
       } else {
         res.status(401).send({
           message: "Not activated!",
