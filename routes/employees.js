@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    let allowed = await bcrypt.compare(password, employee.password);
+    let allowed = await bcrypt.compare(password, employee?.password);
 
     if (allowed) {
       if (employee.status === "active") {
