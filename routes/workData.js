@@ -45,16 +45,7 @@ router.get("/v2", async (req, res) => {
       .populate("dispatch")
       .populate("appovedBy")
       .populate("workDone")
-      .sort([["_id", "descending"]])
-      .select({
-        workDone: 1,
-        _id: 1,
-        status: 1,
-        project: 1,
-        createdOn: 1,
-        equipment: 1,
-        driver: 1,
-      });
+      .sort([["_id", "descending"]]);
     res.status(200).send(workList);
   } catch (err) {
     res.send(err);
