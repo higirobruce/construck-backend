@@ -46,9 +46,9 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  let { email, password } = req.body;
+  let { phone, password } = req.body;
   try {
-    let employee = await employeeData.model.findOne({ email: email });
+    let employee = await employeeData.model.findOne({ phone: phone });
     if (employee?.length === 0) {
       res.status(404).send({
         message: "Email not found",
