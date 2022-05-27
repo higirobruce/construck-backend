@@ -406,15 +406,15 @@ router.put("/stop/:id", async (req, res) => {
 
     //if rate is per day
     if (uom === "day") {
-      work.duration = duration;
-      revenue = rate * duration;
-      // if (comment === "Client Related") {
-      //   work.duration = duration
-      //   revenue = rate;
-      // } else {
-      //   work.duration = duration;
-      //   revenue = (tripsDone / tartgetTrips) * rate;
-      // }
+      // work.duration = duration;
+      // revenue = rate * duration;
+      if (comment === "Client Related") {
+        work.duration = duration;
+        revenue = rate;
+      } else {
+        work.duration = duration;
+        revenue = (tripsDone / tartgetTrips) * rate;
+      }
     }
 
     work.rate = rate;
