@@ -409,10 +409,10 @@ router.put("/stop/:id", async (req, res) => {
       // work.duration = duration;
       // revenue = rate * duration;
       if (comment === "Client Related") {
-        work.duration = duration;
+        work.duration = duration / 24;
         revenue = rate;
       } else {
-        work.duration = duration;
+        work.duration = duration / 24;
         revenue = (tripsDone / tartgetTrips) * rate;
       }
     }
