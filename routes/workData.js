@@ -125,7 +125,7 @@ router.post("/getAnalytics", async (req, res) => {
         status:
           status === "approved"
             ? { $in: ["approved", "stopped"] }
-            : { $in: ["created", "in progress", "stopped"] },
+            : { $in: ["created", "in progress"] },
       })
       // .populate({
       //   path: "project",
