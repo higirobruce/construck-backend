@@ -85,9 +85,17 @@ router.post("/", async (req, res) => {
     equipment.eqStatus = "dispatched";
     equipment.assignedDate = req.body?.dispatch?.date;
     equipment.assignedShift = req.body?.dispatch?.shift;
+    let rate = equipment.rate;
+    let uom = equipment.uom;
+    let revenue = 0;
+
     await equipment.save();
 
     workToCreate.equipment = equipment;
+    if (uom === "hour") revenue = rate * 5;
+    if (uom === "day") revenue = rate;
+
+    workToCreate.totalRevenue = revenue;
 
     let workCreated = await workToCreate.save();
     res.status(201).send(workCreated);
@@ -113,7 +121,12 @@ router.post("/getAnalytics", async (req, res) => {
   let totalDays = 0;
   try {
     let workList = await workData.model
-      .find({ status: status })
+      .find({
+        status:
+          status === "approved"
+            ? { $in: ["approved", "stopped"] }
+            : { $in: ["created", "in progress", "stopped"] },
+      })
       // .populate({
       //   path: "project",
       //   populate: {
