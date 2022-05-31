@@ -276,9 +276,23 @@ router.put("/approve/:id", async (req, res) => {
       .populate("dispatch")
       .populate("appovedBy");
 
+    let eqId = work?.equipment?._id;
+    await workData.model.updateMany(
+      { "equipment._id": eqId },
+      {
+        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+      }
+    );
+
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+    equipment.eqStatus = "available";
+    equipment.assignedDate = null;
+    equipment.assignedShift = "";
+
     work.status = "approved";
 
     let savedRecord = await work.save();
+    await equipment.save();
     res.status(201).send(savedRecord);
   } catch (err) {
     console.log(err);
@@ -289,6 +303,14 @@ router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let work = await workData.model.findById(id);
+
+    let eqId = work?.equipment?._id;
+    await workData.model.updateMany(
+      { "equipment._id": eqId },
+      {
+        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+      }
+    );
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
     equipment.eqStatus = "available";
@@ -324,7 +346,20 @@ router.put("/reject/:id", async (req, res) => {
     work.status = "rejected";
     work.reasonForRejection = reasonForRejection;
 
+    let eqId = work?.equipment?._id;
+    await workData.model.updateMany(
+      { "equipment._id": eqId },
+      {
+        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+      }
+    );
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+    equipment.eqStatus = "available";
+    equipment.assignedDate = null;
+    equipment.assignedShift = "";
+
     let savedRecord = await work.save();
+    await equipment.save();
     res.status(201).send(savedRecord);
   } catch (err) {
     console.log(err);
@@ -343,6 +378,17 @@ router.put("/start/:id", async (req, res) => {
       .populate("dispatch")
       .populate("appovedBy")
       .populate("workDone");
+
+    let eqId = work?.equipment?._id;
+    await workData.model.updateMany(
+      { "equipment._id": eqId },
+      {
+        $set: {
+          eqStatus: "in progress",
+          assignedDate: Date.now(),
+        },
+      }
+    );
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
     equipment.eqStatus = "assigned to job";
@@ -373,6 +419,14 @@ router.put("/stop/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("dispatch")
       .populate("workDone");
+
+    let eqId = work?.equipment?._id;
+    await workData.model.updateMany(
+      { "equipment._id": eqId },
+      {
+        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+      }
+    );
     let equipment = await eqData.model.findById(work?.equipment?._id);
     equipment.eqStatus = "available";
     equipment.assignedDate = null;
