@@ -1,10 +1,10 @@
 ###
-GET http://localhost:9000/equipments/type/Truck/2022-05-17T00:00:00.000Z/dayShift
+GET https://construck-backend.herokuapp.com/equipments/type/Truck/2022-05-17T00:00:00.000Z/dayShift
 ###
-GET http://localhost:9000/customers/
+GET https://construck-backend.herokuapp.com/customers/
 
 ###
-POST http://localhost:9000/works/getAnalytics
+POST https://construck-backend.herokuapp.com/works/getAnalytics
 Content-Type: application/json
 
 {
@@ -17,38 +17,38 @@ Content-Type: application/json
 
 
 ###
-GET http://localhost:9000/jobtypes/eqType/Machine
+GET https://construck-backend.herokuapp.com/jobtypes/eqType/Machine
 
 ###
-GET http://localhost:9000/vendors
-
-
-###
-GET http://localhost:9000/users/
+GET https://construck-backend.herokuapp.com/vendors
 
 
 ###
-GET http://localhost:9000/projects/v2
+GET https://construck-backend.herokuapp.com/users/
 
 
 ###
-GET http://localhost:9000/activities/
+GET https://construck-backend.herokuapp.com/projects/v2
 
 
 ###
-GET http://localhost:9000/reasons/
+GET https://construck-backend.herokuapp.com/activities/
+
+
+###
+GET https://construck-backend.herokuapp.com/reasons/
 
 
 
 ###
-GET http://localhost:9000/works/
+GET https://construck-backend.herokuapp.com/works/v2
 
 ###
-GET http://localhost:9000/dispatches/
+GET https://construck-backend.herokuapp.com/dispatches/
 
 
 ###
-POST http://localhost:9000/reasons/
+POST https://construck-backend.herokuapp.com/reasons/
 Content-Type: application/json
 
 {
@@ -58,7 +58,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/jobtypes/
+POST https://construck-backend.herokuapp.com/jobtypes/
 Content-Type: application/json
 
 {
@@ -68,7 +68,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/activities/
+POST https://construck-backend.herokuapp.com/activities/
 Content-Type: application/json
 
 {
@@ -78,20 +78,23 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/equipments/
+POST https://construck-backend.herokuapp.com/equipments/
 Content-Type: application/json
 
 {
-    "plateNumber":"RAB 198 R", 
-    "eqtype":"Truck", 
-    "eqOwner":"Construck", 
-    "eqStatus":"Available",
-    "rate":"45000",
+    "plateNumber": "RAE 716 P",
+    "eqDescription": "FOLK LIFT",
+    "assetClass": "CONSTRUCTION MACHINE",
+    "eqtype": "Machine",
+    "eqOwner": "Construck",
+    "eqStatus": "available",
+    "rate": 20000,
+    "supplierRate": null,
     "uom": "hour"
 }
 
 ###
-POST http://localhost:9000/customers/project
+POST https://construck-backend.herokuapp.com/customers/project
 Content-Type: application/json
 
 {
@@ -104,7 +107,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:9000/vendors/
+POST https://construck-backend.herokuapp.com/vendors/
 Content-Type: application/json
 
 {
@@ -115,34 +118,52 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/users
+POST https://construck-backend.herokuapp.com/users
 Content-Type: application/json
 
 {
-    "firstName":"Cyubahiro",
-    "lastName":"",
-    "username":"cyubahiro",
+    "firstName":"NTAGANDA",
+    "lastName":"KENNETH",
+    "username":"kntaganda",
     "password":"password",
-    "email":"cyubahiro@construck.co.rw",
-    "phone":"0783575513",
-    "userType":"driver",
+    "email":"kntaganda@construck.rw",
+    "phone":"0788303085",
+    "userType":"admin",
     "company":"626003bd74e53acb4eac8719",
     "status":"active"
 }
 
 
+
 ###
-POST http://localhost:9000/users/login
+POST https://construck-backend.herokuapp.com/employees
 Content-Type: application/json
 
 {
-    "password":"passwod",
-    "email":"admin@npd.co.rw"
+    "firstName":"AKINGENEYE",
+    "lastName":"BORICE ARSENE",
+    "username":"akingeneye",
+    "password":"kigali",
+    "email":"akingeneye@construck.rw",
+    "phone":"0785342827",
+    "type":"driver",
+    "title": "TRUCK DRIVER",
+    "status":"active"
 }
 
 
 ###
-PUT http://localhost:9000/users/status
+POST https://construck-backend.herokuapp.com/employees/login
+Content-Type: application/json
+
+{
+    "password":"password",
+    "phone":"0783698288"
+}
+
+
+###
+PUT https://construck-backend.herokuapp.com/users/status
 Content-Type: application/json
 
 {
@@ -166,7 +187,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/projects
+POST https://construck-backend.herokuapp.com/projects
 Content-Type: application/json
 
 {
@@ -179,7 +200,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/works
+POST https://construck-backend.herokuapp.com/works
 Content-Type: application/json
 
 {
@@ -194,12 +215,12 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:9000/works/stop/6262822f14d42b892014233e
+PUT https://construck-backend.herokuapp.com/works/stop/6262822f14d42b892014233e
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-POST http://localhost:9000/dispatches
+POST https://construck-backend.herokuapp.com/dispatches
 Content-Type: application/json
 
 {
@@ -214,7 +235,7 @@ Content-Type: application/json
 
 
 ###
-PUT http://localhost:9000/equipments/assign/62723b4dd9c6ef3e218bd24b
+PUT https://construck-backend.herokuapp.com/equipments/assign/62723b4dd9c6ef3e218bd24b
 
 
 
