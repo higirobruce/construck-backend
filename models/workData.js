@@ -49,6 +49,10 @@ const WorkSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  projectedRevenue: {
+    type: Number,
+    default: 0,
+  },
   comment: {
     type: String,
   },

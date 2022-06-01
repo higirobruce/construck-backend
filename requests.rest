@@ -9,9 +9,8 @@ Content-Type: application/json
 
 {
     "startDate": "2022-05-01",
-    "endDate": "2022-05-07",
-    "status": "approved",
-    "project" : "kgl"
+    "endDate": "2022-07-07",
+    "status": "approved"
 }
 
 

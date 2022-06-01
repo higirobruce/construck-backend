@@ -95,7 +95,8 @@ router.post("/", async (req, res) => {
     if (uom === "hour") revenue = rate * 5;
     if (uom === "day") revenue = rate;
 
-    workToCreate.totalRevenue = revenue;
+    // workToCreate.totalRevenue = revenue;
+    workToCreate.projectedRevenue = revenue;
 
     let workCreated = await workToCreate.save();
     res.status(201).send(workCreated);
@@ -118,14 +119,15 @@ router.post("/getAnalytics", async (req, res) => {
     req.body;
   let total = 0;
   let totalRevenue = 0;
+  let projectedRevenue = 0;
   let totalDays = 0;
   try {
     let workList = await workData.model
       .find({
         status:
-          status === "approved"
+          status === "final"
             ? { $in: ["approved", "stopped"] }
-            : { $in: ["created", "in progress"] },
+            : { $in: ["created", "in progress", "rejected", "stopped"] },
       })
       // .populate({
       //   path: "project",
@@ -182,6 +184,7 @@ router.post("/getAnalytics", async (req, res) => {
 
       list.map((w) => {
         totalRevenue = totalRevenue + w.totalRevenue;
+        projectedRevenue = projectedRevenue + w.projectedRevenue;
       });
     }
 
@@ -262,6 +265,7 @@ router.post("/getAnalytics", async (req, res) => {
 
     res.status(200).send({
       totalRevenue,
+      projectedRevenue,
       totalDays: _.round(totalDays, 1),
     });
   } catch (err) {
@@ -332,6 +336,8 @@ router.put("/recall/:id", async (req, res) => {
 
     work.status = "recalled";
     work.equipment = equipment;
+    work.projectedRevenue = 0;
+    work.totalRevenue = 0;
 
     let savedRecord = await work.save();
 
@@ -358,6 +364,8 @@ router.put("/reject/:id", async (req, res) => {
 
     work.status = "rejected";
     work.reasonForRejection = reasonForRejection;
+    work.totalRevenue = 0;
+    // work.projectedRevenue = 0;
 
     let eqId = work?.equipment?._id;
     await workData.model.updateMany(
@@ -480,7 +488,8 @@ router.put("/stop/:id", async (req, res) => {
         revenue = rate;
       } else {
         work.duration = duration / 24;
-        revenue = (tripsDone / tartgetTrips) * rate;
+        revenue =
+          (tripsDone ? tripsDone : 1 / tartgetTrips ? tartgetTrips : 1) * rate;
       }
     }
 
