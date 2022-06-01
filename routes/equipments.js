@@ -109,6 +109,20 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/makeAvailable/:id", async (req, res) => {
+  let { id } = req.params;
+  try {
+    let equipment = await eqData.model.findById(id);
+
+    equipment.eqStatus = "available";
+
+    let savedRecord = await equipment.save();
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 router.put("/assignToJob/:id", async (req, res) => {
   let { id } = req.params;
   try {
@@ -128,7 +142,7 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
   try {
     let equipment = await eqData.model.findById(id);
 
-    equipment.eqStatus = "under maintenance";
+    equipment.eqStatus = "workshop";
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);
