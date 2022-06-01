@@ -464,7 +464,7 @@ router.put("/stop/:id", async (req, res) => {
     let uom = work?.equipment?.uom;
 
     let rate = work?.equipment?.rate;
-    let tartgetTrips = work?.dispatch?.targetTrips;
+    let tartgetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
 
     let revenue = 0;
 
@@ -488,8 +488,15 @@ router.put("/stop/:id", async (req, res) => {
         revenue = rate;
       } else {
         work.duration = duration / 24;
-        revenue =
-          (tripsDone ? tripsDone : 1 / tartgetTrips ? tartgetTrips : 1) * rate;
+        if (tripsDone && tartgetTrips)
+          revenue = (tripsDone / tartgetTrips) * rate;
+        else {
+          let targetDuration = 5;
+          let durationRation =
+            duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+          work.duration = durationRation;
+          revenue = rate * durationRation;
+        }
       }
     }
 
