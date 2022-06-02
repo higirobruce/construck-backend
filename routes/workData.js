@@ -488,7 +488,10 @@ router.put("/stop/:id", async (req, res) => {
         revenue = rate;
       } else {
         work.duration = duration / 24;
-        if (tripsDone && tartgetTrips)
+        let tripRatio = tripsDone / tartgetTrips;
+        if (tripRatio >= 1) {
+          revenue = rate * tartgetTrips;
+        } else if (tripsDone && tartgetTrips)
           revenue = (tripsDone / tartgetTrips) * rate;
         else {
           let targetDuration = 5;
