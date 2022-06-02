@@ -499,7 +499,7 @@ router.put("/stop/:id", async (req, res) => {
             let targetDuration = 5;
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-            work.duration = duration;
+            work.duration = duration / 24;
             revenue = rate;
           }
         }
