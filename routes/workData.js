@@ -141,7 +141,7 @@ router.post("/getAnalytics", async (req, res) => {
       .populate("dispatch")
       .populate("appovedBy")
       .populate("workDone")
-      .and([{ createdOn: { $gte: startDate, $lte: endDate } }]);
+      .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
 
     if (workList && workList.length > 0) {
       total = 0;
@@ -202,7 +202,7 @@ router.post("/getAnalytics", async (req, res) => {
       .populate("dispatch")
       .populate("appovedBy")
       .populate("workDone")
-      .and([{ createdOn: { $gte: startDate, $lte: endDate } }]);
+      .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
     let listDays = [];
     if (customer) {
       listDays = workListByDay.filter((w) => {
