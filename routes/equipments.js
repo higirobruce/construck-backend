@@ -6,7 +6,7 @@ const _ = require("lodash");
 router.get("/", async (req, res) => {
   try {
     const equipments = await eqData.model.find();
-    res.status(200).send(equipments);
+    res.status(200).send({ equipments, nrecords: equipments.length });
   } catch (err) {}
 });
 
