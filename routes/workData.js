@@ -491,8 +491,9 @@ router.put("/stop/:id", async (req, res) => {
         let tripRatio = tripsDone / tartgetTrips;
         if (tripsDone && tartgetTrips) {
           if (tripRatio >= 1) {
-            revenue = rate * tartgetTrips;
-          } else revenue = (tripsDone / tartgetTrips) * rate;
+            // revenue = rate * tartgetTrips;
+            revenue = rate;
+          } else revenue = rate;
         }
         if (!tartgetTrips || tartgetTrips == "0") {
           {
