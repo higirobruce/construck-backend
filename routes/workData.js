@@ -472,8 +472,10 @@ router.put("/stop/:id", async (req, res) => {
     if (uom === "hour") {
       if (comment !== "Client Related") {
         work.duration = duration ? duration * 3600000 : _duration;
-        revenue = (rate * work.duration) / 3600000;
+
+        revenue = rate * 5;
       } else {
+        if (duration >= 5) duration = 5;
         work.duration = duration ? duration * 3600000 : _duration;
         revenue = (rate * work.duration) / 3600000;
       }
