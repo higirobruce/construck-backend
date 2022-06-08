@@ -64,6 +64,10 @@ router.get("/v3", async (req, res) => {
           "equipment.createdOn": false,
           "dispatch.project": false,
           "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
         }
       )
 
