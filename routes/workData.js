@@ -458,14 +458,15 @@ router.put("/stop/:id", async (req, res) => {
     let _duration = work.endTime - work.startTime;
 
     let startIndex = work.startIndex ? work.startIndex : 19999;
-    work.endIndex = endIndex ? endIndex : startIndex;
-    work.startIndex = startIndex;
-    work.tripsDone = tripsDone;
+    work.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
+    work.startIndex = parseInt(startIndex);
+    work.tripsDone = parseInt(tripsDone);
     let uom = work?.equipment?.uom;
 
     let rate = work?.equipment?.rate;
-    let tartgetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
+    let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
 
+    let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
     let revenue = 0;
 
     // if rate is per hour and we have target trips to be done
@@ -475,7 +476,7 @@ router.put("/stop/:id", async (req, res) => {
         revenue = (rate * work.duration) / 3600000;
       } else {
         work.duration = duration ? duration * 3600000 : _duration;
-        revenue = (rate * work.duration) / 3600000;
+        revenue = (tripsRatio * (rate * work.duration)) / 3600000;
       }
     }
 
@@ -488,14 +489,14 @@ router.put("/stop/:id", async (req, res) => {
         revenue = rate;
       } else {
         work.duration = duration / 24;
-        let tripRatio = tripsDone / tartgetTrips;
-        if (tripsDone && tartgetTrips) {
+        let tripRatio = tripsDone / targetTrips;
+        if (tripsDone && targetTrips) {
           if (tripRatio >= 1) {
-            revenue = rate * tartgetTrips;
+            revenue = rate * targetTrips;
             // revenue = rate;
           } else revenue = rate * tripRatio;
         }
-        if (!tartgetTrips || tartgetTrips == "0") {
+        if (!targetTrips || targetTrips == "0") {
           {
             let targetDuration = 5;
             let durationRation =
