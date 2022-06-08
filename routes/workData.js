@@ -3,6 +3,7 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
 const eqData = require("../models/equipments");
+const moment = require("moment");
 
 router.get("/", async (req, res) => {
   try {
@@ -52,6 +53,41 @@ router.get("/v2", async (req, res) => {
   }
 });
 
+router.get("/v3", async (req, res) => {
+  try {
+    let workList = await workData.model
+      .find(
+        {},
+        {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+        }
+      )
+
+      // .populate("project")
+      // .populate({
+      //   path: "project",
+      //   populate: {
+      //     path: "customer",
+      //     model: "customers",
+      //   },
+      // })
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("workDone")
+      .sort([["_id", "descending"]]);
+
+    res.status(200).send(workList);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
@@ -83,11 +119,14 @@ router.post("/", async (req, res) => {
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     equipment.eqStatus = "dispatched";
+    equipment.assignedToSiteWork = true;
     equipment.assignedDate = req.body?.dispatch?.date;
     equipment.assignedShift = req.body?.dispatch?.shift;
-    let rate = equipment.rate;
+    let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
     let revenue = 0;
+    let siteWork = req.body?.siteWork;
+    let workDurationDays = req.body?.workDurationDays;
 
     await equipment.save();
 
@@ -96,7 +135,9 @@ router.post("/", async (req, res) => {
     if (uom === "day") revenue = rate;
 
     // workToCreate.totalRevenue = revenue;
-    workToCreate.projectedRevenue = revenue;
+    workToCreate.projectedRevenue = siteWork
+      ? revenue * workDurationDays
+      : revenue;
 
     let workCreated = await workToCreate.save();
     res.status(201).send(workCreated);
@@ -413,16 +454,21 @@ router.put("/start/:id", async (req, res) => {
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
     equipment.eqStatus = "assigned to job";
+    equipment.assignedToSiteWork = true;
 
-    work.status = "in progress";
-    work.startTime = Date.now();
-    work.startIndex = startIndex;
-    work.equipment = equipment;
+    if (work.siteWork) {
+      console.log(moment().diff(moment(work.workStartDate), "days"));
+      res.send("Site Work");
+    } else {
+      work.status = "in progress";
+      work.startTime = Date.now();
+      work.startIndex = startIndex;
+      work.equipment = equipment;
+      let savedRecord = await work.save();
+      await equipment.save();
 
-    let savedRecord = await work.save();
-    await equipment.save();
-
-    res.status(201).send(savedRecord);
+      res.status(201).send(savedRecord);
+    }
   } catch (err) {
     console.log(err);
   }

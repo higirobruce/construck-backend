@@ -68,6 +68,16 @@ const WorkSchema = new mongoose.Schema({
   reasonForRejection: {
     type: String,
   },
+  siteWork: {
+    type: Boolean,
+  },
+  workStartDate: {
+    type: Date,
+  },
+  workEndDate: {
+    type: Date,
+  },
+  workDurationDays: { type: Number, default: 0 },
   appovedBy: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),

@@ -41,6 +41,7 @@ const EquipmentSchema = new mongoose.Schema({
   assignedShift: {
     type: String,
   },
+  assignedToSiteWork: { type: Boolean, default: false },
   createdOn: {
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
