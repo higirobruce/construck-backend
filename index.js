@@ -18,11 +18,11 @@ const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 const employees = require("./routes/employees");
 //Set up default mongoose connection
-// var mongoDB =
-//   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
+var mongoDB =
+  "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
-var mongoDB = "";
-mongoDB = process.env.CONS_MONGO_DB;
+// var mongoDB = "";
+// mongoDB = process.env.CONS_MONGO_DB;
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
 var db = mongoose.connection;
