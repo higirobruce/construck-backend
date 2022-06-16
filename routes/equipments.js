@@ -127,12 +127,39 @@ router.put("/makeAvailable/:id", async (req, res) => {
   }
 });
 
+router.put("/makeAllAvailable/", async (req, res) => {
+  try {
+    let equipment = await eqData.model.updateMany(
+      {},
+      { eqStatus: "available" }
+    );
+
+    res.status(202).send(equipment);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 router.put("/assignToJob/:id", async (req, res) => {
   let { id } = req.params;
   try {
     let equipment = await eqData.model.findById(id);
 
     equipment.eqStatus = "assigned to work";
+
+    let savedRecord = await equipment.save();
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.put("/makeDispatched/:id", async (req, res) => {
+  let { id } = req.params;
+  try {
+    let equipment = await eqData.model.findById(id);
+
+    equipment.eqStatus = "dispatched";
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);

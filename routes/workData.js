@@ -68,6 +68,7 @@ router.get("/v3", async (req, res) => {
           "driver.email": false,
           "driver.createdOn": false,
           "driver.__v": false,
+          "driver._id": false,
         }
       )
 
@@ -126,6 +127,8 @@ router.post("/", async (req, res) => {
     equipment.assignedToSiteWork = true;
     equipment.assignedDate = req.body?.dispatch?.date;
     equipment.assignedShift = req.body?.dispatch?.shift;
+    let driver = req.body?.driver === "NA" ? null : req.body?.driver;
+
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
     let revenue = 0;
@@ -143,6 +146,7 @@ router.post("/", async (req, res) => {
       ? revenue * workDurationDays
       : revenue;
 
+    workToCreate.driver = driver;
     let workCreated = await workToCreate.save();
     res.status(201).send(workCreated);
   } catch (err) {
