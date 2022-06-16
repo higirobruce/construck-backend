@@ -17,6 +17,7 @@ const dispatches = require("./routes/dispatches");
 const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 const employees = require("./routes/employees");
+const avblty = require("./routes/assetAvailability");
 //Set up default mongoose connection
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
@@ -49,6 +50,7 @@ app.use("/reasons", reasons);
 app.use("/dispatches", dispatches);
 app.use("/jobtypes", jobTypes);
 app.use("/employees", employees);
+app.use("/assetAvailability", avblty);
 
 app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);

@@ -2,6 +2,7 @@ const router = require("express").Router();
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
+const assetAvblty = require("../models/assetAvailability");
 const eqData = require("../models/equipments");
 const moment = require("moment");
 
@@ -178,18 +179,6 @@ router.post("/getAnalytics", async (req, res) => {
             ? { $in: ["approved", "stopped"] }
             : { $in: ["created", "in progress", "rejected", "stopped"] },
       })
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
-      // .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone")
       .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
 
     if (workList && workList.length > 0) {
@@ -239,18 +228,6 @@ router.post("/getAnalytics", async (req, res) => {
 
     let workListByDay = await workData.model
       .find({ uom: "day" })
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
-      .populate("equipment")
-      .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("workDone")
       .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
     let listDays = [];
     if (customer) {
@@ -294,13 +271,6 @@ router.post("/getAnalytics", async (req, res) => {
     let dispatches = await workData.model.find({
       createdOn: { $gte: startDate, $lte: endDate },
     });
-    // .populate({
-    //   path: "project",
-    //   populate: {
-    //     path: "customer",
-    //     model: "customers",
-    //   },
-    // });
 
     let listDispaches = [];
     if (customer) {
