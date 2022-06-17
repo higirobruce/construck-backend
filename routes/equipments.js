@@ -136,11 +136,13 @@ router.put("/makeAvailable/:id", async (req, res) => {
       await dateData.save();
     } else {
       const availableAssets = await eqData.model.find({
-        eqStatus: "available",
+        eqStatus: { $ne: "workshop" },
+        eqOwner: "Construck",
       });
 
       const unavailableAssets = await eqData.model.find({
         eqStatus: "workshop",
+        eqOwner: "Construck",
       });
 
       let dateDataToSave = new assetAvblty.model({
@@ -216,7 +218,7 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
       await dateData.save();
     } else {
       const availableAssets = await eqData.model.find({
-        eqStatus: "available",
+        eqStatus: { $ne: "workshop" },
         eqOwner: "Construck",
       });
 
