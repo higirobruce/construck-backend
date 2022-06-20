@@ -41,6 +41,9 @@ const EquipmentSchema = new mongoose.Schema({
   assignedShift: {
     type: String,
   },
+  millage: {
+    type: Number,
+  },
   assignedToSiteWork: { type: Boolean, default: false },
   createdOn: {
     type: mongoose.SchemaTypes.Date,

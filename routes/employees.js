@@ -61,7 +61,7 @@ router.post("/login", async (req, res) => {
 
     let allowed = true;
     if (allowed) {
-      if (employee.status === "active") {
+      if (employee.status !== "inactive") {
         // employee.message = "Allowed";
         res.status(200).send({
           employee: {

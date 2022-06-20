@@ -2,9 +2,11 @@ const router = require("express").Router();
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
+const employeeData = require("../models/employees");
 const assetAvblty = require("../models/assetAvailability");
 const eqData = require("../models/equipments");
 const moment = require("moment");
+const e = require("express");
 
 router.get("/", async (req, res) => {
   try {
@@ -130,6 +132,9 @@ router.post("/", async (req, res) => {
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
+    let employee = await employeeData.model.findById(driver);
+    employee.status = "dispatched";
+
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
     let revenue = 0;
@@ -137,6 +142,7 @@ router.post("/", async (req, res) => {
     let workDurationDays = req.body?.workDurationDays;
 
     await equipment.save();
+    await employee.save();
 
     workToCreate.equipment = equipment;
     if (uom === "hour") revenue = rate * 5;
@@ -340,6 +346,9 @@ router.put("/recall/:id", async (req, res) => {
   try {
     let work = await workData.model.findById(id);
 
+    let employee = await employeeData.model.findById(work?.driver);
+    employee.status = "active";
+
     let eqId = work?.equipment?._id;
     await workData.model.updateMany(
       { "equipment._id": eqId },
@@ -361,6 +370,7 @@ router.put("/recall/:id", async (req, res) => {
     let savedRecord = await work.save();
 
     await equipment.save();
+    await employee.save();
 
     res.status(201).send(savedRecord);
   } catch (err) {
@@ -434,6 +444,9 @@ router.put("/start/:id", async (req, res) => {
     equipment.eqStatus = "assigned to job";
     equipment.assignedToSiteWork = true;
 
+    let employee = await employeeData.model.findById(work?.driver);
+    employee.status = "busy";
+
     if (work.siteWork) {
       let dailyWork = {
         day: moment().diff(moment(work.workStartDate), "days"),
@@ -443,6 +456,7 @@ router.put("/start/:id", async (req, res) => {
       work.dailyWork.push(dailyWork);
       work.status = "in progress";
       let savedRecord = await work.save();
+      await employee.save();
       res.status(201).send(savedRecord);
     } else {
       work.status = "in progress";
@@ -450,6 +464,8 @@ router.put("/start/:id", async (req, res) => {
       work.startIndex = startIndex;
       work.equipment = equipment;
       let savedRecord = await work.save();
+
+      await employee.save();
       await equipment.save();
 
       res.status(201).send(savedRecord);
@@ -473,6 +489,11 @@ router.put("/stop/:id", async (req, res) => {
       .populate("dispatch")
       .populate("workDone");
 
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+
+    let employee = await employeeData.model.findById(work?.driver);
+    employee.status = "active";
+
     if (work.siteWork) {
       let dailyWork = {};
       let currentTotalRevenue = work.totalRevenue;
@@ -484,6 +505,8 @@ router.put("/stop/:id", async (req, res) => {
       let startIndex = work.startIndex ? work.startIndex : 19999;
       dailyWork.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
       dailyWork.startIndex = parseInt(startIndex);
+
+      equipment.millage = endIndex ? parseInt(endIndex) : parseInt(startIndex);
 
       let uom = work?.equipment?.uom;
       let rate = work?.equipment?.rate;
@@ -536,6 +559,8 @@ router.put("/stop/:id", async (req, res) => {
       work.dailyWork = dailyWorks;
       work.totalRevenue = currentTotalRevenue + revenue;
 
+      await equipment.save();
+      await employee.save();
       let savedRecord = await work.save();
 
       res.status(201).send(savedRecord);
@@ -555,6 +580,7 @@ router.put("/stop/:id", async (req, res) => {
       equipment.eqStatus = "available";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
+      equipment.millage = endIndex ? parseInt(endIndex) : parseInt(startIndex);
 
       work.status = "stopped";
       work.endTime = Date.now();
@@ -618,6 +644,7 @@ router.put("/stop/:id", async (req, res) => {
       work.equipment = equipment;
 
       let savedRecord = await work.save();
+      await employee.save();
       await equipment.save();
       res.status(201).send(savedRecord);
     }
