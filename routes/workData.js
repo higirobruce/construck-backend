@@ -133,7 +133,7 @@ router.post("/", async (req, res) => {
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
     let employee = await employeeData.model.findById(driver);
-    employee.status = "dispatched";
+    if (employee) employee.status = "dispatched";
 
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
@@ -142,7 +142,7 @@ router.post("/", async (req, res) => {
     let workDurationDays = req.body?.workDurationDays;
 
     await equipment.save();
-    await employee.save();
+    if (employee) await employee.save();
 
     workToCreate.equipment = equipment;
     if (uom === "hour") revenue = rate * 5;
@@ -445,7 +445,7 @@ router.put("/start/:id", async (req, res) => {
     equipment.assignedToSiteWork = true;
 
     let employee = await employeeData.model.findById(work?.driver);
-    employee.status = "busy";
+    if (employee) employee.status = "busy";
 
     if (work.siteWork) {
       let dailyWork = {
@@ -465,7 +465,7 @@ router.put("/start/:id", async (req, res) => {
       work.equipment = equipment;
       let savedRecord = await work.save();
 
-      await employee.save();
+      if (employee) await employee.save();
       await equipment.save();
 
       res.status(201).send(savedRecord);
@@ -492,7 +492,7 @@ router.put("/stop/:id", async (req, res) => {
     let equipment = await eqData.model.findById(work?.equipment?._id);
 
     let employee = await employeeData.model.findById(work?.driver);
-    employee.status = "active";
+    if (employee) employee.status = "active";
 
     if (work.siteWork) {
       let dailyWork = {};
@@ -559,7 +559,7 @@ router.put("/stop/:id", async (req, res) => {
       work.dailyWork = dailyWorks;
       work.totalRevenue = currentTotalRevenue + revenue;
 
-      await equipment.save();
+      if (employee) await equipment.save();
       await employee.save();
       let savedRecord = await work.save();
 
@@ -644,7 +644,7 @@ router.put("/stop/:id", async (req, res) => {
       work.equipment = equipment;
 
       let savedRecord = await work.save();
-      await employee.save();
+      if (employee) await employee.save();
       await equipment.save();
       res.status(201).send(savedRecord);
     }
