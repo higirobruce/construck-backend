@@ -347,7 +347,7 @@ router.put("/recall/:id", async (req, res) => {
     let work = await workData.model.findById(id);
 
     let employee = await employeeData.model.findById(work?.driver);
-    employee.status = "active";
+    if (employee) employee.status = "active";
 
     let eqId = work?.equipment?._id;
     await workData.model.updateMany(
@@ -369,7 +369,7 @@ router.put("/recall/:id", async (req, res) => {
 
     let savedRecord = await work.save();
 
-    await equipment.save();
+    if (employee) await equipment.save();
     await employee.save();
 
     res.status(201).send(savedRecord);
