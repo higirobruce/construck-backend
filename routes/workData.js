@@ -369,8 +369,8 @@ router.put("/recall/:id", async (req, res) => {
 
     let savedRecord = await work.save();
 
-    if (employee) await equipment.save();
-    await employee.save();
+    await equipment.save();
+    if (employee) await employee.save();
 
     res.status(201).send(savedRecord);
   } catch (err) {
