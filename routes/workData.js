@@ -230,7 +230,7 @@ router.post("/mobileData", async (req, res) => {
       let workCreated = await workToCreate.save();
       res.status(201).send(workCreated);
     } else {
-      res.status(201).send();
+      res.status(201).send(bodyData);
     }
   } catch (err) {
     console.log(err);
