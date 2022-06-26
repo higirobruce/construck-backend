@@ -7,6 +7,8 @@ const assetAvblty = require("../models/assetAvailability");
 const eqData = require("../models/equipments");
 const moment = require("moment");
 const e = require("express");
+const { isNull } = require("lodash");
+const MS_IN_A_DAY = 86400000;
 
 router.get("/", async (req, res) => {
   try {
@@ -26,7 +28,7 @@ router.get("/", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    res.status(200).send(workList);
+    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
   } catch (err) {
     res.send(err);
   }
@@ -50,7 +52,7 @@ router.get("/v2", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    res.status(200).send(workList);
+    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
   } catch (err) {
     res.send(err);
   }
@@ -90,7 +92,7 @@ router.get("/v3", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    res.status(200).send(workList);
+    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
   } catch (err) {
     res.send(err);
   }
@@ -124,6 +126,7 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     let workToCreate = new workData.model(req.body);
+    console.log(req.body);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     equipment.eqStatus = "dispatched";
@@ -156,6 +159,79 @@ router.post("/", async (req, res) => {
     workToCreate.driver = driver;
     let workCreated = await workToCreate.save();
     res.status(201).send(workCreated);
+  } catch (err) {
+    console.log(err);
+    let error = findError(err.code);
+    let keyPattern = err.keyPattern;
+    let key = _.findKey(keyPattern, function (key) {
+      return key === 1;
+    });
+    res.send({
+      error,
+      key,
+    });
+  }
+});
+
+router.post("/mobileData", async (req, res) => {
+  try {
+    let bodyData = {
+      project: JSON.parse(req.body.project),
+      equipment: JSON.parse(req.body.equipment),
+      workDone: req.body.workDone,
+      startIndex: req.body.startIndex,
+      endIndex: req.body.endIndex,
+      startTime: req.body.startTime,
+      endTime: req.body.endTime,
+      rate: req.body.rate,
+      driver: req.body.driver,
+      status: req.body.status,
+      duration: req.body.duration,
+      comment: req.body.comment,
+      siteWork: req.body.siteWork === "yes" ? true : false,
+    };
+    let workToCreate = new workData.model(bodyData);
+    console.log(req.body);
+
+    let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
+    if (equipment.eqStatus === "available") {
+      // Save data only when equipment is available
+      equipment.eqStatus = "dispatched";
+      equipment.assignedToSiteWork = true;
+      equipment.assignedDate = req.body?.dispatch?.date;
+      equipment.assignedShift = req.body?.dispatch?.shift;
+
+      let driver = req.body?.driver === "NA" ? null : req.body?.driver;
+
+      let employee = await employeeData.model.findById(driver);
+      if (employee) employee.status = "dispatched";
+
+      let rate = parseInt(equipment.rate);
+      let uom = equipment.uom;
+      let revenue = 0;
+      let siteWork = bodyData?.siteWork;
+      let workDurationDays =
+        moment(bodyData.endTime).diff(moment(bodyData.startTime)) / MS_IN_A_DAY;
+
+      await equipment.save();
+      if (employee) await employee.save();
+
+      workToCreate.equipment = equipment;
+      workToCreate.workDurationDays = workDurationDays;
+      if (uom === "hour") revenue = rate * 5;
+      if (uom === "day") revenue = rate;
+
+      // workToCreate.totalRevenue = revenue;
+      workToCreate.projectedRevenue = siteWork
+        ? revenue * workDurationDays
+        : revenue;
+
+      workToCreate.driver = driver;
+      let workCreated = await workToCreate.save();
+      res.status(201).send(workCreated);
+    } else {
+      res.status(201).send();
+    }
   } catch (err) {
     console.log(err);
     let error = findError(err.code);

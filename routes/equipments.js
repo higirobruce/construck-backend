@@ -12,6 +12,13 @@ router.get("/", async (req, res) => {
   } catch (err) {}
 });
 
+router.get("/v2", async (req, res) => {
+  try {
+    const equipments = await eqData.model.find();
+    res.status(200).send(equipments);
+  } catch (err) {}
+});
+
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
