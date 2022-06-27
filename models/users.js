@@ -30,11 +30,11 @@ const UserSchema = mongoose.Schema({
   userType: {
     type: String,
   },
-  // company: {
-  //   type: mongoose.SchemaTypes.ObjectId,
-  //   transform: (v) => (v === "" ? null : v),
-  //   ref: "customers",
-  // },
+  company: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "customers",
+  },
   status: {
     type: String,
     default: "inactive",
