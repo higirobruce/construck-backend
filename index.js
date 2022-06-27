@@ -24,6 +24,7 @@ const avblty = require("./routes/assetAvailability");
 
 var mongoDB = "";
 mongoDB = process.env.CONS_MONGO_DB;
+
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
 var db = mongoose.connection;

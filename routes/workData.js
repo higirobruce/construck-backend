@@ -28,7 +28,8 @@ router.get("/", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    res.status(200).send(workList);
   } catch (err) {
     res.send(err);
   }
@@ -52,7 +53,8 @@ router.get("/v2", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
-    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    res.status(200).send(workList);
   } catch (err) {
     res.send(err);
   }
@@ -92,7 +94,8 @@ router.get("/v3", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    res.status(200).send(workList);
   } catch (err) {
     res.send(err);
   }
@@ -125,8 +128,8 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    let workToCreate = new workData.model(req.body);
     console.log(req.body);
+    let workToCreate = new workData.model(req.body);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     equipment.eqStatus = "dispatched";
@@ -573,6 +576,7 @@ router.put("/stop/:id", async (req, res) => {
     if (work.siteWork) {
       let dailyWork = {};
       let currentTotalRevenue = work.totalRevenue;
+      let currentTotalExpenditure = work.totalExpenditure;
 
       work.status = "created";
 
@@ -586,16 +590,20 @@ router.put("/stop/:id", async (req, res) => {
 
       let uom = work?.equipment?.uom;
       let rate = work?.equipment?.rate;
+      let supplierRate = work?.equipment?.supplierRate;
       let revenue = 0;
+      let expenditure = 0;
 
       // if rate is per hour and we have target trips to be done
       if (uom === "hour") {
         if (comment !== "Ibibazo bya panne") {
           dailyWork.duration = duration ? duration * 3600000 : _duration;
           revenue = (rate * dailyWork.duration) / 3600000;
+          expenditure = (supplierRate * dailyWork.duration) / 3600000;
         } else {
           dailyWork.duration = duration ? duration * 3600000 : _duration;
           revenue = (rate * dailyWork.duration) / 3600000;
+          expenditure = (supplierRate * dailyWork.duration) / 3600000;
         }
       }
 
@@ -606,6 +614,7 @@ router.put("/stop/:id", async (req, res) => {
         if (comment !== "Ibibazo bya panne") {
           dailyWork.duration = duration / 24;
           revenue = rate;
+          expenditure = supplierRate;
         } else {
           dailyWork.duration = duration / 24;
 
@@ -614,12 +623,14 @@ router.put("/stop/:id", async (req, res) => {
             duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
           dailyWork.duration = duration / 24;
           revenue = rate;
+          expenditure = supplierRate;
         }
       }
 
       dailyWork.rate = rate;
       dailyWork.uom = uom;
       dailyWork.totalRevenue = revenue ? revenue : 0;
+      dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
 
       let dailyWorks = [...work.dailyWork];
@@ -634,6 +645,7 @@ router.put("/stop/:id", async (req, res) => {
 
       work.dailyWork = dailyWorks;
       work.totalRevenue = currentTotalRevenue + revenue;
+      work.totalExpenditure = currentTotalExpenditure + expenditure;
 
       if (employee) await equipment.save();
       await employee.save();
@@ -669,19 +681,23 @@ router.put("/stop/:id", async (req, res) => {
       let uom = work?.equipment?.uom;
 
       let rate = work?.equipment?.rate;
+      let supplierRate = work?.equipment?.supplierRate;
       let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
 
       let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
       let revenue = 0;
+      let expenditure = 0;
 
       // if rate is per hour and we have target trips to be done
       if (uom === "hour") {
         if (comment !== "Ibibazo bya panne") {
           work.duration = duration ? duration * 3600000 : _duration;
           revenue = (rate * work.duration) / 3600000;
+          expenditure = (supplierRate * work.duration) / 3600000;
         } else {
           work.duration = duration ? duration * 3600000 : _duration;
           revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+          expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
         }
       }
 
@@ -692,14 +708,19 @@ router.put("/stop/:id", async (req, res) => {
         if (comment !== "Ibibazo bya panne") {
           work.duration = duration / 24;
           revenue = rate;
+          expenditure = supplierRate;
         } else {
           work.duration = duration / 24;
           let tripRatio = tripsDone / targetTrips;
           if (tripsDone && targetTrips) {
             if (tripRatio >= 1) {
               revenue = rate * targetTrips;
+              expenditure = supplierRate * targetTrips;
               // revenue = rate;
-            } else revenue = rate * tripRatio;
+            } else {
+              revenue = rate * tripRatio;
+              expenditure = supplierRate * tripRatio;
+            }
           }
           if (!targetTrips || targetTrips == "0") {
             {
@@ -708,6 +729,7 @@ router.put("/stop/:id", async (req, res) => {
                 duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
               work.duration = duration / 24;
               revenue = rate;
+              expenditure = supplierRate;
             }
           }
         }
@@ -716,6 +738,7 @@ router.put("/stop/:id", async (req, res) => {
       work.rate = rate;
       work.uom = uom;
       work.totalRevenue = revenue ? revenue : 0;
+      work.totalExpenditure = expenditure ? expenditure : 0;
       work.comment = comment;
       work.equipment = equipment;
 

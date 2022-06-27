@@ -6,7 +6,7 @@ const _ = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    let users = await userData.model.find().populate("company");
+    let users = await userData.model.find();
     res.status(200).send(users);
   } catch (err) {
     res.send(err);
