@@ -704,6 +704,15 @@ router.put("/stop/:id", async (req, res) => {
       await employee.save();
       let savedRecord = await work.save();
 
+      //log saving
+      let log = {
+        action: "DISPATCH STOPPED",
+        doneBy: req.body.stoppedBy,
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
+
       res.status(201).send(savedRecord);
     } else {
       let eqId = work?.equipment?._id;
@@ -798,6 +807,16 @@ router.put("/stop/:id", async (req, res) => {
       let savedRecord = await work.save();
       if (employee) await employee.save();
       await equipment.save();
+
+      //log saving
+      let log = {
+        action: "DISPATCH STOPPED",
+        doneBy: req.body.stoppedBy,
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
+
       res.status(201).send(savedRecord);
     }
   } catch (err) {
