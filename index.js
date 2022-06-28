@@ -22,6 +22,8 @@ const avblty = require("./routes/assetAvailability");
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
+// var mongoDB = "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority"
+
 var mongoDB = "";
 mongoDB = process.env.CONS_MONGO_DB;
 

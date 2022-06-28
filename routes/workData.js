@@ -4,6 +4,7 @@ const _ = require("lodash");
 const workData = require("../models/workData");
 const employeeData = require("../models/employees");
 const assetAvblty = require("../models/assetAvailability");
+const logData = require("../models/logs");
 const eqData = require("../models/equipments");
 const moment = require("moment");
 const e = require("express");
@@ -165,6 +166,15 @@ router.post("/", async (req, res) => {
 
     workToCreate.driver = driver;
     let workCreated = await workToCreate.save();
+
+    //log saving
+    let log = {
+      action: "DISPATCH CREATED",
+      doneBy: req.body.createdBy,
+      payload: req.body,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
     res.status(201).send(workCreated);
   } catch (err) {
     console.log(err);
@@ -235,6 +245,17 @@ router.post("/mobileData", async (req, res) => {
 
       workToCreate.driver = driver;
       let workCreated = await workToCreate.save();
+
+      //log saving
+      let log = {
+        action: "DISPATCH CREATED",
+        doneBy: req.body.createdBy,
+        payload: req.body,
+      };
+      console.log(log);
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
+
       res.status(201).send(workCreated);
     } else {
       res.status(201).send(bodyData);
