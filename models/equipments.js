@@ -45,6 +45,11 @@ const EquipmentSchema = new mongoose.Schema({
     type: Number,
   },
   assignedToSiteWork: { type: Boolean, default: false },
+  vendor: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "vendors",
+  },
   createdOn: {
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
