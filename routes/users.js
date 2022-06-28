@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const userData = require("../models/users");
+const venData = require("../models/vendors");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
@@ -72,17 +73,28 @@ router.post("/login", async (req, res) => {
       .findOne({ email: email })
       .populate("company");
 
-    if (user?.length === 0) {
-      res.status(404).send({
-        message: "Email not found",
-        error: true,
-      });
-      return;
+    let vendor = await venData.model.findOne({ phone: email });
+
+    console.log(vendor);
+
+    if (user?.length === 0 || !user) {
+      if (vendor?.length === 0 || !vendor) {
+        res.status(404).send({
+          message: "User not found!",
+          error: true,
+        });
+        return;
+      }
     }
 
-    let allowed = await bcrypt.compare(password, user.password);
+    let userAllowed = user
+      ? await bcrypt.compare(password, user?.password)
+      : false;
+    let vendorAllowed = vendor
+      ? await bcrypt.compare(password, vendor?.password)
+      : false;
 
-    if (allowed) {
+    if (userAllowed) {
       if (user.status === "active") {
         // user.message = "Allowed";
         res.status(200).send({ user, message: "Allowed" });
@@ -92,6 +104,17 @@ router.post("/login", async (req, res) => {
           error: true,
         });
       }
+    } else if (vendorAllowed) {
+      res.status(200).send({
+        user: {
+          _id: vendor._id,
+          firstName: vendor.name,
+          lastName: "",
+          status: "active",
+          userType: "vendor",
+        },
+        message: "Allowed",
+      });
     } else {
       res.status(401).send({
         message: "Not allowed!",
