@@ -1,9 +1,18 @@
 const mongoose = require("mongoose");
 const VendorSchema = mongoose.Schema({
-  fistName: {
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    dropDups: true,
+  },
+  phone: {
     type: String,
   },
-  lastName: {
+  mobile: {
+    type: String,
+  },
+  password: {
     type: String,
   },
   tinNumber: {

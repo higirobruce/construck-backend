@@ -13,13 +13,8 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let { fistName, lastName, tinNumber } = req.body;
   try {
-    let vendorToCreate = new venData.model({
-      fistName,
-      lastName,
-      tinNumber,
-    });
+    let vendorToCreate = new venData.model(req.body);
     let vendorCreated = await vendorToCreate.save();
 
     res.status(201).send(vendorCreated);
