@@ -476,6 +476,15 @@ router.put("/recall/:id", async (req, res) => {
     await equipment.save();
     if (employee) await employee.save();
 
+    //log saving
+    let log = {
+      action: "DISPATCH RECALLED",
+      doneBy: req.body.recalledBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
     res.status(201).send(savedRecord);
   } catch (err) {
     console.log(err);
