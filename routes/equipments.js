@@ -4,6 +4,7 @@ const assetAvblty = require("../models/assetAvailability");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
+const { eq } = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
@@ -290,6 +291,15 @@ router.put("/release/:id", async (req, res) => {
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.delete("/hired", async (req, res) => {
+  try {
+    await eqData.model.deleteMany({ eqOwner: { $ne: "Construck" } });
+    res.send("Done");
   } catch (err) {
     console.log(err);
   }
