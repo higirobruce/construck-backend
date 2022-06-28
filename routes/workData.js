@@ -171,7 +171,7 @@ router.post("/", async (req, res) => {
     let log = {
       action: "DISPATCH CREATED",
       doneBy: req.body.createdBy,
-      payload: req.body,
+      payload: workToCreate,
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
@@ -570,6 +570,16 @@ router.put("/start/:id", async (req, res) => {
       work.status = "in progress";
       let savedRecord = await work.save();
       await employee.save();
+
+      //log saving
+      let log = {
+        action: "DISPATCH STARTED",
+        doneBy: req.body.startedBy,
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
+
       res.status(201).send(savedRecord);
     } else {
       work.status = "in progress";
@@ -580,6 +590,15 @@ router.put("/start/:id", async (req, res) => {
 
       if (employee) await employee.save();
       await equipment.save();
+
+      //log saving
+      let log = {
+        action: "DISPATCH STARTED",
+        doneBy: req.body.startedBy,
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
 
       res.status(201).send(savedRecord);
     }
