@@ -305,4 +305,13 @@ router.delete("/hired", async (req, res) => {
   }
 });
 
+router.delete("/ctk", async (req, res) => {
+  try {
+    await eqData.model.deleteMany({ eqOwner: { $e: "Construck" } });
+    res.send("Done");
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 module.exports = router;
