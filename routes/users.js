@@ -72,7 +72,7 @@ router.post("/login", async (req, res) => {
       .findOne({ email: email })
       .populate("company");
 
-    if (user.length === 0) {
+    if (user?.length === 0) {
       res.status(404).send({
         message: "Email not found",
         error: true,

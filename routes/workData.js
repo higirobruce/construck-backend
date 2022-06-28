@@ -138,7 +138,7 @@ router.post("/", async (req, res) => {
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     equipment.eqStatus = "dispatched";
-    equipment.assignedToSiteWork = true;
+    equipment.assignedToSiteWork = req.body?.siteWork;
     equipment.assignedDate = req.body?.dispatch?.date;
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
