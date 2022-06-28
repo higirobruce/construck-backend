@@ -94,6 +94,11 @@ const WorkSchema = new mongoose.Schema({
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
   },
+  createdBy: {
+    type: mongoose.SchemaTypes.ObjectId,
+    transform: (v) => (v === "" ? null : v),
+    ref: "users",
+  },
 });
 
 module.exports = {

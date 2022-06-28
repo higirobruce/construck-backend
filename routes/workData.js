@@ -26,6 +26,7 @@ router.get("/", async (req, res) => {
       .populate("driver")
       .populate("dispatch")
       .populate("appovedBy")
+      .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
@@ -51,6 +52,7 @@ router.get("/v2", async (req, res) => {
       .populate("driver")
       .populate("dispatch")
       .populate("appovedBy")
+      .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
@@ -91,6 +93,7 @@ router.get("/v3", async (req, res) => {
       .populate("driver")
       .populate("dispatch")
       .populate("appovedBy")
+      .populate("createdBy")
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
@@ -118,6 +121,7 @@ router.get("/:id", async (req, res) => {
       .populate("driver")
       .populate("dispatch")
       .populate("appovedBy")
+      .populate("createdBy")
       .populate("workDone");
 
     res.status(200).send(work);
