@@ -568,8 +568,9 @@ router.put("/start/:id", async (req, res) => {
       };
       work.dailyWork.push(dailyWork);
       work.status = "in progress";
+      work.startIndex = startIndex;
       let savedRecord = await work.save();
-      await employee.save();
+      if (employee) await employee.save();
 
       //log saving
       let log = {
@@ -629,6 +630,7 @@ router.put("/stop/:id", async (req, res) => {
     if (work.siteWork) {
       let dailyWork = {};
       let currentTotalRevenue = work.totalRevenue;
+      let currentDuration = work.duration;
       let currentTotalExpenditure = work.totalExpenditure;
 
       work.status = "created";
@@ -651,6 +653,7 @@ router.put("/stop/:id", async (req, res) => {
       if (uom === "hour") {
         if (comment !== "Ibibazo bya panne") {
           dailyWork.duration = duration ? duration * 3600000 : _duration;
+
           revenue = (rate * dailyWork.duration) / 3600000;
           expenditure = (supplierRate * dailyWork.duration) / 3600000;
         } else {
@@ -696,12 +699,15 @@ router.put("/stop/:id", async (req, res) => {
 
       dailyWorks[indexToUpdate] = dailyWork;
 
+      work.startIndex = parseInt(endIndex);
       work.dailyWork = dailyWorks;
+      work.duration = dailyWork.duration + currentDuration;
       work.totalRevenue = currentTotalRevenue + revenue;
       work.totalExpenditure = currentTotalExpenditure + expenditure;
+      work.equipment = equipment;
 
-      if (employee) await equipment.save();
-      await employee.save();
+      await equipment.save();
+      if (employee) await employee.save();
       let savedRecord = await work.save();
 
       //log saving
@@ -817,6 +823,52 @@ router.put("/stop/:id", async (req, res) => {
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
 
+      res.status(201).send(savedRecord);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.put("/end/:id", async (req, res) => {
+  let { id } = req.params;
+
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("appovedBy")
+      .populate("dispatch")
+      .populate("workDone");
+
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+
+    let employee = await employeeData.model.findById(work?.driver);
+    if (employee) employee.status = "active";
+
+    if (work.siteWork) {
+      work.status = "stopped";
+      equipment.eqStatus = "available";
+      equipment.assignedDate = null;
+      equipment.assignedShift = "";
+
+      work.projectedRevenue = work.totalRevenue;
+      work.equipment = equipment;
+
+      await equipment.save();
+      if (employee) await employee.save();
+      let savedRecord = await work.save();
+
+      //log saving
+      let log = {
+        action: "SITE WORK ENDED",
+        doneBy: req.body.stoppedBy,
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
       res.status(201).send(savedRecord);
     }
   } catch (err) {
