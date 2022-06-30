@@ -10,6 +10,7 @@ const moment = require("moment");
 const e = require("express");
 const { isNull } = require("lodash");
 const MS_IN_A_DAY = 86400000;
+const HOURS_IN_A_DAY = 8;
 
 router.get("/", async (req, res) => {
   try {
@@ -623,6 +624,9 @@ router.put("/stop/:id", async (req, res) => {
       .populate("workDone");
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
+    let workEnded = equipment.eqStatus === "available" ? true : false;
+    if (work?.dailyWork?.length >= work.workDurationDays)
+      equipment.eqStatus = "available";
 
     let employee = await employeeData.model.findById(work?.driver);
     if (employee) employee.status = "active";
@@ -633,7 +637,10 @@ router.put("/stop/:id", async (req, res) => {
       let currentDuration = work.duration;
       let currentTotalExpenditure = work.totalExpenditure;
 
-      work.status = "created";
+      work.status =
+        workEnded || work?.dailyWork?.length >= work.workDurationDays
+          ? "stopped"
+          : "on going";
 
       let _duration = work.endTime - work.startTime;
 
@@ -668,16 +675,16 @@ router.put("/stop/:id", async (req, res) => {
         // work.duration = duration;
         // revenue = rate * duration;
         if (comment !== "Ibibazo bya panne") {
-          dailyWork.duration = duration / 24;
+          dailyWork.duration = duration / HOURS_IN_A_DAY;
           revenue = rate;
           expenditure = supplierRate;
         } else {
-          dailyWork.duration = duration / 24;
+          dailyWork.duration = duration / HOURS_IN_A_DAY;
 
           let targetDuration = 5;
           let durationRation =
             duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-          dailyWork.duration = duration / 24;
+          dailyWork.duration = duration / HOURS_IN_A_DAY;
           revenue = rate;
           expenditure = supplierRate;
         }
@@ -685,6 +692,7 @@ router.put("/stop/:id", async (req, res) => {
 
       dailyWork.rate = rate;
       dailyWork.uom = uom;
+      dailyWork.date = moment().format("DD-MM-YYYY");
       dailyWork.totalRevenue = revenue ? revenue : 0;
       dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
@@ -703,6 +711,7 @@ router.put("/stop/:id", async (req, res) => {
       work.dailyWork = dailyWorks;
       work.duration = dailyWork.duration + currentDuration;
       work.totalRevenue = currentTotalRevenue + revenue;
+      if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
       work.totalExpenditure = currentTotalExpenditure + expenditure;
       work.equipment = equipment;
 
@@ -774,11 +783,11 @@ router.put("/stop/:id", async (req, res) => {
         // work.duration = duration;
         // revenue = rate * duration;
         if (comment !== "Ibibazo bya panne") {
-          work.duration = duration / 24;
+          work.duration = duration / HOURS_IN_A_DAY;
           revenue = rate;
           expenditure = supplierRate;
         } else {
-          work.duration = duration / 24;
+          work.duration = duration / HOURS_IN_A_DAY;
           let tripRatio = tripsDone / targetTrips;
           if (tripsDone && targetTrips) {
             if (tripRatio >= 1) {
@@ -795,7 +804,7 @@ router.put("/stop/:id", async (req, res) => {
               let targetDuration = 5;
               let durationRation =
                 duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-              work.duration = duration / 24;
+              work.duration = duration / HOURS_IN_A_DAY;
               revenue = rate;
               expenditure = supplierRate;
             }
@@ -849,12 +858,12 @@ router.put("/end/:id", async (req, res) => {
     if (employee) employee.status = "active";
 
     if (work.siteWork) {
-      work.status = "stopped";
+      // work.status = "stopped";
       equipment.eqStatus = "available";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
 
-      work.projectedRevenue = work.totalRevenue;
+      // work.projectedRevenue = work.totalRevenue;
       work.equipment = equipment;
 
       await equipment.save();
