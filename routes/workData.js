@@ -650,9 +650,9 @@ router.put("/stop/:id", async (req, res) => {
 
       equipment.millage = endIndex ? parseInt(endIndex) : parseInt(startIndex);
 
-      let uom = work?.equipment?.uom;
-      let rate = work?.equipment?.rate;
-      let supplierRate = work?.equipment?.supplierRate;
+      let uom = equipment?.uom;
+      let rate = equipment?.rate;
+      let supplierRate = equipment?.supplierRate;
       let revenue = 0;
       let expenditure = 0;
 
@@ -755,10 +755,10 @@ router.put("/stop/:id", async (req, res) => {
       work.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
       work.startIndex = parseInt(startIndex);
       work.tripsDone = parseInt(tripsDone);
-      let uom = work?.equipment?.uom;
+      let uom = equipment?.uom;
 
-      let rate = work?.equipment?.rate;
-      let supplierRate = work?.equipment?.supplierRate;
+      let rate = equipment?.rate;
+      let supplierRate = equipment?.supplierRate;
       let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
 
       let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);

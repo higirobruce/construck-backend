@@ -8,14 +8,14 @@ const { eq } = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    const equipments = await eqData.model.find();
+    const equipments = await eqData.model.find().populate("vendor");
     res.status(200).send({ equipments, nrecords: equipments.length });
   } catch (err) {}
 });
 
 router.get("/v2", async (req, res) => {
   try {
-    const equipments = await eqData.model.find();
+    const equipments = await eqData.model.find().populate("vendor");
     res.status(200).send(equipments);
   } catch (err) {}
 });
@@ -23,7 +23,7 @@ router.get("/v2", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    const equipment = await eqData.model.findById(id);
+    const equipment = await eqData.model.findById(id).populate("vendor");
     res.status(200).send(equipment);
   } catch (err) {
     res.send(err);
