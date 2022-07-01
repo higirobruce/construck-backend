@@ -18,11 +18,14 @@ const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 const employees = require("./routes/employees");
 const avblty = require("./routes/assetAvailability");
+const sendEmail = require("./routes/sendEmailRoute");
+const send = require("./utils/sendEmailNode");
 //Set up default mongoose connection
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
-// var mongoDB = "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority"
+// var mongoDB =
+//   "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
 
 var mongoDB = "";
 mongoDB = process.env.CONS_MONGO_DB;
@@ -39,6 +42,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
+  send("info@construck.rw", "bhigiro@cvl.co.rw", "subject", "Hello", "");
   res.send("Welcome");
 });
 
@@ -54,6 +58,7 @@ app.use("/dispatches", dispatches);
 app.use("/jobtypes", jobTypes);
 app.use("/employees", employees);
 app.use("/assetAvailability", avblty);
+app.use("/email", sendEmail);
 
 app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);

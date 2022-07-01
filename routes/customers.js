@@ -64,7 +64,6 @@ router.post("/project", async (req, res) => {
       }
     );
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {

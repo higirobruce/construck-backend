@@ -75,8 +75,6 @@ router.post("/login", async (req, res) => {
 
     let vendor = await venData.model.findOne({ phone: email });
 
-    console.log(vendor);
-
     if (user?.length === 0 || !user) {
       if (vendor?.length === 0 || !vendor) {
         res.status(404).send({
@@ -137,6 +135,45 @@ router.put("/status", async (req, res) => {
     userD.status = status;
     let updatedUser = await userD.save();
     res.status(201).send(updatedUser);
+  } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+
+router.put("/", async (req, res) => {
+  let { email, oldPassword, newPassword, reset } = req.body;
+
+  try {
+    let user = await userData.model.findOne({ email: email });
+    if (!user) {
+      res.status(401).send({
+        message: "User not found!",
+        error: true,
+      });
+    } else {
+      let allowed = await bcrypt.compare(oldPassword, user?.password);
+      if (allowed) {
+        let hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.send({
+          message: "Allowed",
+          error: false,
+          email: email,
+          newPassword,
+          companyName: user.company,
+        });
+      } else {
+        res.status(401).send({
+          message: "Not allowed. Please check the Old password.",
+          error: true,
+        });
+      }
+    }
   } catch (err) {
     res.status(500).send({
       message: `${err}`,

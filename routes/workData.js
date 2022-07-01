@@ -134,7 +134,6 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    console.log(req.body);
     let workToCreate = new workData.model(req.body);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
@@ -209,7 +208,6 @@ router.post("/mobileData", async (req, res) => {
       siteWork: req.body.siteWork === "yes" ? true : false,
     };
     let workToCreate = new workData.model(bodyData);
-    console.log(req.body);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     if (equipment.eqStatus === "available") {
