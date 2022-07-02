@@ -144,7 +144,12 @@ router.post("/", async (req, res) => {
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
     let employee = await employeeData.model.findById(driver);
-    if (employee) employee.status = "dispatched";
+    if (employee) {
+      employee.status = "dispatched";
+      employee.assignedToSiteWork = req.body?.siteWork;
+      employee.assignedDate = req.body?.dispatch?.date;
+      employee.assignedShift = req.body?.dispatch?.shift;
+    }
 
     let rate = parseInt(equipment.rate);
     let uom = equipment.uom;
@@ -450,7 +455,12 @@ router.put("/recall/:id", async (req, res) => {
     let work = await workData.model.findById(id);
 
     let employee = await employeeData.model.findById(work?.driver);
-    if (employee) employee.status = "active";
+    if (employee) {
+      employee.status = "active";
+      employee.assignedToSiteWork = false;
+      employee.assignedDate = null;
+      employee.assignedShift = "";
+    }
 
     let eqId = work?.equipment?._id;
     await workData.model.updateMany(
@@ -548,6 +558,7 @@ router.put("/start/:id", async (req, res) => {
         $set: {
           eqStatus: "in progress",
           assignedDate: Date.now(),
+          millage: startIndex,
         },
       }
     );
@@ -555,9 +566,12 @@ router.put("/start/:id", async (req, res) => {
     let equipment = await eqData.model.findById(work?.equipment?._id);
     equipment.eqStatus = "assigned to job";
     equipment.assignedToSiteWork = true;
+    equipment.millage = startIndex;
 
     let employee = await employeeData.model.findById(work?.driver);
-    if (employee) employee.status = "busy";
+    if (employee) {
+      employee.status = "busy";
+    }
 
     if (work.siteWork) {
       let dailyWork = {
@@ -568,6 +582,7 @@ router.put("/start/:id", async (req, res) => {
       work.dailyWork.push(dailyWork);
       work.status = "in progress";
       work.startIndex = startIndex;
+      work.equipment = equipment;
       let savedRecord = await work.save();
       if (employee) await employee.save();
 
@@ -627,7 +642,12 @@ router.put("/stop/:id", async (req, res) => {
       equipment.eqStatus = "available";
 
     let employee = await employeeData.model.findById(work?.driver);
-    if (employee) employee.status = "active";
+    if (employee) {
+      employee.status = "active";
+      employee.assignedToSiteWork = false;
+      employee.assignedDate = null;
+      employee.assignedShift = "";
+    }
 
     if (work.siteWork) {
       let dailyWork = {};
@@ -642,11 +662,14 @@ router.put("/stop/:id", async (req, res) => {
 
       let _duration = work.endTime - work.startTime;
 
-      let startIndex = work.startIndex ? work.startIndex : 19999;
+      let startIndex = work.startIndex ? work.startIndex : 0;
       dailyWork.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
       dailyWork.startIndex = parseInt(startIndex);
 
-      equipment.millage = endIndex ? parseInt(endIndex) : parseInt(startIndex);
+      equipment.millage =
+        endIndex || startIndex !== 0
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
 
       let uom = equipment?.uom;
       let rate = equipment?.rate;
@@ -706,13 +729,17 @@ router.put("/stop/:id", async (req, res) => {
 
       dailyWorks[indexToUpdate] = dailyWork;
 
-      work.startIndex = parseInt(endIndex);
+      work.startIndex =
+        endIndex || startIndex !== 0
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
       work.dailyWork = dailyWorks;
       work.duration = dailyWork.duration + currentDuration;
       work.totalRevenue = currentTotalRevenue + revenue;
       if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
       work.totalExpenditure = currentTotalExpenditure + expenditure;
       work.equipment = equipment;
+      work.moreComment = moreComment;
 
       await equipment.save();
       if (employee) await employee.save();
@@ -740,18 +767,24 @@ router.put("/stop/:id", async (req, res) => {
           },
         }
       );
+      let startIndex = work.startIndex ? work.startIndex : 0;
       let equipment = await eqData.model.findById(work?.equipment?._id);
       equipment.eqStatus = "available";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
-      equipment.millage = endIndex ? parseInt(endIndex) : parseInt(startIndex);
+      equipment.millage =
+        endIndex || startIndex !== 0
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
 
       work.status = "stopped";
       work.endTime = Date.now();
       let _duration = work.endTime - work.startTime;
 
-      let startIndex = work.startIndex ? work.startIndex : 19999;
-      work.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
+      work.endIndex =
+        endIndex || startIndex !== 0
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
       work.startIndex = parseInt(startIndex);
       work.tripsDone = parseInt(tripsDone);
       let uom = equipment?.uom;
@@ -816,6 +849,7 @@ router.put("/stop/:id", async (req, res) => {
       work.totalRevenue = revenue ? revenue : 0;
       work.totalExpenditure = expenditure ? expenditure : 0;
       work.comment = comment;
+      work.moreComment = moreComment;
       work.equipment = equipment;
 
       let savedRecord = await work.save();
@@ -854,7 +888,12 @@ router.put("/end/:id", async (req, res) => {
     let equipment = await eqData.model.findById(work?.equipment?._id);
 
     let employee = await employeeData.model.findById(work?.driver);
-    if (employee) employee.status = "active";
+    if (employee) {
+      employee.status = "active";
+      employee.assignedToSiteWork = false;
+      employee.assignedDate = null;
+      employee.assignedShift = "";
+    }
 
     if (work.siteWork) {
       // work.status = "stopped";
@@ -882,6 +921,19 @@ router.put("/end/:id", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+router.put("/resetStartIndices", async (req, res) => {
+  try {
+    let updates = await workData.model.updateMany({
+      $set: {
+        startIndex: 0,
+        endIndex: 0,
+      },
+    });
+
+    res.send(updates);
+  } catch (err) {}
 });
 
 module.exports = router;

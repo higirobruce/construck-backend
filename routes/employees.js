@@ -23,6 +23,40 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.get("/:date/:shift", async (req, res) => {
+  let { type, date, shift } = req.params;
+  try {
+    const employee = await employeeData.model.find({
+      $or: [
+        { status: "available" },
+        {
+          status: "busy",
+          assignedShift: { $ne: shift },
+          //assignedToSiteWork: { $ne: true },
+        },
+        {
+          status: "busy",
+          assignedDate: { $ne: date },
+          //assignedToSiteWork: { $ne: true },
+        },
+        {
+          status: "dispatched",
+          assignedShift: { $ne: shift },
+          //assignedToSiteWork: { $ne: true },
+        },
+        {
+          status: "dispatched",
+          assignedDate: { $ne: date },
+          //assignedToSiteWork: { $ne: true },
+        },
+      ],
+    });
+    res.status(200).send(employee);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.post("/", async (req, res) => {
   try {
     let hashedPassword = await bcrypt.hash(req.body.password, 10);
