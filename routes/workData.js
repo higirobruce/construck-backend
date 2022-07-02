@@ -609,7 +609,7 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
-  let { duration, endIndex, tripsDone, comment } = req.body;
+  let { duration, endIndex, tripsDone, comment, moreComment } = req.body;
 
   try {
     let work = await workData.model
@@ -694,6 +694,7 @@ router.put("/stop/:id", async (req, res) => {
       dailyWork.totalRevenue = revenue ? revenue : 0;
       dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
+      dailyWork.moreComment = moreComment;
 
       let dailyWorks = [...work.dailyWork];
 

@@ -60,6 +60,10 @@ const WorkSchema = new mongoose.Schema({
   comment: {
     type: String,
   },
+
+  moreComment: {
+    type: String,
+  },
   status: {
     type: String,
   },
