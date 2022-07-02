@@ -28,7 +28,7 @@ router.get("/:date/:shift", async (req, res) => {
   try {
     const employee = await employeeData.model.find({
       $or: [
-        { status: "available" },
+        { status: "active" },
         {
           status: "busy",
           assignedShift: { $ne: shift },
