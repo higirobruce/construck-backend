@@ -624,8 +624,8 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
-  let { duration, endIndex, tripsDone, comment, moreComment } = req.body;
-
+  let { endIndex, tripsDone, comment, moreComment } = req.body;
+  let duration = Math.abs(req.body.duration);
   try {
     let work = await workData.model
       .findById(id)
@@ -652,7 +652,7 @@ router.put("/stop/:id", async (req, res) => {
     if (work.siteWork) {
       let dailyWork = {};
       let currentTotalRevenue = work.totalRevenue;
-      let currentDuration = work.duration;
+      let currentDuration = Math.abs(work.duration);
       let currentTotalExpenditure = work.totalExpenditure;
 
       work.status =
@@ -660,7 +660,7 @@ router.put("/stop/:id", async (req, res) => {
           ? "stopped"
           : "on going";
 
-      let _duration = work.endTime - work.startTime;
+      let _duration = Math.abs(work.endTime - work.startTime);
 
       let startIndex = work.startIndex ? work.startIndex : 0;
       dailyWork.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
@@ -779,7 +779,7 @@ router.put("/stop/:id", async (req, res) => {
 
       work.status = "stopped";
       work.endTime = Date.now();
-      let _duration = work.endTime - work.startTime;
+      let _duration = Math.abs(work.endTime - work.startTime);
 
       work.endIndex =
         endIndex || startIndex !== 0
