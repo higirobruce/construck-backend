@@ -42,7 +42,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
-  send("info@construck.rw", "bhigiro@cvl.co.rw", "subject", "Hello", "");
   res.send("Welcome");
 });
 

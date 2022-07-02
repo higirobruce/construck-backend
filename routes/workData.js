@@ -690,7 +690,7 @@ router.put("/stop/:id", async (req, res) => {
 
       dailyWork.rate = rate;
       dailyWork.uom = uom;
-      dailyWork.date = moment().format("DD-MM-YYYY");
+      dailyWork.date = moment().format("DD-MMM-YYYY");
       dailyWork.totalRevenue = revenue ? revenue : 0;
       dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
