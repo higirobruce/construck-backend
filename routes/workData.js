@@ -823,8 +823,8 @@ router.put("/stop/:id", async (req, res) => {
           let tripRatio = tripsDone / targetTrips;
           if (tripsDone && targetTrips) {
             if (tripRatio > 1) {
-              revenue = rate * targetTrips;
-              expenditure = supplierRate * targetTrips;
+              revenue = rate;
+              expenditure = supplierRate;
               // revenue = rate;
             } else {
               revenue = rate * tripRatio;
