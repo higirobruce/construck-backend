@@ -822,7 +822,7 @@ router.put("/stop/:id", async (req, res) => {
           work.duration = duration / HOURS_IN_A_DAY;
           let tripRatio = tripsDone / targetTrips;
           if (tripsDone && targetTrips) {
-            if (tripRatio >= 1) {
+            if (tripRatio > 1) {
               revenue = rate * targetTrips;
               expenditure = supplierRate * targetTrips;
               // revenue = rate;
