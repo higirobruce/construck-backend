@@ -5,8 +5,8 @@ const transporter = nodemailer.createTransport({
   host: "smtp.office365.com",
   port: 587,
   auth: {
-    user: "info@construck.rw", //process.env.CTK_SENDER_EMAIL,
-    pass: "Mango@12", //process.env.CTK_SENDER_PASSWORD,
+    user: process.env.CTK_SENDER_EMAIL,
+    pass: process.env.CTK_SENDER_PASSWORD,
   },
 });
 
