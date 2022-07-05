@@ -32,7 +32,11 @@ router.get("/", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
-    res.status(200).send(workList);
+    res.status(200).send(
+      workList.filter((w) => {
+        w.workDone !== null;
+      })
+    );
   } catch (err) {
     res.send(err);
   }
@@ -101,6 +105,53 @@ router.get("/v3", async (req, res) => {
 
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
     res.status(200).send(workList);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.get("/v3/:vendorName", async (req, res) => {
+  let { vendorName } = req.params;
+  console.log(vendorName);
+  try {
+    let workList = await workData.model
+      .find(
+        {},
+        {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        }
+      )
+
+      // .populate("project")
+      // .populate({
+      //   path: "project",
+      //   populate: {
+      //     path: "customer",
+      //     model: "customers",
+      //   },
+      // })
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("createdBy")
+      .populate("workDone")
+      .sort([["_id", "descending"]]);
+
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    let filteredByVendor = workList.filter((w) => {
+      return w.equipment.eqOwner === vendorName;
+    });
+    res.status(200).send(filteredByVendor);
   } catch (err) {
     res.send(err);
   }
@@ -474,6 +525,7 @@ router.put("/recall/:id", async (req, res) => {
     equipment.eqStatus = "available";
     equipment.assignedDate = null;
     equipment.assignedShift = "";
+    equipment.assignedToSiteWork = false;
 
     work.status = "recalled";
     work.equipment = equipment;
@@ -638,9 +690,10 @@ router.put("/stop/:id", async (req, res) => {
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
     let workEnded = equipment.eqStatus === "available" ? true : false;
-    if (work?.dailyWork?.length >= work.workDurationDays)
+    if (work?.dailyWork?.length >= work.workDurationDays) {
       equipment.eqStatus = "available";
-
+      equipment.assignedToSiteWork = false;
+    }
     let employee = await employeeData.model.findById(work?.driver);
     if (employee) {
       employee.status = "active";
@@ -934,6 +987,46 @@ router.put("/resetStartIndices", async (req, res) => {
 
     res.send(updates);
   } catch (err) {}
+});
+
+router.put("/reverse/:id", async (req, res) => {
+  // reset duration
+  // reset totalRevenue
+  // only those that are not site works
+  // set status to "in progress"
+  // create a log to mention that it is a reverse
+
+  let { id } = req.params;
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("appovedBy")
+      .populate("dispatch")
+      .populate("workDone");
+
+    work.duration = 0;
+    work.totalRevenue = 0;
+    work.tripsDone = 0;
+    work.status = "in progress";
+
+    //log saving
+    let log = {
+      action: "DISPATCH REVERSED",
+      doneBy: req.body.reversedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+
+    await logTobeSaved.save();
+    await work.save();
+
+    res.send(work).status(201);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 module.exports = router;
