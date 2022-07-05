@@ -592,7 +592,7 @@ router.put("/reject/:id", async (req, res) => {
 
 router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
-  let { startIndex } = req.body;
+  let { startIndex, postingDate } = req.body;
   try {
     let work = await workData.model
       .findById(id)
@@ -628,7 +628,7 @@ router.put("/start/:id", async (req, res) => {
     if (work.siteWork) {
       let dailyWork = {
         day: moment().diff(moment(work.workStartDate), "days"),
-        startTime: Date.now(),
+        startTime: postingDate,
         startIndex,
       };
       work.dailyWork.push(dailyWork);
@@ -676,7 +676,7 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
-  let { endIndex, tripsDone, comment, moreComment } = req.body;
+  let { endIndex, tripsDone, comment, moreComment, postingDate } = req.body;
   let duration = Math.abs(req.body.duration);
   try {
     let work = await workData.model
@@ -766,7 +766,7 @@ router.put("/stop/:id", async (req, res) => {
 
       dailyWork.rate = rate;
       dailyWork.uom = uom;
-      dailyWork.date = moment().format("DD-MMM-YYYY");
+      dailyWork.date = moment(postingDate).format("DD-MMM-YYYY");
       dailyWork.totalRevenue = revenue ? revenue : 0;
       dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
