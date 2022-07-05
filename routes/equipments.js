@@ -87,22 +87,22 @@ router.get("/:date/:shift", async (req, res) => {
         {
           eqStatus: "assigned to job",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           eqStatus: "assigned to job",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           eqStatus: "dispatched",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
       ],
     });
@@ -274,6 +274,7 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
         available: availableAssets.length,
         unavailable: unavailableAssets.length,
       });
+
       await dateDataToSave.save();
     }
     res.status(201).send(savedRecord);
