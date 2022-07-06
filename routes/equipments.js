@@ -9,7 +9,26 @@ const { eq } = require("lodash");
 router.get("/", async (req, res) => {
   try {
     const equipments = await eqData.model.find().populate("vendor");
-    res.status(200).send({ equipments, nrecords: equipments.length });
+    res.status(200).send({
+      equipments,
+      nrecords: equipments.length,
+      available: equipments.filter((w) => {
+        return w.eqStatus === "standby" || w.eqStatus === "dispatched";
+      }).length,
+      workshop: equipments.filter((w) => {
+        return w.eqStatus === "workshop";
+      }).length,
+      dispatched: equipments.filter((w) => {
+        return w.eqStatus === "dispatched";
+      }).length,
+      standby: equipments.filter((w) => {
+        return w.eqStatus === "standby";
+      }).length,
+
+      ct: equipments.filter((w) => {
+        return w.eqStatus === "ct";
+      }).length,
+    });
   } catch (err) {}
 });
 
@@ -35,7 +54,7 @@ router.get("/type/:type", async (req, res) => {
   try {
     const equipment = await eqData.model.find({
       eqtype: type,
-      eqStatus: "available",
+      eqStatus: "standby",
     });
     res.status(200).send(equipment);
   } catch (err) {
@@ -49,17 +68,7 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
     const equipment = await eqData.model.find({
       eqtype: type,
       $or: [
-        { eqStatus: "available" },
-        {
-          eqStatus: "assigned to job",
-          assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
-        },
-        {
-          eqStatus: "assigned to job",
-          assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
-        },
+        { eqStatus: "standby" },
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
@@ -83,17 +92,7 @@ router.get("/:date/:shift", async (req, res) => {
   try {
     const equipment = await eqData.model.find({
       $or: [
-        { eqStatus: "available" },
-        {
-          eqStatus: "assigned to job",
-          assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
-        },
-        {
-          eqStatus: "assigned to job",
-          assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
-        },
+        { eqStatus: "standby" },
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
@@ -162,7 +161,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
   try {
     let equipment = await eqData.model.findById(id);
 
-    equipment.eqStatus = "available";
+    equipment.eqStatus = "standby";
 
     let savedRecord = await equipment.save();
 
@@ -202,10 +201,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
 
 router.put("/makeAllAvailable/", async (req, res) => {
   try {
-    let equipment = await eqData.model.updateMany(
-      {},
-      { eqStatus: "available" }
-    );
+    let equipment = await eqData.model.updateMany({}, { eqStatus: "standby" });
 
     res.status(202).send(equipment);
   } catch (err) {
@@ -288,7 +284,7 @@ router.put("/release/:id", async (req, res) => {
   try {
     let equipment = await eqData.model.findById(id);
 
-    equipment.eqStatus = "available";
+    equipment.eqStatus = "standby";
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);

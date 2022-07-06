@@ -266,7 +266,7 @@ router.post("/mobileData", async (req, res) => {
     let workToCreate = new workData.model(bodyData);
 
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
-    if (equipment.eqStatus === "available") {
+    if (equipment.eqStatus === "standby") {
       // Save data only when equipment is available
       equipment.eqStatus = "dispatched";
       equipment.assignedToSiteWork = true;
@@ -481,12 +481,12 @@ router.put("/approve/:id", async (req, res) => {
     await workData.model.updateMany(
       { "equipment._id": eqId },
       {
-        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+        $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
       }
     );
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "available";
+    equipment.eqStatus = "standby";
     equipment.assignedDate = null;
     equipment.assignedShift = "";
 
@@ -517,12 +517,12 @@ router.put("/recall/:id", async (req, res) => {
     await workData.model.updateMany(
       { "equipment._id": eqId },
       {
-        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+        $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
       }
     );
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "available";
+    equipment.eqStatus = "standby";
     equipment.assignedDate = null;
     equipment.assignedShift = "";
     equipment.assignedToSiteWork = false;
@@ -574,11 +574,11 @@ router.put("/reject/:id", async (req, res) => {
     await workData.model.updateMany(
       { "equipment._id": eqId },
       {
-        $set: { eqStatus: "available", assignedDate: null, assignedShift: "" },
+        $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
       }
     );
     let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "available";
+    equipment.eqStatus = "standby";
     equipment.assignedDate = null;
     equipment.assignedShift = "";
 
@@ -616,7 +616,6 @@ router.put("/start/:id", async (req, res) => {
     );
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "assigned to job";
     equipment.assignedToSiteWork = true;
     equipment.millage = startIndex;
 
@@ -691,9 +690,9 @@ router.put("/stop/:id", async (req, res) => {
       .populate("workDone");
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
-    let workEnded = equipment.eqStatus === "available" ? true : false;
+    let workEnded = equipment.eqStatus === "standby" ? true : false;
     if (work?.dailyWork?.length >= work.workDurationDays) {
-      equipment.eqStatus = "available";
+      equipment.eqStatus = "standby";
       equipment.assignedToSiteWork = false;
     }
     let employee = await employeeData.model.findById(work?.driver);
@@ -817,7 +816,7 @@ router.put("/stop/:id", async (req, res) => {
         { "equipment._id": eqId },
         {
           $set: {
-            eqStatus: "available",
+            eqStatus: "standby",
             assignedDate: null,
             assignedShift: "",
           },
@@ -825,7 +824,7 @@ router.put("/stop/:id", async (req, res) => {
       );
       let startIndex = work.startIndex ? work.startIndex : 0;
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      equipment.eqStatus = "available";
+      equipment.eqStatus = "standby";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
       equipment.millage =
@@ -953,7 +952,7 @@ router.put("/end/:id", async (req, res) => {
 
     if (work.siteWork) {
       // work.status = "stopped";
-      equipment.eqStatus = "available";
+      equipment.eqStatus = "standby";
       equipment.assignedDate = null;
       equipment.assignedShift = "";
 
