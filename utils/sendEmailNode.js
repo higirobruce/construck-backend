@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 // send email
 async function send(from, to, subject, text, html) {
   return await transporter.sendMail({
-    from: from,
+    from: process.env.CTK_SENDER_EMAIL,
     to: to,
     subject: subject,
     text: text,
