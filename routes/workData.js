@@ -627,9 +627,11 @@ router.put("/start/:id", async (req, res) => {
 
     if (work.siteWork) {
       let dailyWork = {
-        day: moment().diff(moment(work.workStartDate), "days"),
+        day: moment(postingDate).diff(moment(work.workStartDate), "days"),
         startTime: postingDate,
+        date: moment(postingDate).format("DD-MMM-YYYY"),
         startIndex,
+        pending: true,
       };
       work.dailyWork.push(dailyWork);
       work.status = "in progress";
@@ -771,6 +773,7 @@ router.put("/stop/:id", async (req, res) => {
       dailyWork.totalExpenditure = expenditure ? expenditure : 0;
       dailyWork.comment = comment;
       dailyWork.moreComment = moreComment;
+      dailyWork.pending = false;
 
       let dailyWorks = [...work.dailyWork];
 
