@@ -538,7 +538,6 @@ router.post("/getAnalytics", async (req, res) => {
             : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
-        if (isNaN(projectedRevenue)) console.log(w.equipment.plateNumber);
       });
     }
 
@@ -599,12 +598,6 @@ router.post("/getAnalytics", async (req, res) => {
     } else {
       listDispaches = dispatches;
     }
-
-    console.log({
-      totalRevenue,
-      projectedRevenue,
-      totalDays: _.round(totalDays, 1),
-    });
 
     res.status(200).send({
       totalRevenue,
