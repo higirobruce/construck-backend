@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const employeeData = require("../models/employees");
+const venData = require("../models/vendors");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
@@ -83,32 +84,55 @@ router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
-    if (employee?.length === 0) {
-      res.status(404).send({
-        message: "Email not found",
-        error: true,
-      });
-      return;
+    let vendor = await venData.model.findOne({ phone: phone });
+    let allowed = false;
+
+    if (!employee) {
+      if (!vendor) {
+        res.status(404).send({
+          message: "User not found",
+          error: true,
+        });
+        return;
+      } else {
+        allowed = true;
+      }
+    } else {
+      allowed = true;
     }
 
     // let allowed = await bcrypt.compare(password, employee.password);
 
-    let allowed = true;
     if (allowed) {
-      if (employee.status !== "inactive") {
-        // employee.message = "Allowed";
+      if (employee) {
+        if (employee.status !== "inactive") {
+          // employee.message = "Allowed";
+          res.status(200).send({
+            employee: {
+              _id: employee._id,
+              firstName: employee.firstName,
+              lastName: employee.lastName,
+            },
+            message: "Allowed",
+            vendor: false,
+          });
+        } else {
+          res.status(401).send({
+            message: "Not activated!",
+            error: true,
+          });
+        }
+      }
+
+      if (vendor) {
         res.status(200).send({
           employee: {
-            _id: employee._id,
-            firstName: employee.firstName,
-            lastName: employee.lastName,
+            _id: vendor._id,
+            firstName: vendor.name,
+            lastName: "",
           },
           message: "Allowed",
-        });
-      } else {
-        res.status(401).send({
-          message: "Not activated!",
-          error: true,
+          vendor: true,
         });
       }
     } else {
