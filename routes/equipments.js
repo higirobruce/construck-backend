@@ -13,20 +13,23 @@ router.get("/", async (req, res) => {
       equipments,
       nrecords: equipments.length,
       available: equipments.filter((w) => {
-        return w.eqStatus === "standby" || w.eqStatus === "dispatched";
+        return (
+          (w.eqStatus === "standby" || w.eqStatus === "dispatched") &&
+          w.eqOwner === "Construck"
+        );
       }).length,
       workshop: equipments.filter((w) => {
-        return w.eqStatus === "workshop";
+        return w.eqStatus === "workshop" && w.eqOwner === "Construck";
       }).length,
       dispatched: equipments.filter((w) => {
-        return w.eqStatus === "dispatched";
+        return w.eqStatus === "dispatched" && w.eqOwner === "Construck";
       }).length,
       standby: equipments.filter((w) => {
-        return w.eqStatus === "standby";
+        return w.eqStatus === "standby" && w.eqOwner === "Construck";
       }).length,
 
       ct: equipments.filter((w) => {
-        return w.eqStatus === "ct";
+        return w.eqStatus === "ct" && w.eqOwner === "Construck";
       }).length,
     });
   } catch (err) {}
