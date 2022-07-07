@@ -600,7 +600,7 @@ router.post("/getAnalytics", async (req, res) => {
     }
 
     res.status(200).send({
-      totalRevenue,
+      totalRevenue: _.round(totalRevenue, 0),
       projectedRevenue,
       totalDays: _.round(totalDays, 1),
     });
