@@ -401,15 +401,33 @@ router.post("/getAnalytics", async (req, res) => {
   let totalRevenue = 0;
   let projectedRevenue = 0;
   let totalDays = 0;
+  let daysDiff = _.round(
+    moment(endDate).diff(moment(startDate)) / MS_IN_A_DAY,
+    0
+  );
   try {
     let workList = await workData.model
       .find({
-        status:
-          status === "final"
-            ? { $in: ["approved", "stopped"] }
-            : { $in: ["created", "in progress", "rejected", "stopped"] },
+        // status:
+        //   status === "final"
+        //     ? { $in: ["approved", "stopped"] }
+        //     : {
+        //         $in: [
+        //           "created",
+        //           "in progress",
+        //           "rejected",
+        //           "stopped",
+        //           "on going",
+        //         ],
+        //       },
       })
-      .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
+      .or([
+        { siteWork: true },
+        {
+          siteWork: false,
+          "dispatch.date": { $gte: startDate, $lte: endDate },
+        },
+      ]);
 
     if (workList && workList.length > 0) {
       total = 0;
@@ -451,15 +469,85 @@ router.post("/getAnalytics", async (req, res) => {
       }
 
       list.map((w) => {
+        //PStart and PEnd are before range stare
+        let case1 =
+          moment(w.workStartDate).diff(moment(startDate)) < 0 &&
+          moment(w.workEndDate).diff(moment(endDate)) < 0;
+
+        //PStart before Start and PEnd after Start and PEnd before End
+        let case2 =
+          moment(w.workStartDate).diff(moment(startDate)) < 0 &&
+          moment(w.workEndDate).diff(moment(startDate)) > 0 &&
+          moment(w.workEndDate).diff(moment(endDate)) < 0;
+
+        //PStart before to Start and PEnd After end
+        // OR
+        //PStart equal to Start and PEnd equal End
+        //OR
+        //PStart equal to Start and PEnd after End
+        let case3 =
+          moment(w.workStartDate).diff(moment(startDate)) <= 0 &&
+          moment(w.workEndDate).diff(moment(endDate)) >= 0;
+
+        //PStart after Start and PEnd before Start
+        let case4 =
+          moment(w.workStartDate).diff(moment(startDate)) > 0 &&
+          moment(w.workEndDate).diff(moment(endDate)) < 0;
+
+        //PStart after Start and PEnd after End
+        let case5 =
+          moment(w.workStartDate).diff(moment(startDate)) > 0 &&
+          moment(w.workEndDate).diff(moment(endDate)) > 0 &&
+          moment(endDate).diff(moment(w.workStartDate)) > 0;
+
+        if (case1) daysDiff = 0;
+        else if (case2)
+          daysDiff = _.round(
+            moment(w.workEndDate).diff(moment(startDate), "days"),
+            0
+          );
+        else if (case3)
+          daysDiff = _.round(
+            moment(endDate).diff(moment(startDate), "days"),
+            0
+          );
+        else if (case4)
+          daysDiff = _.round(
+            moment(w.workEndDate).diff(moment(w.workStartDate), "days"),
+            0
+          );
+        else if (case5)
+          daysDiff = _.round(
+            moment(endDate).diff(moment(w.workStartDate), "days"),
+            0
+          );
+        else
+          daysDiff = _.round(
+            moment(endDate).diff(moment(startDate), "days"),
+            0
+          );
+
+        if (daysDiff < 0) daysDiff = 0;
+
         totalRevenue = totalRevenue + w.totalRevenue;
-        projectedRevenue = projectedRevenue + w.projectedRevenue;
+        projectedRevenue =
+          w.siteWork === true
+            ? projectedRevenue +
+              w?.equipment.rate *
+                (w?.equipment.uom === "hour" ? 5 * daysDiff : daysDiff)
+            : projectedRevenue + w?.projectedRevenue;
+
+        if (isNaN(projectedRevenue)) projectedRevenue = 0;
+        if (isNaN(projectedRevenue)) console.log(w.equipment.plateNumber);
       });
     }
 
     let workListByDay = await workData.model
       .find({ uom: "day" })
       .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
+
     let listDays = [];
+
     if (customer) {
       listDays = workListByDay.filter((w) => {
         let nameLowerCase = w?.project?.customer?.toLowerCase();
@@ -511,6 +599,12 @@ router.post("/getAnalytics", async (req, res) => {
     } else {
       listDispaches = dispatches;
     }
+
+    console.log({
+      totalRevenue,
+      projectedRevenue,
+      totalDays: _.round(totalDays, 1),
+    });
 
     res.status(200).send({
       totalRevenue,
