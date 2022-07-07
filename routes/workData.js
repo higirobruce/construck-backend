@@ -534,7 +534,7 @@ router.post("/getAnalytics", async (req, res) => {
           w.siteWork === true
             ? projectedRevenue +
               w?.equipment.rate *
-                (w?.equipment.uom === "hour" ? 5 * daysDiff : daysDiff)
+                (w?.equipment.uom === "hour" ? 5 * daysDiff + 1 : daysDiff + 1)
             : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
