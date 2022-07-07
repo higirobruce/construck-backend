@@ -112,7 +112,6 @@ router.get("/v3", async (req, res) => {
 
 router.get("/v3/:vendorName", async (req, res) => {
   let { vendorName } = req.params;
-  console.log(vendorName);
   try {
     let workList = await workData.model
       .find(
@@ -148,10 +147,76 @@ router.get("/v3/:vendorName", async (req, res) => {
       .sort([["_id", "descending"]]);
 
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+
     let filteredByVendor = workList.filter((w) => {
-      return w.equipment.eqOwner === vendorName;
+      return (
+        // w.equipment.eqOwner === vendorName ||
+        _.trim(w.driver.firstName) === _.trim(vendorName)
+      );
     });
     res.status(200).send(filteredByVendor);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.get("/v3/driver/:driverId", async (req, res) => {
+  let { driverId } = req.params;
+  console.log(driverId);
+  try {
+    let workList = await workData.model
+      .find(
+        {
+          driver: driverId,
+        },
+        {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        }
+      )
+
+      // .populate("project")
+      // .populate({
+      //   path: "project",
+      //   populate: {
+      //     path: "customer",
+      //     model: "customers",
+      //   },
+      // })
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("createdBy")
+      .populate("workDone")
+      .sort([["_id", "descending"]]);
+
+    let listToSend = workList.filter((w) => !isNull(w.driver));
+    let l = listToSend.map((w) => {
+      let work = {
+        workDone: w.workDone,
+        _id: w._id,
+        status: w.status,
+        project: w.project,
+        createdOn: w.createdOn,
+        equipment: w.equipment,
+        siteWork: w.siteWork,
+        targetTrips: w.dispatch.targetTrips ? w.dispatch.targetTrips : "N/A",
+      };
+
+      return work;
+    });
+
+    console.log(l);
+    res.status(200).send(l);
   } catch (err) {
     res.send(err);
   }
