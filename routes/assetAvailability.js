@@ -22,16 +22,22 @@ router.post("/getAnalytics", async (req, res) => {
     let totAssets = 0;
     let totAvailable = 0;
     let totUnavailable = 0;
+    let totDispatched = 0;
+    let totStandby = 0;
     avblties.forEach((a) => {
       totAssets = totAssets + a.available + a.unavailable;
       totAvailable = totAvailable + a.available;
       totUnavailable = totUnavailable + a.unavailable;
+      totDispatched = totDispatched + a.dispatched ? a.dispatched : 0;
+      totStandby = totStandby + a.standby ? a.standby : 0;
     });
 
     if (totAssets === 0) totAssets = 1;
+    if (totAvailable === 0) totAvailable = 1;
 
     res.send({
       assetAvailability: _.round((totAvailable / totAssets) * 100, 2),
+      assetUtilization: _.round((totDispatched / totAvailable) * 100, 2),
     });
   } catch (err) {}
 });

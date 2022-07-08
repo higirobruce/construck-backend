@@ -9,6 +9,12 @@ const AssetAvbltySchema = mongoose.Schema({
   unavailable: {
     type: Number,
   },
+  dispatched: {
+    type: Number,
+  },
+  standby: {
+    type: Number,
+  },
 });
 
 module.exports = {

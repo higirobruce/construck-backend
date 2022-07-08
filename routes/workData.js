@@ -296,6 +296,34 @@ router.post("/", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
+
+    let today = moment().format("DD-MMM-YYYY");
+    let dateData = await assetAvblty.model.findOne({ date: today });
+    let dispatched = await eqData.model.find({
+      eqStatus: "dispatched",
+      eqOwner: "Construck",
+    });
+
+    let standby = await eqData.model.find({
+      eqStatus: "standby",
+      eqOwner: "Construck",
+    });
+
+    if (dateData) {
+      dateData.dispatched = dispatched.length;
+      dateData.standby = standby.length;
+
+      await dateData.save();
+    } else {
+      let dateDataToSave = new assetAvblty.model({
+        date: today,
+        dispatched: dispatched.length,
+        standby: standby.length,
+      });
+
+      await dateDataToSave.save();
+    }
+
     res.status(201).send(workCreated);
   } catch (err) {
     console.log(err);
@@ -698,6 +726,46 @@ router.put("/recall/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
+    let today = moment().format("DD-MMM-YYYY");
+    const dateData = await assetAvblty.model.findOne({ date: today });
+    let availableAssets = await eqData.model.find({
+      eqStatus: { $ne: "workshop" },
+      eqOwner: "Construck",
+    });
+    let unavailableAssets = await eqData.model.find({
+      eqStatus: "workshop",
+      eqOwner: "Construck",
+    });
+    let dispatched = await eqData.model.find({
+      eqStatus: "dispatched",
+      eqOwner: "Construck",
+    });
+
+    let standby = await eqData.model.find({
+      eqStatus: "standby",
+      eqOwner: "Construck",
+    });
+
+    if (dateData) {
+      let currentAvailable = dateData.available;
+      let currentUnavailable = dateData.unavailable;
+      dateData.available = currentAvailable;
+      dateData.unavailable = currentUnavailable;
+      dateData.dispatched = dispatched.length;
+      dateData.standby = standby.length;
+
+      await dateData.save();
+    } else {
+      let dateDataToSave = new assetAvblty.model({
+        date: today,
+        available: availableAssets.length,
+        unavailable: unavailableAssets.length,
+        dispatched: dispatched.length,
+        standby: standby.length,
+      });
+      await dateDataToSave.save();
+    }
+
     res.status(201).send(savedRecord);
   } catch (err) {
     console.log(err);
@@ -1072,6 +1140,46 @@ router.put("/stop/:id", async (req, res) => {
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
 
+      let today = moment().format("DD-MMM-YYYY");
+      const dateData = await assetAvblty.model.findOne({ date: today });
+      let availableAssets = await eqData.model.find({
+        eqStatus: { $ne: "workshop" },
+        eqOwner: "Construck",
+      });
+      let unavailableAssets = await eqData.model.find({
+        eqStatus: "workshop",
+        eqOwner: "Construck",
+      });
+      let dispatched = await eqData.model.find({
+        eqStatus: "dispatched",
+        eqOwner: "Construck",
+      });
+
+      let standby = await eqData.model.find({
+        eqStatus: "standby",
+        eqOwner: "Construck",
+      });
+
+      if (dateData) {
+        let currentAvailable = dateData.available;
+        let currentUnavailable = dateData.unavailable;
+        dateData.available = currentAvailable;
+        dateData.unavailable = currentUnavailable;
+        dateData.dispatched = dispatched.length;
+        dateData.standby = standby.length;
+
+        await dateData.save();
+      } else {
+        let dateDataToSave = new assetAvblty.model({
+          date: today,
+          available: availableAssets.length,
+          unavailable: unavailableAssets.length,
+          dispatched: dispatched.length,
+          standby: standby.length,
+        });
+        await dateDataToSave.save();
+      }
+
       res.status(201).send(savedRecord);
     }
   } catch (err) {
@@ -1123,6 +1231,46 @@ router.put("/end/:id", async (req, res) => {
       };
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
+
+      let today = moment().format("DD-MMM-YYYY");
+      const dateData = await assetAvblty.model.findOne({ date: today });
+      let availableAssets = await eqData.model.find({
+        eqStatus: { $ne: "workshop" },
+        eqOwner: "Construck",
+      });
+      let unavailableAssets = await eqData.model.find({
+        eqStatus: "workshop",
+        eqOwner: "Construck",
+      });
+      let dispatched = await eqData.model.find({
+        eqStatus: "dispatched",
+        eqOwner: "Construck",
+      });
+
+      let standby = await eqData.model.find({
+        eqStatus: "standby",
+        eqOwner: "Construck",
+      });
+
+      if (dateData) {
+        let currentAvailable = dateData.available;
+        let currentUnavailable = dateData.unavailable;
+        dateData.available = currentAvailable;
+        dateData.unavailable = currentUnavailable;
+        dateData.dispatched = dispatched.length;
+        dateData.standby = standby.length;
+
+        await dateData.save();
+      } else {
+        let dateDataToSave = new assetAvblty.model({
+          date: today,
+          available: availableAssets.length,
+          unavailable: unavailableAssets.length,
+          dispatched: dispatched.length,
+          standby: standby.length,
+        });
+        await dateDataToSave.save();
+      }
       res.status(201).send(savedRecord);
     }
   } catch (err) {
