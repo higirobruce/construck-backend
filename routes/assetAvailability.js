@@ -13,8 +13,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/getAnalytics", async (req, res) => {
-  let { startDate, endDate, status, customer, project, equipment, owner } =
-    req.body;
+  let { startDate, endDate } = req.body;
   try {
     const avblties = await assetAvblty.model.find({
       date: { $gte: startDate, $lte: endDate },
@@ -25,9 +24,14 @@ router.post("/getAnalytics", async (req, res) => {
     let totDispatched = 0;
     let totStandby = 0;
     avblties.forEach((a) => {
-      totAssets = totAssets + a.available + a.unavailable;
-      totAvailable = totAvailable + a.available;
-      totUnavailable = totUnavailable + a.unavailable;
+      totAssets =
+        totAssets + a.available
+          ? a.available
+          : 0 + a.unavailable
+          ? a.unavailable
+          : 0;
+      totAvailable = totAvailable + a.available ? a.available : 0;
+      totUnavailable = totUnavailable + a.unavailable ? a.unavailable : 0;
       totDispatched = totDispatched + a.dispatched ? a.dispatched : 0;
       totStandby = totStandby + a.standby ? a.standby : 0;
     });
