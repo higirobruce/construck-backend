@@ -27,15 +27,13 @@ router.post("/getAnalytics", async (req, res) => {
     if (avblties.length > 0) {
       avblties.forEach((a) => {
         totAssets =
-          totAssets + a.available
-            ? a.available
-            : 0 + a.unavailable
-            ? a.unavailable
-            : 0;
-        totAvailable = totAvailable + a.available ? a.available : 0;
-        totUnavailable = totUnavailable + a.unavailable ? a.unavailable : 0;
-        totDispatched = totDispatched + a.dispatched ? a.dispatched : 0;
-        totStandby = totStandby + a.standby ? a.standby : 0;
+          totAssets +
+          (a.available ? a.available : 0) +
+          (a.unavailable ? a.unavailable : 0);
+        totAvailable = totAvailable + (a.available ? a.available : 0);
+        totUnavailable = totUnavailable + (a.unavailable ? a.unavailable : 0);
+        totDispatched = totDispatched + (a.dispatched ? a.dispatched : 0);
+        totStandby = totStandby + (a.standby ? a.standby : 0);
       });
     } else {
       avblties = await assetAvblty.model.find({});
@@ -43,7 +41,8 @@ router.post("/getAnalytics", async (req, res) => {
       avblties.forEach((a) => {
         totAssets =
           totAssets +
-          (a.available ? a.available : 0 + a.unavailable ? a.unavailable : 0);
+          ((a.available ? a.available : 0) +
+            (a.unavailable ? a.unavailable : 0));
         totAvailable = totAvailable + (a.available ? a.available : 0);
         totUnavailable = totUnavailable + (a.unavailable ? a.unavailable : 0);
         totDispatched = totDispatched + (a.dispatched ? a.dispatched : 0);
