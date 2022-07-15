@@ -836,7 +836,7 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-    if (work.status === "created") {
+    if (work.status === "created" || work.status === "on going") {
       let eqId = work?.equipment?._id;
       await workData.model.updateMany(
         { "equipment._id": eqId },
