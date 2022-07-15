@@ -198,7 +198,14 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    let listToSend = workList.filter((w) => !isNull(w.driver));
+    let listToSend = workList
+      .filter(
+        (w) =>
+          w.siteWork === false ||
+          (w.siteWork === true &&
+            _.includes(w.dailyWork, moment().format("DD-MMM-YYYY")))
+      )
+      .filter((w) => !isNull(w.driver));
     let l = listToSend.map((w) => {
       let work = {
         workDone: w.workDone,
