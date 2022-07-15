@@ -95,14 +95,13 @@ router.post("/login", async (req, res) => {
         });
         return;
       } else {
-        allowed = true;
+        allowed = await bcrypt.compare(password, vendor.password);
       }
     } else {
-      allowed = true;
+      allowed = await bcrypt.compare(password, employee.password);
     }
 
-    // let allowed = await bcrypt.compare(password, employee.password);
-
+    console.log(employee, vendor);
     if (allowed) {
       if (employee) {
         if (employee.status !== "inactive") {
