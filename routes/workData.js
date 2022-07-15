@@ -203,6 +203,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .filter(
         (w) =>
           w.siteWork === false ||
+          (w.siteWork === true && w.status === "in progress") ||
           (w.siteWork === true &&
             _.filter(w.dailyWork, (dW) => {
               return dW.date === moment().format("DD-MMM-YYYY");
