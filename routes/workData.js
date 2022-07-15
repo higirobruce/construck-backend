@@ -162,7 +162,6 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
-  console.log(driverId);
   try {
     let workList = await workData.model
       .find(
@@ -213,12 +212,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         workStartDate: w.workStartDate,
         dispatchDate: w.dispatch.date,
         shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+        startIndex: w.startIndex ? w.startIndex : 0,
+        millage: w.equipment.millage ? w.equipment.millage : 0,
       };
 
       return work;
     });
 
-    console.log(l);
     res.status(200).send(l);
   } catch (err) {
     res.send(err);
