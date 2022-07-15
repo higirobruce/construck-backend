@@ -182,15 +182,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           "driver._id": false,
         }
       )
-
-      // .populate("project")
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
       .populate("equipment")
       .populate("driver")
       .populate("dispatch")
