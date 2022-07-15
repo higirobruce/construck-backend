@@ -162,6 +162,7 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
+  console.log(moment().format("DD-MMM-YYYY"));
   try {
     let workList = await workData.model
       .find(
@@ -203,7 +204,9 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         (w) =>
           w.siteWork === false ||
           (w.siteWork === true &&
-            _.includes(w.dailyWork, moment().format("DD-MMM-YYYY")))
+            _.filter(w.dailyWork, (dW) => {
+              return dW.date === moment().format("DD-MMM-YYYY");
+            }).length === 0)
       )
       .filter((w) => !isNull(w.driver));
     let l = listToSend.map((w) => {
