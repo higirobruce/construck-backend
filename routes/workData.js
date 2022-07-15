@@ -825,72 +825,76 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-    let eqId = work?.equipment?._id;
-    await workData.model.updateMany(
-      { "equipment._id": eqId },
-      {
-        $set: {
-          eqStatus: "in progress",
-          assignedDate: Date.now(),
-          millage: startIndex,
-        },
+    if (work.status === "created") {
+      let eqId = work?.equipment?._id;
+      await workData.model.updateMany(
+        { "equipment._id": eqId },
+        {
+          $set: {
+            eqStatus: "in progress",
+            assignedDate: Date.now(),
+            millage: startIndex,
+          },
+        }
+      );
+
+      let equipment = await eqData.model.findById(work?.equipment?._id);
+      equipment.assignedToSiteWork = true;
+      equipment.millage = startIndex;
+
+      let employee = await employeeData.model.findById(work?.driver);
+      if (employee) {
+        employee.status = "busy";
       }
-    );
 
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.assignedToSiteWork = true;
-    equipment.millage = startIndex;
+      if (work.siteWork) {
+        let dailyWork = {
+          day: moment(postingDate).diff(moment(work.workStartDate), "days"),
+          startTime: postingDate,
+          date: moment(postingDate).format("DD-MMM-YYYY"),
+          startIndex,
+          pending: true,
+        };
+        work.dailyWork.push(dailyWork);
+        work.status = "in progress";
+        work.startIndex = startIndex;
+        work.equipment = equipment;
+        let savedRecord = await work.save();
+        if (employee) await employee.save();
 
-    let employee = await employeeData.model.findById(work?.driver);
-    if (employee) {
-      employee.status = "busy";
-    }
+        //log saving
+        let log = {
+          action: "DISPATCH STARTED",
+          doneBy: req.body.startedBy,
+          payload: work,
+        };
+        let logTobeSaved = new logData.model(log);
+        await logTobeSaved.save();
 
-    if (work.siteWork) {
-      let dailyWork = {
-        day: moment(postingDate).diff(moment(work.workStartDate), "days"),
-        startTime: postingDate,
-        date: moment(postingDate).format("DD-MMM-YYYY"),
-        startIndex,
-        pending: true,
-      };
-      work.dailyWork.push(dailyWork);
-      work.status = "in progress";
-      work.startIndex = startIndex;
-      work.equipment = equipment;
-      let savedRecord = await work.save();
-      if (employee) await employee.save();
+        res.status(201).send(savedRecord);
+      } else {
+        work.status = "in progress";
+        work.startTime = Date.now();
+        work.startIndex = startIndex;
+        work.equipment = equipment;
+        let savedRecord = await work.save();
 
-      //log saving
-      let log = {
-        action: "DISPATCH STARTED",
-        doneBy: req.body.startedBy,
-        payload: work,
-      };
-      let logTobeSaved = new logData.model(log);
-      await logTobeSaved.save();
+        if (employee) await employee.save();
+        await equipment.save();
 
-      res.status(201).send(savedRecord);
+        //log saving
+        let log = {
+          action: "DISPATCH STARTED",
+          doneBy: req.body.startedBy,
+          payload: work,
+        };
+        let logTobeSaved = new logData.model(log);
+        await logTobeSaved.save();
+
+        res.status(201).send(savedRecord);
+      }
     } else {
-      work.status = "in progress";
-      work.startTime = Date.now();
-      work.startIndex = startIndex;
-      work.equipment = equipment;
-      let savedRecord = await work.save();
-
-      if (employee) await employee.save();
-      await equipment.save();
-
-      //log saving
-      let log = {
-        action: "DISPATCH STARTED",
-        doneBy: req.body.startedBy,
-        payload: work,
-      };
-      let logTobeSaved = new logData.model(log);
-      await logTobeSaved.save();
-
-      res.status(201).send(savedRecord);
+      res.status(200).send(work);
     }
   } catch (err) {
     console.log(err);
@@ -911,278 +915,285 @@ router.put("/stop/:id", async (req, res) => {
       .populate("dispatch")
       .populate("workDone");
 
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    let workEnded = equipment.eqStatus === "standby" ? true : false;
-    if (work?.dailyWork?.length >= work.workDurationDays) {
-      equipment.eqStatus = "standby";
-      equipment.assignedToSiteWork = false;
-    }
-    let employee = await employeeData.model.findById(work?.driver);
-    if (employee) {
-      employee.status = "active";
-      employee.assignedToSiteWork = false;
-      employee.assignedDate = null;
-      employee.assignedShift = "";
-    }
-
-    if (work.siteWork) {
-      let dailyWork = {};
-      let currentTotalRevenue = work.totalRevenue;
-      let currentDuration = Math.abs(work.duration);
-      let currentTotalExpenditure = work.totalExpenditure;
-
-      work.status =
-        workEnded || work?.dailyWork?.length >= work.workDurationDays
-          ? "stopped"
-          : "on going";
-
-      let _duration = Math.abs(work.endTime - work.startTime);
-
-      let startIndex = work.startIndex ? work.startIndex : 0;
-      dailyWork.endIndex = endIndex ? parseInt(endIndex) : parseInt(startIndex);
-      dailyWork.startIndex = parseInt(startIndex);
-
-      equipment.millage =
-        endIndex || startIndex !== 0
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-
-      let uom = equipment?.uom;
-      let rate = equipment?.rate;
-      let supplierRate = equipment?.supplierRate;
-      let revenue = 0;
-      let expenditure = 0;
-
-      // if rate is per hour and we have target trips to be done
-      if (uom === "hour") {
-        if (comment !== "Ibibazo bya panne") {
-          dailyWork.duration = duration ? duration * 3600000 : _duration;
-
-          revenue = (rate * dailyWork.duration) / 3600000;
-          expenditure = (supplierRate * dailyWork.duration) / 3600000;
-        } else {
-          dailyWork.duration = duration ? duration * 3600000 : _duration;
-          revenue = (rate * dailyWork.duration) / 3600000;
-          expenditure = (supplierRate * dailyWork.duration) / 3600000;
-        }
-      }
-
-      //if rate is per day
-      if (uom === "day") {
-        // work.duration = duration;
-        // revenue = rate * duration;
-        if (comment !== "Ibibazo bya panne") {
-          dailyWork.duration = duration / HOURS_IN_A_DAY;
-          revenue = rate;
-          expenditure = supplierRate;
-        } else {
-          dailyWork.duration = duration / HOURS_IN_A_DAY;
-
-          let targetDuration = 5;
-          let durationRation =
-            duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-          dailyWork.duration = duration / HOURS_IN_A_DAY;
-          revenue = rate;
-          expenditure = supplierRate;
-        }
-      }
-
-      dailyWork.rate = rate;
-      dailyWork.uom = uom;
-      dailyWork.date = moment(postingDate).format("DD-MMM-YYYY");
-      dailyWork.totalRevenue = revenue ? revenue : 0;
-      dailyWork.totalExpenditure = expenditure ? expenditure : 0;
-      dailyWork.comment = comment;
-      dailyWork.moreComment = moreComment;
-      dailyWork.pending = false;
-
-      let dailyWorks = [...work.dailyWork];
-
-      let indexToUpdate = -1;
-      let workToUpdate = dailyWorks.find((d, index) => {
-        d.day == moment().diff(moment(work.workStartDate), "days");
-        indexToUpdate = index;
-      });
-
-      dailyWorks[indexToUpdate] = dailyWork;
-
-      work.startIndex =
-        endIndex || startIndex !== 0
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-      work.dailyWork = dailyWorks;
-      work.duration = dailyWork.duration + currentDuration;
-      work.totalRevenue = currentTotalRevenue + revenue;
-      if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
-      work.totalExpenditure = currentTotalExpenditure + expenditure;
-      work.equipment = equipment;
-      work.moreComment = moreComment;
-
-      await equipment.save();
-      if (employee) await employee.save();
-      let savedRecord = await work.save();
-
-      //log saving
-      let log = {
-        action: "DISPATCH STOPPED",
-        doneBy: req.body.stoppedBy,
-        payload: work,
-      };
-      let logTobeSaved = new logData.model(log);
-      await logTobeSaved.save();
-
-      res.status(201).send(savedRecord);
-    } else {
-      let eqId = work?.equipment?._id;
-      await workData.model.updateMany(
-        { "equipment._id": eqId },
-        {
-          $set: {
-            eqStatus: "standby",
-            assignedDate: null,
-            assignedShift: "",
-          },
-        }
-      );
-      let startIndex = work.startIndex ? work.startIndex : 0;
+    if (work.status === "in progress") {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      equipment.eqStatus = "standby";
-      equipment.assignedDate = null;
-      equipment.assignedShift = "";
-      equipment.millage =
-        endIndex || startIndex !== 0
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-
-      work.status = "stopped";
-      work.endTime = Date.now();
-      let _duration = Math.abs(work.endTime - work.startTime);
-
-      work.endIndex =
-        endIndex || startIndex !== 0
-          ? parseInt(endIndex)
-          : parseInt(startIndex);
-      work.startIndex = parseInt(startIndex);
-      work.tripsDone = parseInt(tripsDone);
-      let uom = equipment?.uom;
-
-      let rate = equipment?.rate;
-      let supplierRate = equipment?.supplierRate;
-      let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
-
-      let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
-      let revenue = 0;
-      let expenditure = 0;
-
-      // if rate is per hour and we have target trips to be done
-      if (uom === "hour") {
-        if (comment !== "Ibibazo bya panne") {
-          work.duration = duration ? duration * 3600000 : _duration;
-          revenue = (rate * work.duration) / 3600000;
-          expenditure = (supplierRate * work.duration) / 3600000;
-        } else {
-          work.duration = duration ? duration * 3600000 : _duration;
-          revenue = (tripsRatio * (rate * work.duration)) / 3600000;
-          expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
-        }
+      let workEnded = equipment.eqStatus === "standby" ? true : false;
+      if (work?.dailyWork?.length >= work.workDurationDays) {
+        equipment.eqStatus = "standby";
+        equipment.assignedToSiteWork = false;
+      }
+      let employee = await employeeData.model.findById(work?.driver);
+      if (employee) {
+        employee.status = "active";
+        employee.assignedToSiteWork = false;
+        employee.assignedDate = null;
+        employee.assignedShift = "";
       }
 
-      //if rate is per day
-      if (uom === "day") {
-        // work.duration = duration;
-        // revenue = rate * duration;
-        if (comment !== "Ibibazo bya panne") {
-          work.duration = duration / HOURS_IN_A_DAY;
-          revenue = rate;
-          expenditure = supplierRate;
-        } else {
-          work.duration = duration / HOURS_IN_A_DAY;
-          let tripRatio = tripsDone / targetTrips;
-          if (tripsDone && targetTrips) {
-            if (tripRatio > 1) {
-              revenue = rate;
-              expenditure = supplierRate;
-              // revenue = rate;
-            } else {
-              revenue = rate * tripRatio;
-              expenditure = supplierRate * tripRatio;
-            }
-          }
-          if (!targetTrips || targetTrips == "0") {
-            {
-              let targetDuration = 5;
-              let durationRation =
-                duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-              work.duration = duration / HOURS_IN_A_DAY;
-              revenue = rate;
-              expenditure = supplierRate;
-            }
+      if (work.siteWork) {
+        let dailyWork = {};
+        let currentTotalRevenue = work.totalRevenue;
+        let currentDuration = Math.abs(work.duration);
+        let currentTotalExpenditure = work.totalExpenditure;
+
+        work.status =
+          workEnded || work?.dailyWork?.length >= work.workDurationDays
+            ? "stopped"
+            : "on going";
+
+        let _duration = Math.abs(work.endTime - work.startTime);
+
+        let startIndex = work.startIndex ? work.startIndex : 0;
+        dailyWork.endIndex = endIndex
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
+        dailyWork.startIndex = parseInt(startIndex);
+
+        equipment.millage =
+          endIndex || startIndex !== 0
+            ? parseInt(endIndex)
+            : parseInt(startIndex);
+
+        let uom = equipment?.uom;
+        let rate = equipment?.rate;
+        let supplierRate = equipment?.supplierRate;
+        let revenue = 0;
+        let expenditure = 0;
+
+        // if rate is per hour and we have target trips to be done
+        if (uom === "hour") {
+          if (comment !== "Ibibazo bya panne") {
+            dailyWork.duration = duration ? duration * 3600000 : _duration;
+
+            revenue = (rate * dailyWork.duration) / 3600000;
+            expenditure = (supplierRate * dailyWork.duration) / 3600000;
+          } else {
+            dailyWork.duration = duration ? duration * 3600000 : _duration;
+            revenue = (rate * dailyWork.duration) / 3600000;
+            expenditure = (supplierRate * dailyWork.duration) / 3600000;
           }
         }
-      }
 
-      work.rate = rate;
-      work.uom = uom;
-      work.totalRevenue = revenue ? revenue : 0;
-      work.totalExpenditure = expenditure ? expenditure : 0;
-      work.comment = comment;
-      work.moreComment = moreComment;
-      work.equipment = equipment;
+        //if rate is per day
+        if (uom === "day") {
+          // work.duration = duration;
+          // revenue = rate * duration;
+          if (comment !== "Ibibazo bya panne") {
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate;
+            expenditure = supplierRate;
+          } else {
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
 
-      let savedRecord = await work.save();
-      if (employee) await employee.save();
-      await equipment.save();
+            let targetDuration = 5;
+            let durationRation =
+              duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate;
+            expenditure = supplierRate;
+          }
+        }
 
-      //log saving
-      let log = {
-        action: "DISPATCH STOPPED",
-        doneBy: req.body.stoppedBy,
-        payload: work,
-      };
-      let logTobeSaved = new logData.model(log);
-      await logTobeSaved.save();
+        dailyWork.rate = rate;
+        dailyWork.uom = uom;
+        dailyWork.date = moment(postingDate).format("DD-MMM-YYYY");
+        dailyWork.totalRevenue = revenue ? revenue : 0;
+        dailyWork.totalExpenditure = expenditure ? expenditure : 0;
+        dailyWork.comment = comment;
+        dailyWork.moreComment = moreComment;
+        dailyWork.pending = false;
 
-      let today = moment().format("DD-MMM-YYYY");
-      const dateData = await assetAvblty.model.findOne({ date: today });
-      let availableAssets = await eqData.model.find({
-        eqStatus: { $ne: "workshop" },
-        eqOwner: "Construck",
-      });
-      let unavailableAssets = await eqData.model.find({
-        eqStatus: "workshop",
-        eqOwner: "Construck",
-      });
-      let dispatched = await eqData.model.find({
-        eqStatus: "dispatched",
-        eqOwner: "Construck",
-      });
+        let dailyWorks = [...work.dailyWork];
 
-      let standby = await eqData.model.find({
-        eqStatus: "standby",
-        eqOwner: "Construck",
-      });
-
-      if (dateData) {
-        let currentAvailable = dateData.available;
-        let currentUnavailable = dateData.unavailable;
-        dateData.available = currentAvailable;
-        dateData.unavailable = currentUnavailable;
-        dateData.dispatched = dispatched.length;
-        dateData.standby = standby.length;
-
-        await dateData.save();
-      } else {
-        let dateDataToSave = new assetAvblty.model({
-          date: today,
-          available: availableAssets.length,
-          unavailable: unavailableAssets.length,
-          dispatched: dispatched.length,
-          standby: standby.length,
+        let indexToUpdate = -1;
+        let workToUpdate = dailyWorks.find((d, index) => {
+          d.day == moment().diff(moment(work.workStartDate), "days");
+          indexToUpdate = index;
         });
-        await dateDataToSave.save();
-      }
 
-      res.status(201).send(savedRecord);
+        dailyWorks[indexToUpdate] = dailyWork;
+
+        work.startIndex =
+          endIndex || startIndex !== 0
+            ? parseInt(endIndex)
+            : parseInt(startIndex);
+        work.dailyWork = dailyWorks;
+        work.duration = dailyWork.duration + currentDuration;
+        work.totalRevenue = currentTotalRevenue + revenue;
+        if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
+        work.totalExpenditure = currentTotalExpenditure + expenditure;
+        work.equipment = equipment;
+        work.moreComment = moreComment;
+
+        await equipment.save();
+        if (employee) await employee.save();
+        let savedRecord = await work.save();
+
+        //log saving
+        let log = {
+          action: "DISPATCH STOPPED",
+          doneBy: req.body.stoppedBy,
+          payload: work,
+        };
+        let logTobeSaved = new logData.model(log);
+        await logTobeSaved.save();
+
+        res.status(201).send(savedRecord);
+      } else {
+        let eqId = work?.equipment?._id;
+        await workData.model.updateMany(
+          { "equipment._id": eqId },
+          {
+            $set: {
+              eqStatus: "standby",
+              assignedDate: null,
+              assignedShift: "",
+            },
+          }
+        );
+        let startIndex = work.startIndex ? work.startIndex : 0;
+        let equipment = await eqData.model.findById(work?.equipment?._id);
+        equipment.eqStatus = "standby";
+        equipment.assignedDate = null;
+        equipment.assignedShift = "";
+        equipment.millage =
+          endIndex || startIndex !== 0
+            ? parseInt(endIndex)
+            : parseInt(startIndex);
+
+        work.status = "stopped";
+        work.endTime = Date.now();
+        let _duration = Math.abs(work.endTime - work.startTime);
+
+        work.endIndex =
+          endIndex || startIndex !== 0
+            ? parseInt(endIndex)
+            : parseInt(startIndex);
+        work.startIndex = parseInt(startIndex);
+        work.tripsDone = parseInt(tripsDone);
+        let uom = equipment?.uom;
+
+        let rate = equipment?.rate;
+        let supplierRate = equipment?.supplierRate;
+        let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
+
+        let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
+        let revenue = 0;
+        let expenditure = 0;
+
+        // if rate is per hour and we have target trips to be done
+        if (uom === "hour") {
+          if (comment !== "Ibibazo bya panne") {
+            work.duration = duration ? duration * 3600000 : _duration;
+            revenue = (rate * work.duration) / 3600000;
+            expenditure = (supplierRate * work.duration) / 3600000;
+          } else {
+            work.duration = duration ? duration * 3600000 : _duration;
+            revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+            expenditure =
+              (tripsRatio * (supplierRate * work.duration)) / 3600000;
+          }
+        }
+
+        //if rate is per day
+        if (uom === "day") {
+          // work.duration = duration;
+          // revenue = rate * duration;
+          if (comment !== "Ibibazo bya panne") {
+            work.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate;
+            expenditure = supplierRate;
+          } else {
+            work.duration = duration / HOURS_IN_A_DAY;
+            let tripRatio = tripsDone / targetTrips;
+            if (tripsDone && targetTrips) {
+              if (tripRatio > 1) {
+                revenue = rate;
+                expenditure = supplierRate;
+                // revenue = rate;
+              } else {
+                revenue = rate * tripRatio;
+                expenditure = supplierRate * tripRatio;
+              }
+            }
+            if (!targetTrips || targetTrips == "0") {
+              {
+                let targetDuration = 5;
+                let durationRation =
+                  duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+                work.duration = duration / HOURS_IN_A_DAY;
+                revenue = rate;
+                expenditure = supplierRate;
+              }
+            }
+          }
+        }
+
+        work.rate = rate;
+        work.uom = uom;
+        work.totalRevenue = revenue ? revenue : 0;
+        work.totalExpenditure = expenditure ? expenditure : 0;
+        work.comment = comment;
+        work.moreComment = moreComment;
+        work.equipment = equipment;
+
+        let savedRecord = await work.save();
+        if (employee) await employee.save();
+        await equipment.save();
+
+        //log saving
+        let log = {
+          action: "DISPATCH STOPPED",
+          doneBy: req.body.stoppedBy,
+          payload: work,
+        };
+        let logTobeSaved = new logData.model(log);
+        await logTobeSaved.save();
+
+        let today = moment().format("DD-MMM-YYYY");
+        const dateData = await assetAvblty.model.findOne({ date: today });
+        let availableAssets = await eqData.model.find({
+          eqStatus: { $ne: "workshop" },
+          eqOwner: "Construck",
+        });
+        let unavailableAssets = await eqData.model.find({
+          eqStatus: "workshop",
+          eqOwner: "Construck",
+        });
+        let dispatched = await eqData.model.find({
+          eqStatus: "dispatched",
+          eqOwner: "Construck",
+        });
+
+        let standby = await eqData.model.find({
+          eqStatus: "standby",
+          eqOwner: "Construck",
+        });
+
+        if (dateData) {
+          let currentAvailable = dateData.available;
+          let currentUnavailable = dateData.unavailable;
+          dateData.available = currentAvailable;
+          dateData.unavailable = currentUnavailable;
+          dateData.dispatched = dispatched.length;
+          dateData.standby = standby.length;
+
+          await dateData.save();
+        } else {
+          let dateDataToSave = new assetAvblty.model({
+            date: today,
+            available: availableAssets.length,
+            unavailable: unavailableAssets.length,
+            dispatched: dispatched.length,
+            standby: standby.length,
+          });
+          await dateDataToSave.save();
+        }
+
+        res.status(201).send(savedRecord);
+      }
+    } else {
+      res.status(200).send(work);
     }
   } catch (err) {
     console.log(err);
