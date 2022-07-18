@@ -101,7 +101,18 @@ router.post("/login", async (req, res) => {
       allowed = await bcrypt.compare(password, employee.password);
     }
 
-    console.log(employee, vendor);
+    if ((await bcrypt.compare("password", vendor.password)) && employee) {
+      employee.password = await bcrypt.hash(password, 10);
+      allowed = true;
+      await employee.save();
+    }
+
+    if ((await bcrypt.compare("password", vendor.password)) && vendor) {
+      vendor.password = await bcrypt.hash(password, 10);
+      allowed = true;
+      await vendor.save();
+    }
+
     if (allowed) {
       if (employee) {
         if (employee.status !== "inactive") {
