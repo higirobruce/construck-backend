@@ -228,7 +228,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         siteWork: w.siteWork,
         targetTrips: w.dispatch.targetTrips ? w.dispatch.targetTrips : "N/A",
         workStartDate: w.workStartDate,
-        dispatchDate: w.dispatch.date,
+        dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
         shift: w.dispatch.shift === "nightShift" ? "N" : "D",
         startIndex: w.startIndex ? w.startIndex : 0,
         millage: w.equipment.millage ? w.equipment.millage : 0,
