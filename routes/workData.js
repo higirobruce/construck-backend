@@ -11,6 +11,15 @@ const e = require("express");
 const { isNull } = require("lodash");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
+const ObjectId = require("mongoose").Types.ObjectId;
+
+function isValidObjectId(id) {
+  if (ObjectId.isValid(id)) {
+    if (String(new ObjectId(id)) === id) return true;
+    return false;
+  }
+  return false;
+}
 
 router.get("/", async (req, res) => {
   try {
@@ -162,12 +171,19 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
-  console.log(moment().format("DD-MMM-YYYY"));
+  // console.log(isValidObjectId(driverId));
   try {
     let workList = await workData.model
       .find(
         {
-          driver: driverId,
+          $or: [
+            {
+              "equipment.eqOwner": driverId,
+            },
+            {
+              driver: isValidObjectId(driverId) ? driverId : "123456789011",
+            },
+          ],
         },
         {
           "project.createdOn": false,
@@ -190,17 +206,17 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    let listToSend = workList
-      .filter(
-        (w) =>
-          w.siteWork === false ||
-          (w.siteWork === true && w.status === "in progress") ||
-          (w.siteWork === true &&
-            _.filter(w.dailyWork, (dW) => {
-              return dW.date === moment().format("DD-MMM-YYYY");
-            }).length === 0)
-      )
-      .filter((w) => !isNull(w.driver));
+    let listToSend = workList;
+    // .filter(
+    //   (w) =>
+    //     w.siteWork === false ||
+    //     (w.siteWork === true && w.status === "in progress") ||
+    //     (w.siteWork === true &&
+    //       _.filter(w.dailyWork, (dW) => {
+    //         return dW.date === moment().format("DD-MMM-YYYY");
+    //       }).length === 0)
+    // );
+    // .filter((w) => !isNull(w.driver));
     let l = listToSend.map((w) => {
       let work = {
         workDone: w.workDone,
