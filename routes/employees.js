@@ -101,13 +101,13 @@ router.post("/login", async (req, res) => {
       allowed = await bcrypt.compare(password, employee.password);
     }
 
-    if ((await bcrypt.compare("password", vendor.password)) && employee) {
+    if (employee && (await bcrypt.compare("password", employee?.password))) {
       employee.password = await bcrypt.hash(password, 10);
       allowed = true;
       await employee.save();
     }
 
-    if ((await bcrypt.compare("password", vendor.password)) && vendor) {
+    if (vendor && (await bcrypt.compare("password", vendor?.password))) {
       vendor.password = await bcrypt.hash(password, 10);
       allowed = true;
       await vendor.save();
