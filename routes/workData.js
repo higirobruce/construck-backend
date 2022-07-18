@@ -206,17 +206,17 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .populate("workDone")
       .sort([["_id", "descending"]]);
 
-    let listToSend = workList;
-    // .filter(
-    //   (w) =>
-    //     w.siteWork === false ||
-    //     (w.siteWork === true && w.status === "in progress") ||
-    //     (w.siteWork === true &&
-    //       _.filter(w.dailyWork, (dW) => {
-    //         return dW.date === moment().format("DD-MMM-YYYY");
-    //       }).length === 0)
-    // );
-    // .filter((w) => !isNull(w.driver));
+    let listToSend = workList
+      .filter(
+        (w) =>
+          w.siteWork === false ||
+          (w.siteWork === true && w.status === "in progress") ||
+          (w.siteWork === true &&
+            _.filter(w.dailyWork, (dW) => {
+              return dW.date === moment().format("DD-MMM-YYYY");
+            }).length === 0)
+      )
+      .filter((w) => !isNull(w.driver));
     let l = listToSend.map((w) => {
       let work = {
         workDone: w.workDone,
