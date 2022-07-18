@@ -922,7 +922,8 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
-  let { endIndex, tripsDone, comment, moreComment, postingDate } = req.body;
+  let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
+    req.body;
   let duration = Math.abs(req.body.duration);
   try {
     let work = await workData.model
@@ -1051,7 +1052,7 @@ router.put("/stop/:id", async (req, res) => {
         //log saving
         let log = {
           action: "DISPATCH STOPPED",
-          doneBy: req.body.stoppedBy,
+          doneBy: stoppedBy,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);
@@ -1163,7 +1164,7 @@ router.put("/stop/:id", async (req, res) => {
         //log saving
         let log = {
           action: "DISPATCH STOPPED",
-          doneBy: req.body.stoppedBy,
+          doneBy: stoppedBy,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);
