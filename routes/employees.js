@@ -126,7 +126,7 @@ router.post("/login", async (req, res) => {
       if (vendor) {
         res.status(200).send({
           employee: {
-            _id: vendor._id,
+            _id: vendor.name,
             firstName: vendor.name,
             lastName: "",
           },
