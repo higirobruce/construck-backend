@@ -220,7 +220,15 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       .filter((w) => !isNull(w.driver) && !isNull(w.workDone));
     let l = listToSend.map((w) => {
       let work = {
-        workDone: w.workDone,
+        workDone: w.workDone
+          ? w.workDone
+          : {
+              _id: "62690b67cf45ad62aa6144d8",
+              jobDescription: "Others",
+              eqType: "Truck",
+              createdOn: "2022-04-27T09:20:50.911Z",
+              __v: 0,
+            },
         _id: w._id,
         status: w.status,
         project: w.project,
