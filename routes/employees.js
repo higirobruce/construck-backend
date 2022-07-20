@@ -33,22 +33,22 @@ router.get("/:date/:shift", async (req, res) => {
         {
           status: "busy",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           status: "busy",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           status: "dispatched",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           status: "dispatched",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
       ],
     });

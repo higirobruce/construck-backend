@@ -78,7 +78,6 @@ router.get("/v2", async (req, res) => {
 });
 
 router.get("/v3", async (req, res) => {
-  console.log("fetching data");
   try {
     let workList = await workData.model
       .find(

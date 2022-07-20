@@ -75,12 +75,17 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           eqStatus: "dispatched",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
+        },
+        {
+          eqStatus: "dispatched",
+          assignedToSiteWork: true,
+          assignedShift: { $ne: shift },
         },
       ],
     });
@@ -95,16 +100,20 @@ router.get("/:date/:shift", async (req, res) => {
   try {
     const equipment = await eqData.model.find({
       $or: [
-        { eqStatus: "standby" },
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
         },
         {
           eqStatus: "dispatched",
           assignedDate: { $ne: date },
-          //assignedToSiteWork: { $ne: true },
+          assignedToSiteWork: { $ne: true },
+        },
+        {
+          eqStatus: "dispatched",
+          assignedToSiteWork: true,
+          assignedShift: { $ne: shift },
         },
       ],
     });
