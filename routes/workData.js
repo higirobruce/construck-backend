@@ -1005,10 +1005,9 @@ router.put("/start/:id", async (req, res) => {
       if (work.siteWork) {
         let dailyWork = {
           day: !isNaN(moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY"))
-            ? moment(postingDate, "DD.MM.YYYY").diff(
-                moment(work.workStartDate),
-                "days"
-              )
+            ? moment(postingDate, "DD.MM.YYYY")
+                .diff(moment(work.workStartDate), "days")
+                .format("DD-MMM-YYYY")
             : moment(postingDate).diff(moment(work.workStartDate), "days"),
           startTime: postingDate,
           date: !isNaN(moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY"))
@@ -1223,6 +1222,7 @@ router.put("/stop/:id", async (req, res) => {
         equipment.eqStatus = "standby";
         equipment.assignedDate = null;
         equipment.assignedShift = "";
+        equipment.assignedToSiteWork = false;
         equipment.millage =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)
