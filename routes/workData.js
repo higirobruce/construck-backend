@@ -1143,8 +1143,8 @@ router.put("/stop/:id", async (req, res) => {
           // revenue = rate * duration;
           if (comment !== "Ibibazo bya panne") {
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate;
-            expenditure = supplierRate;
+            revenue = rate * (duration >= 1 ? 1 : 0);
+            expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
             dailyWork.duration = duration / HOURS_IN_A_DAY;
 
@@ -1152,7 +1152,7 @@ router.put("/stop/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (durationRation >= 1 ? 1 : 0);
+            revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate;
           }
         }
@@ -1268,8 +1268,8 @@ router.put("/stop/:id", async (req, res) => {
           // revenue = rate * duration;
           if (comment !== "Ibibazo bya panne") {
             work.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate;
-            expenditure = supplierRate;
+            revenue = rate * (duration >= 1 ? 1 : 0);
+            expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
             work.duration = duration / HOURS_IN_A_DAY;
             let tripRatio = tripsDone / targetTrips;
