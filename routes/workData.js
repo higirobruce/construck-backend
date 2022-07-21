@@ -1002,12 +1002,11 @@ router.put("/start/:id", async (req, res) => {
         employee.status = "busy";
       }
 
+      postingDate = new Date(postingDate);
       if (work.siteWork) {
         let dailyWork = {
           day: moment(postingDate).isValid()
-            ? moment(postingDate)
-                .diff(moment(work.workStartDate), "days")
-                .format("DD-MMM-YYYY")
+            ? moment(postingDate).diff(moment(work.workStartDate), "days")
             : moment(postingDate, "DD.MM.YYYY").diff(
                 moment(work.workStartDate),
                 "days"
@@ -1070,6 +1069,7 @@ router.put("/stop/:id", async (req, res) => {
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
   let duration = Math.abs(req.body.duration);
+  postingDate = new Date(postingDate);
   try {
     let work = await workData.model
       .findById(id)
