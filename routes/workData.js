@@ -1004,15 +1004,18 @@ router.put("/start/:id", async (req, res) => {
 
       if (work.siteWork) {
         let dailyWork = {
-          day: !isNaN(moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY"))
-            ? moment(postingDate, "DD.MM.YYYY")
+          day: moment(postingDate).isValid()
+            ? moment(postingDate)
                 .diff(moment(work.workStartDate), "days")
                 .format("DD-MMM-YYYY")
-            : moment(postingDate).diff(moment(work.workStartDate), "days"),
+            : moment(postingDate, "DD.MM.YYYY").diff(
+                moment(work.workStartDate),
+                "days"
+              ),
           startTime: postingDate,
-          date: !isNaN(moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY"))
-            ? moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY")
-            : moment(postingDate).format("DD-MMM-YYYY"),
+          date: moment(postingDate).isValid()
+            ? moment(postingDate).format("DD-MMM-YYYY")
+            : moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY"),
           startIndex,
           pending: true,
         };
@@ -1158,11 +1161,9 @@ router.put("/stop/:id", async (req, res) => {
 
         dailyWork.rate = rate;
         dailyWork.uom = uom;
-        dailyWork.date = !isNaN(
-          moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY")
-        )
-          ? moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY")
-          : moment(postingDate).format("DD-MMM-YYYY");
+        dailyWork.date = moment(postingDate).isValid()
+          ? moment(postingDate).format("DD-MMM-YYYY")
+          : moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY");
         dailyWork.totalRevenue = revenue ? revenue : 0;
         dailyWork.totalExpenditure = expenditure ? expenditure : 0;
         dailyWork.comment = comment;
