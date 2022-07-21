@@ -100,6 +100,7 @@ router.get("/:date/:shift", async (req, res) => {
   try {
     const equipment = await eqData.model.find({
       $or: [
+        { eqStatus: "standby" },
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
