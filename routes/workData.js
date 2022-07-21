@@ -227,7 +227,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
     let l = listToSend.map((w) => {
       let work = null;
 
-      if (w.siteWork) {
+      if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
