@@ -970,6 +970,7 @@ router.put("/reject/:id", async (req, res) => {
 router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
   let { startIndex, postingDate } = req.body;
+
   try {
     let work = await workData.model
       .findById(id)
@@ -980,8 +981,13 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-    if (work.status === "created" || work.status === "on going") {
+    if (
+      work.status === "created" ||
+      work.status === "on going" ||
+      work.status === "in progress"
+    ) {
       let eqId = work?.equipment?._id;
+
       await workData.model.updateMany(
         { "equipment._id": eqId },
         {
@@ -1002,7 +1008,6 @@ router.put("/start/:id", async (req, res) => {
         employee.status = "busy";
       }
 
-      postingDate = new Date(postingDate);
       if (work.siteWork) {
         let dailyWork = {
           day: moment(postingDate).isValid()
@@ -1018,6 +1023,8 @@ router.put("/start/:id", async (req, res) => {
           startIndex,
           pending: true,
         };
+
+        console.log(dailyWork);
         work.dailyWork.push(dailyWork);
         work.status = "in progress";
         work.startIndex = startIndex;
@@ -1069,7 +1076,7 @@ router.put("/stop/:id", async (req, res) => {
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
   let duration = Math.abs(req.body.duration);
-  postingDate = new Date(postingDate);
+
   try {
     let work = await workData.model
       .findById(id)
