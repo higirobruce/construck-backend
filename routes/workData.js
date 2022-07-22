@@ -971,6 +971,14 @@ router.put("/start/:id", async (req, res) => {
   let { id } = req.params;
   let { startIndex, postingDate } = req.body;
 
+  let dd = postingDate.split(".")[0];
+  let mm = postingDate.split(".")[1];
+  let yyyy = postingDate.split(".")[2];
+
+  if (dd?.length < 2) dd = "0" + dd;
+  if (mm?.length < 2) mm = "0" + mm;
+
+  if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
   try {
     let work = await workData.model
       .findById(id)
@@ -1077,6 +1085,12 @@ router.put("/stop/:id", async (req, res) => {
     req.body;
   let duration = Math.abs(req.body.duration);
 
+  let dd = postingDate.split(".")[0];
+  let mm = postingDate.split(".")[1];
+  let yyyy = postingDate.split(".")[2];
+  if (dd?.length < 2) dd = "0" + dd;
+  if (mm?.length < 2) mm = "0" + mm;
+  if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
   try {
     let work = await workData.model
       .findById(id)
