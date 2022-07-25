@@ -1084,6 +1084,7 @@ router.put("/stop/:id", async (req, res) => {
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
   let duration = Math.abs(req.body.duration);
+  if (duration > 8) duration = 8;
 
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
@@ -1101,13 +1102,23 @@ router.put("/stop/:id", async (req, res) => {
       .populate("dispatch")
       .populate("workDone");
 
+    //You can only stop jobs in progress
     if (work.status === "in progress") {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = equipment.eqStatus === "standby" ? true : false;
+
+      //get jobs being done by the same equipment
+      let eqBusyWorks = await workData.model.find({
+        "equipment.plateNumber": equipment._id,
+        _id: { $ne: work._id },
+        status: { $in: ["in progress", "on going", "created"] },
+      });
+
       if (work?.dailyWork?.length >= work.workDurationDays) {
-        equipment.eqStatus = "standby";
+        equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
         equipment.assignedToSiteWork = false;
       }
+
       let employee = await employeeData.model.findById(work?.driver);
       if (employee) {
         employee.status = "active";
@@ -1241,10 +1252,13 @@ router.put("/stop/:id", async (req, res) => {
         );
         let startIndex = work.startIndex ? work.startIndex : 0;
         let equipment = await eqData.model.findById(work?.equipment?._id);
-        equipment.eqStatus = "standby";
-        equipment.assignedDate = null;
-        equipment.assignedShift = "";
-        equipment.assignedToSiteWork = false;
+        equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
+        equipment.assignedDate =
+          eqBusyWorks.length >= 1 ? equipment.assignedDate : null;
+        equipment.assignedShift =
+          eqBusyWorks.length >= 1 ? equipment.assignedShift : "";
+        equipment.assignedToSiteWork =
+          eqBusyWorks.length >= 1 ? equipment.assignedToSiteWork : false;
         equipment.millage =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)

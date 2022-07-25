@@ -35,8 +35,7 @@ router.post("/", async (req, res) => {
 
     res.status(201).send(customerCreated);
   } catch (err) {
-    console.log(err);
-    let error = findError(err.code);
+    let error = findError(err.code) ? findError(err.code) : err?.message;
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
