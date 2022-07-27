@@ -379,6 +379,247 @@ router.get("/v3/driver/:driverId", async (req, res) => {
   }
 });
 
+router.get("/detailed", async (req, res) => {
+  // let { driverId } = req.params;
+  // console.log(isValidObjectId(driverId));
+  console.log("heeeere");
+  try {
+    let workList = await workData.model
+      .find(
+        {
+          // $or: [
+          //   {
+          //     "equipment.eqOwner": driverId,
+          //   },
+          //   {
+          //     driver: isValidObjectId(driverId) ? driverId : "123456789011",
+          //   },
+          // ],
+        },
+        {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        }
+      )
+      .populate("equipment")
+      .populate("driver")
+      .populate("dispatch")
+      .populate("appovedBy")
+      .populate("createdBy")
+      .populate("workDone")
+      .sort([["_id", "descending"]]);
+
+    // console.log(workList);
+
+    let listToSend = workList
+      .filter(
+        (w) =>
+          w.siteWork === false ||
+          (w.siteWork === true &&
+            (w.status === "in progress" || w.status === "on going")) ||
+          (w.siteWork === true &&
+            _.filter(w.dailyWork, (dW) => {
+              return dW.date === moment().format("DD-MMM-YYYY");
+            }).length === 0)
+      )
+      .filter(
+        (w) =>
+          !isNull(w.driver) && !isNull(w.workDone) && w.status !== "recalled"
+      );
+
+    let siteWorkList = [];
+
+    let l = listToSend.map((w) => {
+      let work = null;
+
+      if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+        let dailyWorks = w.dailyWork;
+
+        let datesPosted = dailyWorks
+          .filter((d) => d.pending === false)
+          .map((d) => {
+            return d.date;
+          });
+
+        let datesPendingPosted = dailyWorks
+          .filter((d) => d.pending === true)
+
+          .map((d) => {
+            return d.date;
+          });
+        let workStartDate = moment(w.workStartDate);
+        let workDurationDays = w.workDurationDays;
+
+        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+        for (let i = 0; i < workDurationDays - 1; i++) {
+          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
+        }
+
+        let dateNotPosted = datesToPost.filter(
+          (d) =>
+            !_.includes(datesPosted, d) &&
+            !_.includes(datesPendingPosted, d) &&
+            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+        );
+
+        datesPosted.map((dP) => {
+          siteWorkList.push({
+            workDone: w.workDone
+              ? w.workDone
+              : {
+                  _id: "62690b67cf45ad62aa6144d8",
+                  jobDescription: "Others",
+                  eqType: "Truck",
+                  createdOn: "2022-04-27T09:20:50.911Z",
+                  __v: 0,
+                },
+            _id: w._id,
+            status: "stopped",
+            project: w.project,
+            createdOn: w.createdOn,
+            equipment: w.equipment,
+            siteWork: w.siteWork,
+            targetTrips: w.dispatch.targetTrips
+              ? w.dispatch.targetTrips
+              : "N/A",
+            workStartDate: w.workStartDate,
+            dispatchDate: new Date(dP).toISOString(),
+            shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
+            projectedRevenue: w.projectedRevenue,
+            totalRevenue: w.totalRevenue,
+            totalExpenditure: w.totalExpenditure,
+            driver: w.driver,
+            comment: w.comment,
+            moreComment: w.moreComment,
+            duration: w.duration,
+          });
+        });
+
+        dateNotPosted.map((dNP) => {
+          siteWorkList.push({
+            workDone: w.workDone
+              ? w.workDone
+              : {
+                  _id: "62690b67cf45ad62aa6144d8",
+                  jobDescription: "Others",
+                  eqType: "Truck",
+                  createdOn: "2022-04-27T09:20:50.911Z",
+                  __v: 0,
+                },
+            _id: w._id,
+            status: "created",
+            project: w.project,
+            createdOn: w.createdOn,
+            equipment: w.equipment,
+            siteWork: w.siteWork,
+            targetTrips: w.dispatch.targetTrips
+              ? w.dispatch.targetTrips
+              : "N/A",
+            workStartDate: w.workStartDate,
+            dispatchDate: new Date(dNP).toISOString(),
+            shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
+            projectedRevenue: w.projectedRevenue,
+            totalRevenue: w.totalRevenue,
+            totalExpenditure: w.totalExpenditure,
+            driver: w.driver,
+            comment: w.comment,
+            moreComment: w.moreComment,
+            duration: w.duration,
+          });
+        });
+
+        datesPendingPosted.map((dPP) => {
+          siteWorkList.push({
+            workDone: w.workDone
+              ? w.workDone
+              : {
+                  _id: "62690b67cf45ad62aa6144d8",
+                  jobDescription: "Others",
+                  eqType: "Truck",
+                  createdOn: "2022-04-27T09:20:50.911Z",
+                  __v: 0,
+                },
+            _id: w._id,
+            status: "in progress",
+            project: w.project,
+            createdOn: w.createdOn,
+            equipment: w.equipment,
+            siteWork: w.siteWork,
+            targetTrips: w.dispatch.targetTrips
+              ? w.dispatch.targetTrips
+              : "N/A",
+            workStartDate: w.workStartDate,
+            dispatchDate: new Date(dPP).toISOString(),
+            shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
+            projectedRevenue: w.projectedRevenue,
+            totalRevenue: w.totalRevenue,
+            totalExpenditure: w.totalExpenditure,
+            driver: w.driver,
+            comment: w.comment,
+            moreComment: w.moreComment,
+            duration: w.duration,
+          });
+        });
+      } else {
+        work = {
+          workDone: w.workDone
+            ? w.workDone
+            : {
+                _id: "62690b67cf45ad62aa6144d8",
+                jobDescription: "Others",
+                eqType: "Truck",
+                createdOn: "2022-04-27T09:20:50.911Z",
+                __v: 0,
+              },
+          _id: w._id,
+          status: w.status,
+          project: w.project,
+          createdOn: w.createdOn,
+          equipment: w.equipment,
+          siteWork: w.siteWork,
+          targetTrips: w.dispatch.targetTrips ? w.dispatch.targetTrips : "N/A",
+          workStartDate: w.workStartDate,
+          dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
+          shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+          startIndex: w.startIndex ? w.startIndex : 0,
+          millage: w.equipment.millage ? w.equipment.millage : 0,
+          projectedRevenue: w.projectedRevenue,
+          totalRevenue: w.totalRevenue,
+          totalExpenditure: w.totalExpenditure,
+          driver: w.driver,
+          comment: w.comment,
+          moreComment: w.moreComment,
+          duration: w.duration,
+        };
+      }
+
+      return work;
+    });
+
+    let finalList = l.concat(siteWorkList);
+
+    let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
+
+    res.status(200).send(orderedList.filter((d) => !isNull(d)));
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
