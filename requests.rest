@@ -1,10 +1,10 @@
 ###
-GET https://construck-backend.herokuapp.com/equipments/type/Truck/2022-05-17T00:00:00.000Z/dayShift
+GET http://localhost:9000/equipments/
 ###
-GET https://construck-backend.herokuapp.com/customers/
+GET http://localhost:9000/customers/
 
 ###
-POST https://construck-backend.herokuapp.com/works/getAnalytics
+POST http://localhost:9000/works/getAnalytics
 Content-Type: application/json
 
 {
@@ -16,38 +16,53 @@ Content-Type: application/json
 
 
 ###
-GET https://construck-backend.herokuapp.com/jobtypes/eqType/Machine
-
-###
-GET https://construck-backend.herokuapp.com/vendors
+GET http://localhost:9000/jobtypes/
 
 
 ###
-GET https://construck-backend.herokuapp.com/users/
+GET http://localhost:9000/users/
 
 
 ###
-GET https://construck-backend.herokuapp.com/projects/v2
+GET http://localhost:9000/projects/v2
 
 
 ###
-GET https://construck-backend.herokuapp.com/activities/
+GET http://localhost:9000/activities/
 
 
 ###
-GET https://construck-backend.herokuapp.com/reasons/
+GET http://localhost:9000/reasons/
+
+###
+GET http://localhost:9000/assetAvailability/
 
 
 
 ###
-GET https://construck-backend.herokuapp.com/works/v2
+GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ede1
 
 ###
-GET https://construck-backend.herokuapp.com/dispatches/
+GET http://localhost:9000/dispatches/
+
+###
+GET http://localhost:9000/logs/
 
 
 ###
-POST https://construck-backend.herokuapp.com/reasons/
+POST http://localhost:9000/assetAvailability/
+Content-Type: application/json
+
+{
+    "date":"16-06-2022",
+    "available": 235,
+    "unavailable": 0
+}
+
+
+
+###
+POST http://localhost:9000/reasons/
 Content-Type: application/json
 
 {
@@ -57,17 +72,17 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/jobtypes/
+POST http://localhost:9000/jobtypes/
 Content-Type: application/json
 
 {
-    "jobDescription":"Others-Machines",
-    "eqType":"Machine"    
+    "jobDescription":"Moving other Machines",
+    "eqType":"Truck"    
 }
 
 
 ###
-POST https://construck-backend.herokuapp.com/activities/
+POST http://localhost:9000/activities/
 Content-Type: application/json
 
 {
@@ -77,47 +92,61 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/equipments/
+POST http://localhost:9000/equipments/
 Content-Type: application/json
 
 {
-    "plateNumber": "RAE 716 P",
-    "eqDescription": "FOLK LIFT",
+    "plateNumber": "RAD 758 Z",
+    "eqDescription": "LOWBED",
     "assetClass": "CONSTRUCTION MACHINE",
     "eqtype": "Machine",
-    "eqOwner": "Construck",
-    "eqStatus": "available",
-    "rate": 20000,
-    "supplierRate": null,
-    "uom": "hour"
+    "eqOwner": "HYBRID ENGINEERING LTD",
+    "eqStatus": "standby",
+    "rate": 600000,
+    "supplierRate": 150000,
+    "uom": "day"
 }
 
 ###
-POST https://construck-backend.herokuapp.com/customers/project
+POST http://localhost:9000/customers/project
 Content-Type: application/json
 
 {
     "id": "626003bd74e53acb4eac8719",
     "project" : {
-        "prjDescription": "COK MWIZINDIRO",
+        "prjDescription": "RUBAVU WORLD BANK",
         "status": "ongoing"
     }
     
 }
 
+
 ###
-POST https://construck-backend.herokuapp.com/vendors/
+POST http://localhost:9000/customers/
 Content-Type: application/json
 
 {
-    "fistName":"Bruce",
-    "lastName":"Test1",
-    "tinNumber":"100990229"
+    "name": "RUTAYISIRE JMV",
+    "phone":"0788303629",
+    "email":"rgakwandi@gmail.com",
+    "tinNumber":"2222"
+}
+
+
+
+###
+POST http://localhost:9000/vendors/
+Content-Type: application/json
+
+{
+    "name":"KARENZI EPIMAQUE",
+    "phone":"100990229",
+    "password":"$2a$10$sDKLYeUih.Ee0Gxt1CRhk.I.d04TQjEkO.pYmj5k63o2GpMjN38RK"
 }
 
 
 ###
-POST https://construck-backend.herokuapp.com/users
+POST http://localhost:9000/users
 Content-Type: application/json
 
 {
@@ -135,34 +164,34 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/employees
+POST http://localhost:9000/employees
 Content-Type: application/json
 
 {
-    "firstName":"AKINGENEYE",
-    "lastName":"BORICE ARSENE",
-    "username":"akingeneye",
-    "password":"kigali",
-    "email":"akingeneye@construck.rw",
-    "phone":"0785342827",
+    "firstName":"NYIRINGABO",
+    "lastName":"HASSAN",
+    "username":"hnyiringabo",
+    "password":"password",
+    "email":" ",
+    "phone":"0788453617",
     "type":"driver",
-    "title": "TRUCK DRIVER",
+    "title": "DRIVER - TRUCK",
     "status":"active"
 }
 
 
 ###
-POST https://construck-backend.herokuapp.com/employees/login
+POST http://localhost:9000/employees/login
 Content-Type: application/json
 
 {
     "password":"password",
-    "phone":"0783698288"
+    "phone":"0788394618"
 }
 
 
 ###
-PUT https://construck-backend.herokuapp.com/users/status
+PUT http://localhost:9000/users/status
 Content-Type: application/json
 
 {
@@ -186,7 +215,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/projects
+POST http://localhost:9000/projects
 Content-Type: application/json
 
 {
@@ -199,7 +228,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/works
+POST http://localhost:9000/works
 Content-Type: application/json
 
 {
@@ -214,12 +243,17 @@ Content-Type: application/json
 }
 
 ###
-PUT https://construck-backend.herokuapp.com/works/stop/6262822f14d42b892014233e
+PUT http://localhost:9000/works/start/62a06a49f169107671a1aaf4
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-POST https://construck-backend.herokuapp.com/dispatches
+PUT http://localhost:9000/works/reverse/62c2927b2b5f1124fb4b4d79
+Content-Type: application/x-www-form-urlencoded
+
+
+###
+POST http://localhost:9000/dispatches
 Content-Type: application/json
 
 {
@@ -229,13 +263,49 @@ Content-Type: application/json
     "toSite":"",
     "targetTrips":"8",
     "drivers":[{  "_id": "6260051e74e53acb4eac871b",  "firstName": "Bruce",  "lastName": "Higiro2",  "username": "bhigiro2",  "password": "$2a$10$ZBS1QnZmc/xPVjB91GaIuu9QzL1f5wh1Am3FgNYr0Wu64EKw0oZCe",  "email": "bruce@gmail.com",  "phone": "0783575582",  "userType": "driver",  "company": "626003bd74e53acb4eac8719" ,  "status": "active",  "createdOn": "2022-04-20T12:54:53.182Z"}],
-    "equipments":[{  "_id":  "625e7e3f5530102327618fb5",  "plateNumber": "RAF345A",  "eqtype": "Truck",  "eqOwner": "Construck",  "eqStatus": "Available",  "rate": 10000,  "createdOn":  "2022-04-19T09:02:53.285Z"}]
+    "equipments":[{  "_id":  "625e7e3f5530102327618fb5",  "plateNumber": "RAF345A",  "eqtype": "Truck",  "eqOwner": "Construck",  "eqStatus": "standby",  "rate": 10000,  "createdOn":  "2022-04-19T09:02:53.285Z"}]
 }
 
 
 ###
-PUT https://construck-backend.herokuapp.com/equipments/assign/62723b4dd9c6ef3e218bd24b
+PUT http://localhost:9000/equipments/makeAllAvailable
 
+###
+POST http://localhost:9000/assetAvailability/getAnalytics
+Content-Type: application/json
+
+{
+    "startDate": "01-JUL-2022",
+    "endDate": "29-JUL-2022"
+}
+
+
+###
+DELETE http://localhost:9000/equipments/hired
+
+
+###
+POST http://localhost:9000/email/send
+Content-Type: application/json
+
+{
+    "from":"info@construck.rw", 
+    "to":"bhigiro@cvl.co.rw", 
+    "subject":"Password reset", 
+    "messageType":"passwordReset", 
+    "password":"Welcome@123"
+}
+
+###
+PUT http://localhost:9000/users/
+Content-Type: application/json
+
+{
+    "email":"tiradukunda@construck.rw",
+    "oldPassword": "password",
+    "newPassword":"password1",
+    "reset": "true"
+}
 
 
 
