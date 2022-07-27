@@ -16,6 +16,7 @@ const activities = require("./routes/activities");
 const dispatches = require("./routes/dispatches");
 const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
+const logs = require("./routes/logs");
 const employees = require("./routes/employees");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
@@ -24,11 +25,12 @@ const send = require("./utils/sendEmailNode");
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
-// var mongoDB =
-//   "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
+var mongoDB =
+  // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck?retryWrites=true&w=majority";
+  "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
-var mongoDB = "";
-mongoDB = process.env.CONS_MONGO_DB;
+// var mongoDB = "";
+// mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
@@ -42,6 +44,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
+  // send("appinfo@construck.rw", "bhigiro@cvl.co.rw", "sub", "test", "").catch(
+  //   (err) => {
+  //     console.log(err);
+  //   }
+  // );
   res.send("Welcome");
 });
 
@@ -53,6 +60,7 @@ app.use("/projects", projects);
 app.use("/works", works);
 app.use("/activities", activities);
 app.use("/reasons", reasons);
+app.use("/logs", logs);
 app.use("/dispatches", dispatches);
 app.use("/jobtypes", jobTypes);
 app.use("/employees", employees);
