@@ -1,10 +1,10 @@
 ###
-GET http://localhost:9000/equipments/
+GET https://construck-backend.herokuapp.com/equipments/v2
 ###
-GET http://localhost:9000/customers/
+GET https://construck-backend.herokuapp.com/customers/
 
 ###
-POST http://localhost:9000/works/getAnalytics
+POST https://construck-backend.herokuapp.com/works/getAnalytics
 Content-Type: application/json
 
 {
@@ -16,41 +16,41 @@ Content-Type: application/json
 
 
 ###
-GET http://localhost:9000/jobtypes/
+GET https://construck-backend.herokuapp.com/jobtypes/
 
 
 ###
-GET http://localhost:9000/users/
+GET https://construck-backend.herokuapp.com/vendors/
 
 
 ###
-GET http://localhost:9000/projects/v2
+GET https://construck-backend.herokuapp.com/works/detailed
 
 
 ###
-GET http://localhost:9000/activities/
+GET https://construck-backend.herokuapp.com/activities/
 
 
 ###
-GET http://localhost:9000/reasons/
+GET https://construck-backend.herokuapp.com/reasons/
 
 ###
-GET http://localhost:9000/assetAvailability/
+GET https://construck-backend.herokuapp.com/assetAvailability/
 
-
-
-###
-GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ede1
-
-###
-GET http://localhost:9000/dispatches/
-
-###
-GET http://localhost:9000/logs/
 
 
 ###
-POST http://localhost:9000/assetAvailability/
+GET https://construck-backend.herokuapp.com/works/v3/driver/62bacdcc0a8ded52cc67ed64
+
+###
+GET https://construck-backend.herokuapp.com/dispatches/
+
+###
+GET https://construck-backend.herokuapp.com/logs/
+
+
+###
+POST https://construck-backend.herokuapp.com/assetAvailability/
 Content-Type: application/json
 
 {
@@ -62,7 +62,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/reasons/
+POST https://construck-backend.herokuapp.com/reasons/
 Content-Type: application/json
 
 {
@@ -72,7 +72,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/jobtypes/
+POST https://construck-backend.herokuapp.com/jobtypes/
 Content-Type: application/json
 
 {
@@ -82,7 +82,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/activities/
+POST https://construck-backend.herokuapp.com/activities/
 Content-Type: application/json
 
 {
@@ -92,7 +92,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/equipments/
+POST https://construck-backend.herokuapp.com/equipments/
 Content-Type: application/json
 
 {
@@ -108,7 +108,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:9000/customers/project
+POST https://construck-backend.herokuapp.com/customers/project
 Content-Type: application/json
 
 {
@@ -122,7 +122,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/customers/
+POST https://construck-backend.herokuapp.com/customers/
 Content-Type: application/json
 
 {
@@ -135,7 +135,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/vendors/
+POST https://construck-backend.herokuapp.com/vendors/
 Content-Type: application/json
 
 {
@@ -146,16 +146,16 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/users
+POST https://construck-backend.herokuapp.com/users
 Content-Type: application/json
 
 {
-    "firstName":"NTAGANDA",
-    "lastName":"KENNETH",
-    "username":"kntaganda",
+    "firstName":"IYAKAREMYE",
+    "lastName":"BENJAMIN",
+    "username":"biyakaremye",
     "password":"password",
-    "email":"kntaganda@construck.rw",
-    "phone":"0788303085",
+    "email":"biyakaremye@construck.rw",
+    "phone":"0788406929",
     "userType":"admin",
     "company":"626003bd74e53acb4eac8719",
     "status":"active"
@@ -164,7 +164,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/employees
+POST https://construck-backend.herokuapp.com/employees
 Content-Type: application/json
 
 {
@@ -181,7 +181,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/employees/login
+POST https://construck-backend.herokuapp.com/employees/login
 Content-Type: application/json
 
 {
@@ -191,7 +191,18 @@ Content-Type: application/json
 
 
 ###
-PUT http://localhost:9000/users/status
+POST https://construck-backend-live.herokuapp.com/users/login
+Content-Type: application/json
+
+{
+    "password":"password",
+    "email":"biyakaremye@construck.rw"
+}
+
+
+
+###
+PUT https://construck-backend.herokuapp.com/users/status
 Content-Type: application/json
 
 {
@@ -215,7 +226,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/projects
+POST https://construck-backend.herokuapp.com/projects
 Content-Type: application/json
 
 {
@@ -228,7 +239,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/works
+POST https://construck-backend.herokuapp.com/works
 Content-Type: application/json
 
 {
@@ -243,17 +254,17 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:9000/works/start/62a06a49f169107671a1aaf4
+PUT https://construck-backend.herokuapp.com/works/start/62a06a49f169107671a1aaf4
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-PUT http://localhost:9000/works/reverse/62c2927b2b5f1124fb4b4d79
+PUT https://construck-backend.herokuapp.com/works/reverse/62dd534b3281390c0b6aaefb
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-POST http://localhost:9000/dispatches
+POST https://construck-backend.herokuapp.com/dispatches
 Content-Type: application/json
 
 {
@@ -268,10 +279,10 @@ Content-Type: application/json
 
 
 ###
-PUT http://localhost:9000/equipments/makeAllAvailable
+PUT https://construck-backend.herokuapp.com/equipments/makeAllAvailable
 
 ###
-POST http://localhost:9000/assetAvailability/getAnalytics
+POST https://construck-backend.herokuapp.com/assetAvailability/getAnalytics
 Content-Type: application/json
 
 {
@@ -281,11 +292,11 @@ Content-Type: application/json
 
 
 ###
-DELETE http://localhost:9000/equipments/hired
+DELETE https://construck-backend.herokuapp.com/equipments/hired
 
 
 ###
-POST http://localhost:9000/email/send
+POST https://construck-backend.herokuapp.com/email/send
 Content-Type: application/json
 
 {
@@ -297,11 +308,11 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:9000/users/
+PUT https://construck-backend.herokuapp.com/users/
 Content-Type: application/json
 
 {
-    "email":"tiradukunda@construck.rw",
+    "email":"biyakaremye@construck.rw",
     "oldPassword": "password",
     "newPassword":"password1",
     "reset": "true"
