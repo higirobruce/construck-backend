@@ -8,7 +8,7 @@ const logData = require("../models/logs");
 const eqData = require("../models/equipments");
 const moment = require("moment");
 const e = require("express");
-const { isNull, intersection } = require("lodash");
+const { isNull } = require("lodash");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -280,8 +280,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
@@ -308,8 +308,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dNP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
@@ -336,8 +336,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dPP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex ? w.startIndex : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
       } else {
@@ -361,8 +361,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           workStartDate: w.workStartDate,
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-          startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-          millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+          startIndex: w.startIndex ? w.startIndex : 0,
+          millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
 
