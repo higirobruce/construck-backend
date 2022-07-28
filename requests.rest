@@ -1,5 +1,9 @@
 ###
+<<<<<<< HEAD
 GET https://construck-backend.herokuapp.com/equipments/v2
+=======
+GET http://localhost:9000/equipments/v2
+>>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 ###
 GET https://construck-backend.herokuapp.com/customers/
 
@@ -20,11 +24,19 @@ GET https://construck-backend.herokuapp.com/jobtypes/
 
 
 ###
+<<<<<<< HEAD
 GET https://construck-backend.herokuapp.com/vendors/
 
 
 ###
 GET https://construck-backend.herokuapp.com/works/detailed
+=======
+GET http://localhost:9000/vendors/
+
+
+###
+GET http://localhost:9000/works/detailed
+>>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 
 
 ###
@@ -40,7 +52,11 @@ GET https://construck-backend.herokuapp.com/assetAvailability/
 
 
 ###
+<<<<<<< HEAD
 GET https://construck-backend.herokuapp.com/works/v3/driver/62bacdcc0a8ded52cc67ed64
+=======
+GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ed64
+>>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 
 ###
 GET https://construck-backend.herokuapp.com/dispatches/
@@ -202,7 +218,11 @@ Content-Type: application/json
 
 
 ###
+<<<<<<< HEAD
 PUT https://construck-backend.herokuapp.com/users/status
+=======
+PUT http://localhost:9000/users/status
+>>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 Content-Type: application/json
 
 {
@@ -259,7 +279,11 @@ Content-Type: application/x-www-form-urlencoded
 
 
 ###
+<<<<<<< HEAD
 PUT https://construck-backend.herokuapp.com/works/reverse/62dd534b3281390c0b6aaefb
+=======
+PUT http://localhost:9000/works/reverse/62dd534b3281390c0b6aaefb
+>>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 Content-Type: application/x-www-form-urlencoded
 
 
