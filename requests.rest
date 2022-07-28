@@ -1,5 +1,5 @@
 ###
-GET http://localhost:9000/equipments/
+GET http://localhost:9000/equipments/v2
 ###
 GET http://localhost:9000/customers/
 
@@ -20,11 +20,11 @@ GET http://localhost:9000/jobtypes/
 
 
 ###
-GET http://localhost:9000/users/
+GET http://localhost:9000/vendors/
 
 
 ###
-GET http://localhost:9000/projects/v2
+GET http://localhost:9000/works/detailed
 
 
 ###
@@ -40,7 +40,7 @@ GET http://localhost:9000/assetAvailability/
 
 
 ###
-GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ede1
+GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ed64
 
 ###
 GET http://localhost:9000/dispatches/
@@ -150,12 +150,12 @@ POST http://localhost:9000/users
 Content-Type: application/json
 
 {
-    "firstName":"NTAGANDA",
-    "lastName":"KENNETH",
-    "username":"kntaganda",
+    "firstName":"IYAKAREMYE",
+    "lastName":"BENJAMIN",
+    "username":"biyakaremye",
     "password":"password",
-    "email":"kntaganda@construck.rw",
-    "phone":"0788303085",
+    "email":"biyakaremye@construck.rw",
+    "phone":"0788406929",
     "userType":"admin",
     "company":"626003bd74e53acb4eac8719",
     "status":"active"
@@ -188,6 +188,17 @@ Content-Type: application/json
     "password":"password",
     "phone":"0788394618"
 }
+
+
+###
+POST https://construck-backend-live.herokuapp.com/users/login
+Content-Type: application/json
+
+{
+    "password":"password",
+    "email":"biyakaremye@construck.rw"
+}
+
 
 
 ###
@@ -248,7 +259,7 @@ Content-Type: application/x-www-form-urlencoded
 
 
 ###
-PUT http://localhost:9000/works/reverse/62c2927b2b5f1124fb4b4d79
+PUT http://localhost:9000/works/reverse/62dd534b3281390c0b6aaefb
 Content-Type: application/x-www-form-urlencoded
 
 
@@ -301,7 +312,7 @@ PUT http://localhost:9000/users/
 Content-Type: application/json
 
 {
-    "email":"tiradukunda@construck.rw",
+    "email":"biyakaremye@construck.rw",
     "oldPassword": "password",
     "newPassword":"password1",
     "reset": "true"
