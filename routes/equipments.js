@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const eqData = require("../models/equipments");
 const assetAvblty = require("../models/assetAvailability");
+const downTimeData = require("../models/downtimes");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
@@ -178,6 +179,32 @@ router.put("/makeAvailable/:id", async (req, res) => {
 
     let savedRecord = await equipment.save();
 
+    //We can save how long the equipment has been in workshop
+    let _eqDowntime = await downTimeData.model.findOne({
+      equipment: id,
+      durationInWorkshop: 0,
+      dateFromWorkshop: null,
+    });
+
+    if (_eqDowntime) {
+      _eqDowntime.dateFromWorkshop = Date.now();
+      _eqDowntime.durationInWorkshop = moment().diff(
+        moment(_eqDowntime.dateToWorkshop),
+        "days"
+      );
+      _eqDowntime.save();
+    } else {
+      await downTimeData
+        .model({
+          date: moment("2022-07-01"),
+          dateToWorkshop: moment("2022-07-01"),
+          dateFromWorkshop: moment(),
+          durationInWorkshop: moment().diff(moment("2022-07-01"), "days"),
+          equipment: id,
+        })
+        .save();
+    }
+
     let today = moment().format("DD-MMM-YYYY");
     const dateData = await assetAvblty.model.findOne({ date: today });
     let availableAssets = await eqData.model.find({
@@ -230,6 +257,15 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
     equipment.eqStatus = "workshop";
     let savedRecord = await equipment.save();
 
+    //We can start tracking how long the equipment has been in workshop
+    await downTimeData
+      .model({
+        date: Date.now(),
+        dateToWorkshop: Date.now(),
+        equipment: savedRecord?._id,
+      })
+      .save();
+
     let today = moment().format("DD-MMM-YYYY");
 
     const dateData = await assetAvblty.model.findOne({ date: today });
@@ -251,6 +287,7 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
       eqStatus: "standby",
       eqOwner: "Construck",
     });
+
     if (dateData) {
       let currentAvailable = dateData.available;
       let currentUnavailable = dateData.unavailable;
@@ -322,6 +359,26 @@ router.put("/makeAllAvailable/", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+router.put("/syncWorkshopStatus/", async (req, res) => {
+  //get all equipments in workshop
+  let inWorkshop = await eqData.model.find({
+    eqStatus: "workshop",
+  });
+
+  //loop through them (id) and create the downtime records
+  await inWorkshop?.map(async (eq) => {
+    await downTimeData
+      .model({
+        date: new Date("2022-07-01"),
+        dateToWorkshop: new Date("2022-07-01"),
+        equipment: eq._id,
+      })
+      .save();
+  });
+
+  res.send("Done");
 });
 
 router.put("/assignToJob/:id", async (req, res) => {
