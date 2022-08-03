@@ -1240,11 +1240,7 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-    if (
-      work.status === "created" ||
-      work.status === "on going" ||
-      work.status === "in progress"
-    ) {
+    if (work.status === "created" || work.status === "on going") {
       let eqId = work?.equipment?._id;
 
       await workData.model.updateMany(
@@ -1796,6 +1792,47 @@ router.put("/reverse/:id", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+router.post("/gethoursperdriver/", async (req, res) => {
+  let { startDate, endDate } = req.body;
+
+  try {
+    let works = await workData.model.aggregate([
+      {
+        $match: {
+          driver: { $ne: null },
+        },
+      },
+      {
+        $unwind: "$dispatch.drivers",
+      },
+      {
+        $group: {
+          _id: {
+            driver: "$driver",
+            assistants: "$dispatch.drivers",
+            uom: "$equipment.uom",
+          },
+          totalDuration: { $sum: "$duration" },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "employees",
+          let: { driverObjId: { $toObjectId: "$_id.driver" } },
+          pipeline: [
+            { $addFields: { employeeId: "$_id" } },
+            { $match: { $expr: { $eq: ["$employeeId", "$$driverObjId"] } } },
+          ],
+          as: "diverDetails",
+        },
+      },
+    ]);
+    // .limit(4);
+    res.send(works);
+  } catch (err) {}
 });
 
 module.exports = router;

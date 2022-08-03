@@ -190,7 +190,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
       _eqDowntime.dateFromWorkshop = Date.now();
       _eqDowntime.durationInWorkshop = moment().diff(
         moment(_eqDowntime.dateToWorkshop),
-        "days"
+        "hours"
       );
       _eqDowntime.save();
     } else {
@@ -199,7 +199,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
           date: moment("2022-07-01"),
           dateToWorkshop: moment("2022-07-01"),
           dateFromWorkshop: moment(),
-          durationInWorkshop: moment().diff(moment("2022-07-01"), "days"),
+          durationInWorkshop: moment().diff(moment("2022-07-01"), "hours"),
           equipment: id,
         })
         .save();
