@@ -7,6 +7,7 @@ const PORT = process.env.PORT ? process.env.PORT : 9000;
 
 var mongoose = require("mongoose");
 const equipments = require("./routes/equipments");
+const downtimes = require("./routes/downtimes");
 const users = require("./routes/users");
 const customers = require("./routes/customers");
 const vendors = require("./routes/vendors");
@@ -53,6 +54,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/equipments", equipments);
+app.use("/downtimes", downtimes);
 app.use("/customers", customers);
 app.use("/users", users);
 app.use("/vendors", vendors);
