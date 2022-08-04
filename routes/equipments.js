@@ -97,7 +97,7 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 });
 
 router.get("/:date/:shift", async (req, res) => {
-  let { type, date, shift } = req.params;
+  let { date, shift } = req.params;
   try {
     const equipment = await eqData.model.find({
       $or: [

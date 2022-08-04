@@ -9,6 +9,7 @@ const eqData = require("../models/equipments");
 const moment = require("moment");
 const e = require("express");
 const { isNull, intersection } = require("lodash");
+const { default: mongoose } = require("mongoose");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -1804,9 +1805,9 @@ router.post("/gethoursperdriver/", async (req, res) => {
           driver: { $ne: null },
         },
       },
-      {
-        $unwind: "$dispatch.drivers",
-      },
+      // {
+      //   $unwind: "$dispatch.drivers",
+      // },
       {
         $group: {
           _id: {
@@ -1826,13 +1827,84 @@ router.post("/gethoursperdriver/", async (req, res) => {
             { $addFields: { employeeId: "$_id" } },
             { $match: { $expr: { $eq: ["$employeeId", "$$driverObjId"] } } },
           ],
-          as: "diverDetails",
+          as: "driverDetails",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "employees",
+          let: { assistants: "$_id.assistants" },
+          pipeline: [
+            { $addFields: { assistantId: { $toString: "$_id" } } },
+            {
+              $match: {
+                $expr: {
+                  $in: ["$assistantId", "$$assistants"],
+                },
+              },
+            },
+            { $project: { firstName: 1, lastName: 1 } },
+          ],
+          as: "assistantDetails",
         },
       },
     ]);
-    // .limit(4);
-    res.send(works);
+    let refinedData = await works.map((w) => {
+      return {
+        "Main Driver":
+          w.driverDetails[0].firstName + " " + w.driverDetails[0].lastName,
+        Drivers: w.assistantDetails,
+        Phone: w.driverDetails[0].phone,
+        "Total Duration":
+          w._id.uom === "day"
+            ? w.totalDuration
+            : w.totalDuration / (1000 * 60 * 60),
+        "Unit of measurement": w._id.uom,
+      };
+    });
+
+    res.send(refinedData);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.put("/driverassistants/", async (req, res) => {
+  try {
+    let driversData = await workData.model.find(
+      { driver: { $ne: null } },
+      { "dispatch.drivers": 1 }
+    );
+    let allAssistants = [];
+
+    driversData.map((d) => {
+      let assisList = d.dispatch.drivers;
+      allAssistants = allAssistants.concat(assisList);
+    });
+    let uniqueAssistants = [...new Set(allAssistants)];
+    let list = await getEmployees(uniqueAssistants);
+    res.send(list);
   } catch (err) {}
 });
 
+async function getEmployees(listIds) {
+  let list = [];
+  for (let i = 0; i < listIds.length; i++) {
+    if (listIds[i] !== "NA") {
+      try {
+        let employee = await employeeData.model.findById(listIds[i]);
+        list.push({
+          _id: employee._id,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+
+  return list;
+}
 module.exports = router;
