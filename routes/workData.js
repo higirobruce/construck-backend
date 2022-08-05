@@ -86,7 +86,7 @@ router.get("/v3", async (req, res) => {
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer
         equipment.plateNumber equipmnet.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
-        equipment.eqStatus equipment.millage 
+        equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
         `
@@ -375,7 +375,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 router.get("/detailed", async (req, res) => {
   // let { driverId } = req.params;
   // console.log(isValidObjectId(driverId));
-  console.log("heeeere");
+
   try {
     let workList = await workData.model
       .find(
@@ -402,9 +402,7 @@ router.get("/detailed", async (req, res) => {
           "driver._id": false,
         }
       )
-      .populate("equipment")
       .populate("driver")
-      .populate("dispatch")
       .populate("appovedBy")
       .populate("createdBy")
       .populate("workDone")
@@ -469,7 +467,7 @@ router.get("/detailed", async (req, res) => {
         );
 
         // {
-        //     'Dispatch date': Date.parse(w.dispatch?.date),
+        //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
         //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
         //     'Site work': w.siteWork ? 'YES' : 'NO',
         //     'Project Description': w.project.prjDescription,
@@ -496,7 +494,7 @@ router.get("/detailed", async (req, res) => {
 
         datesPosted.map((dP) => {
           siteWorkList.push({
-            "Dispatch date": new Date(dP.date),
+            "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
             "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
             "Site work?": w.siteWork,
             "Project Description": w.project?.prjDescription,
@@ -526,7 +524,7 @@ router.get("/detailed", async (req, res) => {
 
         dateNotPosted.map((dNP) => {
           siteWorkList.push({
-            "Dispatch date": new Date(dNP),
+            "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
             "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
             "Site work?": w.siteWork,
             "Project Description": w.project.prjDescription,
@@ -557,7 +555,7 @@ router.get("/detailed", async (req, res) => {
 
         datesPendingPosted.map((dPP) => {
           siteWorkList.push({
-            "Dispatch date": new Date(dPP),
+            "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
             "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
             "Site work?": w.siteWork,
             "Project Description": w.project.prjDescription,
@@ -585,7 +583,9 @@ router.get("/detailed", async (req, res) => {
         });
       } else {
         work = {
-          "Dispatch date": w.siteWork ? moment() : w.dispatch.date,
+          "Dispatch date": w.siteWork
+            ? moment().format("M/D/YYYY")
+            : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
           "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
           "Site work?": w.siteWork,
           "Project Description": w.project.prjDescription,
