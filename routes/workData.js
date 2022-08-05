@@ -84,7 +84,7 @@ router.get("/v3", async (req, res) => {
       .find({})
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
-        project.prjDescription
+        project.prjDescription project.customer
         equipment.plateNumber equipmnet.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage 
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
