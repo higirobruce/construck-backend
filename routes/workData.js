@@ -81,20 +81,14 @@ router.get("/v2", async (req, res) => {
 router.get("/v3", async (req, res) => {
   try {
     let workList = await workData.model
-      .find(
-        {},
-        {
-          "project.createdOn": false,
-          "equipment.__v": false,
-          "equipment.createdOn": false,
-          "dispatch.project": false,
-          "dispatch.equipments": false,
-          "driver.password": false,
-          "driver.email": false,
-          "driver.createdOn": false,
-          "driver.__v": false,
-          "driver._id": false,
-        }
+      .find({})
+      .select(
+        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
+        equipment.plateNumber equipmnet.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
+        equipment.eqStatus equipment.millage 
+        startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
+        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
+        `
       )
 
       // .populate("project")
@@ -105,12 +99,9 @@ router.get("/v3", async (req, res) => {
       //     model: "customers",
       //   },
       // })
-      .populate("equipment")
       .populate("driver")
-      .populate("dispatch")
-      .populate("appovedBy")
-      .populate("createdBy")
-      .populate("workDone")
+      .populate("createdBy", "firstName lastName")
+      .populate("workDone", "jobDescription")
       .sort([["_id", "descending"]]);
 
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
@@ -1812,7 +1803,7 @@ router.post("/gethoursperdriver/", async (req, res) => {
         $group: {
           _id: {
             driver: "$driver",
-            assistants: "$dispatch.drivers",
+            assistants: "$dispatch.astDriver",
             uom: "$equipment.uom",
           },
           totalDuration: { $sum: "$duration" },
