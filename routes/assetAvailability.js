@@ -78,9 +78,7 @@ router.post("/", async (req, res) => {
       let dataSaved = await dateDataToSave.save();
       res.send(dataSaved).status(201);
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 module.exports = router;

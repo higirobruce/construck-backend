@@ -728,7 +728,6 @@ router.post("/", async (req, res) => {
 
     res.status(201).send(workCreated);
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -802,7 +801,7 @@ router.post("/mobileData", async (req, res) => {
         doneBy: req.body.createdBy,
         payload: req.body,
       };
-      console.log(log);
+
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
 
@@ -811,7 +810,6 @@ router.post("/mobileData", async (req, res) => {
       res.status(201).send(bodyData);
     }
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -1035,7 +1033,6 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays: _.round(totalDays, 1),
     });
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -1077,9 +1074,7 @@ router.put("/approve/:id", async (req, res) => {
     let savedRecord = await work.save();
     await equipment.save();
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/recall/:id", async (req, res) => {
@@ -1169,9 +1164,7 @@ router.put("/recall/:id", async (req, res) => {
     }
 
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/reject/:id", async (req, res) => {
@@ -1207,9 +1200,7 @@ router.put("/reject/:id", async (req, res) => {
     let savedRecord = await work.save();
     await equipment.save();
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/start/:id", async (req, res) => {
@@ -1273,7 +1264,6 @@ router.put("/start/:id", async (req, res) => {
           pending: true,
         };
 
-        console.log(dailyWork);
         work.dailyWork.push(dailyWork);
         work.status = "in progress";
         work.startIndex = startIndex;
@@ -1317,9 +1307,7 @@ router.put("/start/:id", async (req, res) => {
     } else {
       res.status(200).send(work);
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/stop/:id", async (req, res) => {
@@ -1643,9 +1631,7 @@ router.put("/stop/:id", async (req, res) => {
     } else {
       res.status(200).send(work);
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/end/:id", async (req, res) => {
@@ -1734,9 +1720,7 @@ router.put("/end/:id", async (req, res) => {
       }
       res.status(201).send(savedRecord);
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/resetStartIndices", async (req, res) => {
@@ -1787,9 +1771,7 @@ router.put("/reverse/:id", async (req, res) => {
     await work.save();
 
     res.send(work).status(201);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.post("/gethoursperdriver/", async (req, res) => {
@@ -1896,9 +1878,7 @@ async function getEmployees(listIds) {
           firstName: employee.firstName,
           lastName: employee.lastName,
         });
-      } catch (err) {
-        console.log(err);
-      }
+      } catch (err) {}
     }
   }
 

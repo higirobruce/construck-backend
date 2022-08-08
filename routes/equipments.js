@@ -140,7 +140,8 @@ router.post("/", async (req, res) => {
         plateNumber: req.body.plateNumber,
       },
       async (err, eq) => {
-        if (err) console.log(err);
+        if (err) {
+        }
         if (eq) {
           res.send({
             error: "Duplicate key",
@@ -253,9 +254,7 @@ router.put("/makeAvailable/:id", async (req, res) => {
       await dateDataToSave.save();
     }
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/dispose/:id", async (req, res) => {
@@ -268,9 +267,7 @@ router.put("/dispose/:id", async (req, res) => {
     let savedRecord = await equipment.save();
 
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/sendToWorkshop/:id", async (req, res) => {
@@ -331,9 +328,7 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
       await dateDataToSave.save();
     }
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/makeAllAvailable/", async (req, res) => {
@@ -379,9 +374,7 @@ router.put("/makeAllAvailable/", async (req, res) => {
       await dateDataToSave.save();
     }
     res.status(202).send(equipment);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/syncWorkshopStatus/", async (req, res) => {
@@ -453,9 +446,7 @@ router.put("/assignToJob/:id", async (req, res) => {
       await dateDataToSave.save();
     }
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/makeDispatched/:id", async (req, res) => {
@@ -467,9 +458,7 @@ router.put("/makeDispatched/:id", async (req, res) => {
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/release/:id", async (req, res) => {
@@ -481,27 +470,21 @@ router.put("/release/:id", async (req, res) => {
 
     let savedRecord = await equipment.save();
     res.status(201).send(savedRecord);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.delete("/hired", async (req, res) => {
   try {
     await eqData.model.deleteMany({ eqOwner: { $ne: "Construck" } });
     res.send("Done");
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.delete("/ctk", async (req, res) => {
   try {
     await eqData.model.deleteMany({ eqOwner: "Construck" });
     res.send("Done");
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 });
 
 router.put("/resetIndices", async (req, res) => {

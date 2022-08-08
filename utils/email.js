@@ -17,8 +17,8 @@ async function send365Email(from, to, subject, html, text) {
     text: text,
     replyTo: from,
 
-    onError: (e) => console.log(e),
-    onSuccess: (i) => console.log(i),
+    onError: (e) => {},
+    onSuccess: (i) => {},
   });
 }
 

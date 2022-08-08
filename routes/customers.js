@@ -56,9 +56,7 @@ router.post("/project", async (req, res) => {
       function (error, success) {
         if (error) {
           res.status(201).send(id);
-          console.log(error);
         } else {
-          console.log(success);
         }
       }
     );
