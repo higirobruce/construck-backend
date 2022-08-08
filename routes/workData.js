@@ -1285,6 +1285,7 @@ router.put("/start/:id", async (req, res) => {
         let log = {
           action: "DISPATCH STARTED",
           doneBy: req.body.startedBy,
+          request: req.body,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);
@@ -1305,6 +1306,7 @@ router.put("/start/:id", async (req, res) => {
         let log = {
           action: "DISPATCH STARTED",
           doneBy: req.body.startedBy,
+          request: req.body,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);
@@ -1473,6 +1475,7 @@ router.put("/stop/:id", async (req, res) => {
         let log = {
           action: "DISPATCH STOPPED",
           doneBy: stoppedBy,
+          request: req.body,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);
@@ -1589,6 +1592,7 @@ router.put("/stop/:id", async (req, res) => {
         let log = {
           action: "DISPATCH STOPPED",
           doneBy: stoppedBy,
+          request: req.body,
           payload: work,
         };
         let logTobeSaved = new logData.model(log);

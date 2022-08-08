@@ -8,6 +8,9 @@ const LogSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
+  request: {
+    type: Object,
+  },
   payload: {
     type: Object,
   },
