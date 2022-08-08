@@ -423,7 +423,8 @@ router.get("/detailed", async (req, res) => {
       )
       .filter(
         (w) =>
-          !isNull(w.driver) && !isNull(w.workDone) && w.status !== "recalled"
+          // !isNull(w.driver) &&
+          !isNull(w.workDone) && w.status !== "recalled"
       );
 
     let siteWorkList = [];
@@ -617,7 +618,7 @@ router.get("/detailed", async (req, res) => {
 
     let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-    res.status(200).send(orderedList.filter((d) => !isNull(d)));
+    res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
     res.send(err);
   }
