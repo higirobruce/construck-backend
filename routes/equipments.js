@@ -28,7 +28,9 @@ router.get("/", async (req, res) => {
       standby: equipments.filter((w) => {
         return w.eqStatus === "standby" && w.eqOwner === "Construck";
       }).length,
-
+      disposed: equipments.filter((w) => {
+        return w.eqStatus === "disposed" && w.eqOwner === "Construck";
+      }).length,
       ct: equipments.filter((w) => {
         return w.eqStatus === "ct" && w.eqOwner === "Construck";
       }).length,
@@ -250,6 +252,21 @@ router.put("/makeAvailable/:id", async (req, res) => {
       });
       await dateDataToSave.save();
     }
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.put("/dispose/:id", async (req, res) => {
+  let { id } = req.params;
+  try {
+    let equipment = await eqData.model.findById(id);
+
+    equipment.eqStatus = "disposed";
+
+    let savedRecord = await equipment.save();
+
     res.status(201).send(savedRecord);
   } catch (err) {
     console.log(err);
