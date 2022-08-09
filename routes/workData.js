@@ -372,255 +372,260 @@ router.get("/v3/driver/:driverId", async (req, res) => {
   }
 });
 
-router.get("/detailed", async (req, res) => {
-  // let { driverId } = req.params;
-  // console.log(isValidObjectId(driverId));
+router.get("/detailed/:canViewRevenues", async (req, res) => {
+  let { canViewRevenues } = req.params;
 
-  try {
-    let workList = await workData.model
-      .find(
-        {
-          // $or: [
-          //   {
-          //     "equipment.eqOwner": driverId,
-          //   },
-          //   {
-          //     driver: isValidObjectId(driverId) ? driverId : "123456789011",
-          //   },
-          // ],
-        },
-        {
-          "project.createdOn": false,
-          "equipment.__v": false,
-          "equipment.createdOn": false,
-          "dispatch.project": false,
-          "dispatch.equipments": false,
-          "driver.password": false,
-          "driver.email": false,
-          "driver.createdOn": false,
-          "driver.__v": false,
-          "driver._id": false,
-        }
-      )
-      .populate("driver")
-      .populate("appovedBy")
-      .populate("createdBy")
-      .populate("workDone")
-      .sort([["_id", "descending"]]);
+  if (canViewRevenues === true || canViewRevenues === "true") {
+    try {
+      let workList = await workData.model
+        .find(
+          {
+            // $or: [
+            //   {
+            //     "equipment.eqOwner": driverId,
+            //   },
+            //   {
+            //     driver: isValidObjectId(driverId) ? driverId : "123456789011",
+            //   },
+            // ],
+          },
+          {
+            "project.createdOn": false,
+            "equipment.__v": false,
+            "equipment.createdOn": false,
+            "dispatch.project": false,
+            "dispatch.equipments": false,
+            "driver.password": false,
+            "driver.email": false,
+            "driver.createdOn": false,
+            "driver.__v": false,
+            "driver._id": false,
+          }
+        )
+        .populate("driver")
+        .populate("appovedBy")
+        .populate("createdBy")
+        .populate("workDone")
+        .sort([["_id", "descending"]]);
 
-    // console.log(workList);
+      // console.log(workList);
 
-    let listToSend = workList
-      .filter(
-        (w) =>
-          w.siteWork === false ||
-          (w.siteWork === true &&
-            (w.status === "in progress" || w.status === "on going")) ||
-          (w.siteWork === true &&
-            _.filter(w.dailyWork, (dW) => {
-              return dW.date === moment().format("DD-MMM-YYYY");
-            }).length === 0)
-      )
-      .filter(
-        (w) =>
-          // !isNull(w.driver) &&
-          !isNull(w.workDone) && w.status !== "recalled"
-      );
-
-    let siteWorkList = [];
-
-    let l = listToSend.map((w) => {
-      let work = null;
-
-      if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
-        let dailyWorks = w.dailyWork;
-
-        let datesPosted = dailyWorks
-          .filter((d) => d.pending === false)
-          .map((d) => {
-            return {
-              date: d.date,
-              duration: d.duration,
-              actualRevenue: d.totalRevenue,
-              expenditure: d.totalExpenditure,
-            };
-          });
-
-        let datesPendingPosted = dailyWorks
-          .filter((d) => d.pending === true)
-
-          .map((d) => {
-            return d.date;
-          });
-        let workStartDate = moment(w.workStartDate);
-        let workDurationDays = w.workDurationDays;
-
-        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
-        for (let i = 0; i < workDurationDays - 1; i++) {
-          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
-        }
-
-        let dateNotPosted = datesToPost.filter(
-          (d) =>
-            !_.includes(datesPosted, d) &&
-            !_.includes(datesPendingPosted, d) &&
-            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+      let listToSend = workList
+        .filter(
+          (w) =>
+            w.siteWork === false ||
+            (w.siteWork === true &&
+              (w.status === "in progress" || w.status === "on going")) ||
+            (w.siteWork === true &&
+              _.filter(w.dailyWork, (dW) => {
+                return dW.date === moment().format("DD-MMM-YYYY");
+              }).length === 0)
+        )
+        .filter(
+          (w) =>
+            // !isNull(w.driver) &&
+            !isNull(w.workDone) && w.status !== "recalled"
         );
 
-        // {
-        //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
-        //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
-        //     'Site work': w.siteWork ? 'YES' : 'NO',
-        //     'Project Description': w.project.prjDescription,
-        //     'Equipment-PlateNumber': w.equipment?.plateNumber,
-        //     'Equipment Type': w.equipment?.eqDescription,
-        //     'Duration (HRS)':
-        //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
-        //     'Duration (DAYS)':
-        //       w.equipment?.uom === 'day'
-        //         ? Math.round(w.duration * 100) / 100
-        //         : 0,
-        //     'Work done': w?.workDone?.jobDescription,
-        //     'Other work description': w.dispatch?.otherJobType,
-        // 'Driver Names': w.driver
-        //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
-        //   : w.equipment?.eqOwner,
-        //     'Driver contacts': w.driver?.phone,
-        //     'Target trips': w.dispatch?.targetTrips,
-        //     'Trips done': w?.tripsDone,
-        //     "Driver's/Operator's Comment": w.comment,
-        //     Customer: w.project?.customer,
-        //     Status: w.status,
-        //   }
+      let siteWorkList = [];
 
-        datesPosted.map((dP) => {
-          siteWorkList.push({
-            "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+      let l = listToSend.map((w) => {
+        let work = null;
+
+        if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+          let dailyWorks = w.dailyWork;
+
+          let datesPosted = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return {
+                date: d.date,
+                duration: d.duration,
+                actualRevenue: d.totalRevenue,
+                expenditure: d.totalExpenditure,
+              };
+            });
+
+          let datesPendingPosted = dailyWorks
+            .filter((d) => d.pending === true)
+
+            .map((d) => {
+              return d.date;
+            });
+          let workStartDate = moment(w.workStartDate);
+          let workDurationDays = w.workDurationDays;
+
+          let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+          for (let i = 0; i < workDurationDays - 1; i++) {
+            datesToPost.push(
+              workStartDate.add(1, "days").format("DD-MMM-YYYY")
+            );
+          }
+
+          let dateNotPosted = datesToPost.filter(
+            (d) =>
+              !_.includes(datesPosted, d) &&
+              !_.includes(datesPendingPosted, d) &&
+              moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+          );
+
+          // {
+          //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
+          //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
+          //     'Site work': w.siteWork ? 'YES' : 'NO',
+          //     'Project Description': w.project.prjDescription,
+          //     'Equipment-PlateNumber': w.equipment?.plateNumber,
+          //     'Equipment Type': w.equipment?.eqDescription,
+          //     'Duration (HRS)':
+          //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
+          //     'Duration (DAYS)':
+          //       w.equipment?.uom === 'day'
+          //         ? Math.round(w.duration * 100) / 100
+          //         : 0,
+          //     'Work done': w?.workDone?.jobDescription,
+          //     'Other work description': w.dispatch?.otherJobType,
+          // 'Driver Names': w.driver
+          //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
+          //   : w.equipment?.eqOwner,
+          //     'Driver contacts': w.driver?.phone,
+          //     'Target trips': w.dispatch?.targetTrips,
+          //     'Trips done': w?.tripsDone,
+          //     "Driver's/Operator's Comment": w.comment,
+          //     Customer: w.project?.customer,
+          //     Status: w.status,
+          //   }
+
+          datesPosted.map((dP) => {
+            siteWorkList.push({
+              "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work?": w.siteWork,
+              "Project Description": w.project?.prjDescription,
+              "Equipment Plate number": w.equipment.plateNumber,
+              "Equipment Type": w.equipment?.eqDescription,
+              "Unit of measurement": w.equipment?.uom,
+              "Duration (HRS)": dP.duration,
+              "Duration (DAYS)": dP.duration,
+              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
+              "Other work description": w.dispatch?.otherJobType,
+              "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+              "Actual Revenue": dP.actualRevenue,
+              "Vendor payment": dP.expenditure,
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : w.equipment?.eqOwner,
+              "Driver contacts": w.driver?.phone,
+              "Target trips": w.dispatch?.targetTrips
+                ? w.dispatch?.targetTrips
+                : 0,
+              "Trips done": w?.tripsDone ? w?.tripsDone : 0,
+              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              Customer: w.project?.customer,
+              Status: "stopped",
+            });
+          });
+
+          dateNotPosted.map((dNP) => {
+            siteWorkList.push({
+              "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
+              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work?": w.siteWork,
+              "Project Description": w.project.prjDescription,
+              "Equipment Plate number": w.equipment.plateNumber,
+              "Equipment Type": w.equipment?.eqDescription,
+              "Unit of measurement": w.equipment?.uom,
+              "Duration (HRS)": 0,
+              "Duration (DAYS)": 0,
+              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
+              "Other work description": w.dispatch?.otherJobType,
+              "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : w.equipment?.eqOwner,
+              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+              "Target trips": w.dispatch?.targetTrips
+                ? w.dispatch?.targetTrips
+                : 0,
+              "Trips done": 0,
+              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              Status: "created",
+            });
+          });
+
+          // console.log(siteWorkList);
+
+          datesPendingPosted.map((dPP) => {
+            siteWorkList.push({
+              "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
+              "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+              "Site work?": w.siteWork,
+              "Project Description": w.project.prjDescription,
+              "Equipment Plate number": w.equipment.plateNumber,
+              "Equipment Type": w.equipment?.eqDescription,
+              "Unit of measurement": w.equipment?.uom,
+              "Duration (HRS)": 0,
+              "Duration (DAYS)": 0,
+              "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
+              "Other work description": w.dispatch?.otherJobType,
+              "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,
+              "Driver Names": w.driver
+                ? w?.driver?.firstName + " " + w?.driver?.lastName
+                : w.equipment?.eqOwner,
+              "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+              "Target trips": w.dispatch?.targetTrips
+                ? w.dispatch?.targetTrips
+                : 0,
+              "Trips done": 0,
+              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              Status: "in progress",
+            });
+          });
+        } else {
+          work = {
+            "Dispatch date": w.siteWork
+              ? moment().format("M/D/YYYY")
+              : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
             "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
             "Site work?": w.siteWork,
-            "Project Description": w.project?.prjDescription,
+            "Project Description": w.project.prjDescription,
             "Equipment Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
             "Unit of measurement": w.equipment?.uom,
-            "Duration (HRS)": dP.duration,
-            "Duration (DAYS)": dP.duration,
+            "Duration (HRS)": w.duration,
+            "Duration (DAYS)": w.duration,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
             "Projected Revenue": w.projectedRevenue / w.workDurationDays,
-            "Actual Revenue": dP.actualRevenue,
-            "Vendor payment": dP.expenditure,
+            "Actual Revenue": w.totalRevenue,
+            "Vendor payment": w.totalExpenditure,
             "Driver Names": w.driver
               ? w?.driver?.firstName + " " + w?.driver?.lastName
               : w.equipment?.eqOwner,
             "Driver contacts": w.driver?.phone,
-            "Target trips": w.dispatch?.targetTrips
-              ? w.dispatch?.targetTrips
-              : 0,
-            "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-            "Driver's/Operator's Comment": w.comment ? w.comment : " ",
-            Customer: w.project?.customer,
-            Status: "stopped",
-          });
-        });
+            "Target trips": w.dispatch?.targetTrips,
+            "Trips done": w?.tripsDone,
+            "Driver's/Operator's Comment": w.comment,
+            Status: w.status,
+          };
+        }
 
-        dateNotPosted.map((dNP) => {
-          siteWorkList.push({
-            "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
-            "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-            "Site work?": w.siteWork,
-            "Project Description": w.project.prjDescription,
-            "Equipment Plate number": w.equipment.plateNumber,
-            "Equipment Type": w.equipment?.eqDescription,
-            "Unit of measurement": w.equipment?.uom,
-            "Duration (HRS)": 0,
-            "Duration (DAYS)": 0,
-            "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-            "Other work description": w.dispatch?.otherJobType,
-            "Projected Revenue": w.projectedRevenue / w.workDurationDays,
-            "Actual Revenue": 0,
-            "Vendor payment": 0,
-            "Driver Names": w.driver
-              ? w?.driver?.firstName + " " + w?.driver?.lastName
-              : w.equipment?.eqOwner,
-            "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-            "Target trips": w.dispatch?.targetTrips
-              ? w.dispatch?.targetTrips
-              : 0,
-            "Trips done": 0,
-            "Driver's/Operator's Comment": w.comment ? w.comment : " ",
-            Status: "created",
-          });
-        });
+        return work;
+      });
 
-        // console.log(siteWorkList);
+      let finalList = l.concat(siteWorkList);
 
-        datesPendingPosted.map((dPP) => {
-          siteWorkList.push({
-            "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
-            "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-            "Site work?": w.siteWork,
-            "Project Description": w.project.prjDescription,
-            "Equipment Plate number": w.equipment.plateNumber,
-            "Equipment Type": w.equipment?.eqDescription,
-            "Unit of measurement": w.equipment?.uom,
-            "Duration (HRS)": 0,
-            "Duration (DAYS)": 0,
-            "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-            "Other work description": w.dispatch?.otherJobType,
-            "Projected Revenue": w.projectedRevenue / w.workDurationDays,
-            "Actual Revenue": 0,
-            "Vendor payment": 0,
-            "Driver Names": w.driver
-              ? w?.driver?.firstName + " " + w?.driver?.lastName
-              : w.equipment?.eqOwner,
-            "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-            "Target trips": w.dispatch?.targetTrips
-              ? w.dispatch?.targetTrips
-              : 0,
-            "Trips done": 0,
-            "Driver's/Operator's Comment": w.comment ? w.comment : " ",
-            Status: "in progress",
-          });
-        });
-      } else {
-        work = {
-          "Dispatch date": w.siteWork
-            ? moment().format("M/D/YYYY")
-            : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
-          "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-          "Site work?": w.siteWork,
-          "Project Description": w.project.prjDescription,
-          "Equipment Plate number": w.equipment.plateNumber,
-          "Equipment Type": w.equipment?.eqDescription,
-          "Unit of measurement": w.equipment?.uom,
-          "Duration (HRS)": w.duration,
-          "Duration (DAYS)": w.duration,
-          "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
-          "Other work description": w.dispatch?.otherJobType,
-          "Projected Revenue": w.projectedRevenue / w.workDurationDays,
-          "Actual Revenue": w.totalRevenue,
-          "Vendor payment": w.totalExpenditure,
-          "Driver Names": w.driver
-            ? w?.driver?.firstName + " " + w?.driver?.lastName
-            : w.equipment?.eqOwner,
-          "Driver contacts": w.driver?.phone,
-          "Target trips": w.dispatch?.targetTrips,
-          "Trips done": w?.tripsDone,
-          "Driver's/Operator's Comment": w.comment,
-          Status: w.status,
-        };
-      }
+      let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
 
-      return work;
-    });
-
-    let finalList = l.concat(siteWorkList);
-
-    let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
-
-    res.status(200).send(orderedList.filter((w) => w !== null));
-  } catch (err) {
-    res.send(err);
+      res.status(200).send(orderedList.filter((w) => w !== null));
+    } catch (err) {
+      res.send(err);
+    }
+  } else {
+    res.send([]);
   }
 });
 
