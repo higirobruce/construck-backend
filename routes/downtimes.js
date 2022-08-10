@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate } = req.body;
-  let avgMoved = 0;
+  let avgFromWorkshop = 0;
   let avgInWorkshop = 0;
 
   //   console.log(startDate);
@@ -39,7 +39,7 @@ router.post("/getAnalytics", async (req, res) => {
       moveFromWorkshop?.length > 0 ? moveFromWorkshop?.length : 1;
 
     moveFromWorkshop?.map((r) => {
-      avgMoved = avgMoved + r.durationInWorkshop;
+      avgFromWorkshop = avgFromWorkshop + r.durationInWorkshop;
     });
 
     let stillInWorkshop = downtimes.filter((d) => {
@@ -55,15 +55,18 @@ router.post("/getAnalytics", async (req, res) => {
     });
 
     res.send({
-      avgInWorkshop: avgInWorkshop / len_stillInWorkshop,
-      avgMoved: _.round(avgMoved / len_moveFromWorkshop, 1),
+      avgInWorkshop: (avgInWorkshop / len_stillInWorkshop).toFixed(2),
+      avgFromWorkshop: _.round(
+        avgFromWorkshop / len_moveFromWorkshop,
+        1
+      ).toFixed(2),
       avgHours: _.round(
         _.mean([
-          avgMoved / len_moveFromWorkshop,
+          avgFromWorkshop / len_moveFromWorkshop,
           avgInWorkshop / len_stillInWorkshop,
         ]),
         1
-      ),
+      ).toFixed(2),
     });
   } catch (err) {}
 });

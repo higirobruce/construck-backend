@@ -273,8 +273,12 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex
+              ? parseFloat(w.startIndex).toFixed(2)
+              : 0.0,
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
 
@@ -301,8 +305,12 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dNP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex
+              ? parseFloat(w.startIndex).toFixed(2)
+              : 0.0,
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
 
@@ -329,8 +337,12 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             workStartDate: w.workStartDate,
             dispatchDate: new Date(dPP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-            startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-            millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+            startIndex: w.startIndex
+              ? parseFloat(w.startIndex).toFixed(2)
+              : 0.0,
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
       } else {
@@ -354,8 +366,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           workStartDate: w.workStartDate,
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-          startIndex: parseInt(w.startIndex ? w.startIndex : 0),
-          millage: parseInt(w.equipment.millage ? w.equipment.millage : 0),
+          startIndex: w.startIndex ? parseFloat(w.startIndex).toFixed(2) : 0.0,
+          millage: parseFloat(
+            w.equipment.millage ? w.equipment.millage : 0
+          ).toFixed(2),
         };
       }
 
@@ -1033,9 +1047,9 @@ router.post("/getAnalytics", async (req, res) => {
     }
 
     res.status(200).send({
-      totalRevenue: _.round(totalRevenue, 0),
-      projectedRevenue,
-      totalDays: _.round(totalDays, 1),
+      totalRevenue: _.round(totalRevenue, 0).toFixed(2),
+      projectedRevenue: projectedRevenue.toFixed(2),
+      totalDays: _.round(totalDays, 1).toFixed(1),
     });
   } catch (err) {
     let error = findError(err.code);
