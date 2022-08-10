@@ -26,12 +26,12 @@ const send = require("./utils/sendEmailNode");
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
-var mongoDB =
-  "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck?retryWrites=true&w=majority";
+// var mongoDB =
+// "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck?retryWrites=true&w=majority";
 // "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
-// var mongoDB = "";
-// mongoDB = process.env.CONS_MONGO_DB;
+var mongoDB = "";
+mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
@@ -70,5 +70,5 @@ app.use("/assetAvailability", avblty);
 app.use("/email", sendEmail);
 
 app.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
+  // console.log(`Listening on Port ${PORT}`);
 });
