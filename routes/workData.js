@@ -85,7 +85,7 @@ router.get("/v3", async (req, res) => {
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer
-        equipment.plateNumber equipmnet.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
+        equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
         equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
         startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
@@ -212,7 +212,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       )
       .filter(
         (w) =>
-          !isNull(w.driver) && !isNull(w.workDone) && w.status !== "recalled"
+          // !isNull(w.driver) &&
+          !isNull(w.workDone) && w.status !== "recalled"
       );
 
     let siteWorkList = [];
@@ -275,7 +276,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
               ? parseFloat(w.startIndex).toFixed(2)
-              : 0.0,
+              : "0.0",
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
@@ -307,7 +308,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
               ? parseFloat(w.startIndex).toFixed(2)
-              : 0.0,
+              : "0.0",
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
@@ -339,7 +340,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
               ? parseFloat(w.startIndex).toFixed(2)
-              : 0.0,
+              : "0.0",
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
@@ -366,7 +367,9 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           workStartDate: w.workStartDate,
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
-          startIndex: w.startIndex ? parseFloat(w.startIndex).toFixed(2) : 0.0,
+          startIndex: w.startIndex
+            ? parseFloat(w.startIndex).toFixed(2)
+            : "0.0",
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
