@@ -2,6 +2,7 @@ const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const employeeData = require("../models/employees");
 const venData = require("../models/vendors");
+const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
@@ -84,74 +85,148 @@ router.post("/login", async (req, res) => {
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
+    let user = await userData.model.findOne({ phone: phone });
     let allowed = false;
+    let userType = null;
 
-    if (!employee) {
-      if (!vendor) {
-        res.status(404).send({
-          message: "User not found",
-          error: true,
-        });
-        return;
-      } else {
-        allowed = await bcrypt.compare(password, vendor.password);
-      }
-    } else {
-      allowed = await bcrypt.compare(password, employee.password);
-    }
+    if (employee) userType = "employee"; //driver
+    if (vendor) userType = "vendor"; // vendor
+    if (user) userType = "consUser"; // cons User
 
-    if (employee && (await bcrypt.compare("password", employee?.password))) {
-      employee.password = await bcrypt.hash(password, 10);
-      allowed = true;
-      await employee.save();
-    }
-
-    if (vendor && (await bcrypt.compare("password", vendor?.password))) {
-      vendor.password = await bcrypt.hash(password, 10);
-      allowed = true;
-      await vendor.save();
-    }
-
-    if (allowed) {
-      if (employee) {
-        if (employee.status !== "inactive") {
-          // employee.message = "Allowed";
-          res.status(200).send({
-            employee: {
-              _id: employee._id,
-              firstName: employee.firstName,
-              lastName: employee.lastName,
-              userId: employee._id,
-            },
-            message: "Allowed",
-            vendor: false,
-          });
-        } else {
-          res.status(401).send({
-            message: "Not activated!",
-            error: true,
-          });
-        }
-      }
-
-      if (vendor) {
-        res.status(200).send({
-          employee: {
-            _id: vendor.name,
-            firstName: vendor.name,
-            lastName: "",
-            userId: vendor._id,
-          },
-          message: "Allowed",
-          vendor: true,
-        });
-      }
-    } else {
+    if (userType === null) {
+      allowed = false;
       res.status(401).send({
         message: "Not allowed!",
         error: true,
       });
     }
+    if (userType === "employee") {
+      allowed = await bcrypt.compare(password, employee.password);
+      if (employee.status !== "inactive") {
+        // employee.message = "Allowed";
+        res.status(200).send({
+          employee: {
+            _id: employee._id,
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+            userId: employee._id,
+          },
+          message: "Allowed",
+          vendor: false,
+          userType,
+        });
+      } else {
+        res.status(401).send({
+          message: "Not activated!",
+          error: true,
+        });
+      }
+    }
+
+    if (userType === "vendor") {
+      allowed = await bcrypt.compare(password, vendor.password);
+      res.status(200).send({
+        employee: {
+          _id: vendor.name,
+          firstName: vendor.name,
+          lastName: "",
+          userId: vendor._id,
+        },
+        message: "Allowed",
+        vendor: true,
+        userType,
+      });
+    }
+
+    if (userType === "consUser") {
+      allowed = await bcrypt.compare(password, user.password);
+      if (user.status !== "inactive") {
+        // employee.message = "Allowed";
+        res.status(200).send({
+          employee: {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            userId: user._id,
+          },
+          message: "Allowed",
+          vendor: false,
+          userType: user.userType,
+        });
+      } else {
+        res.status(401).send({
+          message: "Not activated!",
+          error: true,
+        });
+      }
+    }
+
+    // if (!employee) {
+    //   if (!vendor) {
+    //     res.status(404).send({
+    //       message: "User not found",
+    //       error: true,
+    //     });
+    //     return;
+    //   } else {
+    //     allowed = await bcrypt.compare(password, vendor.password);
+    //   }
+    // } else {
+    //   allowed = await bcrypt.compare(password, employee.password);
+    // }
+
+    // if (employee && (await bcrypt.compare("password", employee?.password))) {
+    //   employee.password = await bcrypt.hash(password, 10);
+    //   allowed = true;
+    //   await employee.save();
+    // }
+
+    // if (vendor && (await bcrypt.compare("password", vendor?.password))) {
+    //   vendor.password = await bcrypt.hash(password, 10);
+    //   allowed = true;
+    //   await vendor.save();
+    // }
+
+    // if (allowed) {
+    //   if (employee) {
+    //     if (employee.status !== "inactive") {
+    //       // employee.message = "Allowed";
+    //       res.status(200).send({
+    //         employee: {
+    //           _id: employee._id,
+    //           firstName: employee.firstName,
+    //           lastName: employee.lastName,
+    //           userId: employee._id,
+    //         },
+    //         message: "Allowed",
+    //         vendor: false,
+    //       });
+    //     } else {
+    //       res.status(401).send({
+    //         message: "Not activated!",
+    //         error: true,
+    //       });
+    //     }
+    //   }
+
+    //   if (vendor) {
+    //     res.status(200).send({
+    //       employee: {
+    //         _id: vendor.name,
+    //         firstName: vendor.name,
+    //         lastName: "",
+    //         userId: vendor._id,
+    //       },
+    //       message: "Allowed",
+    //       vendor: true,
+    //     });
+    //   }
+    // } else {
+    // res.status(401).send({
+    //   message: "Not allowed!",
+    //   error: true,
+    // });
+    // }
   } catch (err) {
     res.status(500).send({
       message: `${err}`,
