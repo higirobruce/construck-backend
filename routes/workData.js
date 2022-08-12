@@ -212,8 +212,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       )
       .filter(
         (w) =>
-          // !isNull(w.driver) &&
-          !isNull(w.workDone) && w.status !== "recalled"
+          !isNull(w.driver) && !isNull(w.workDone) && w.status !== "recalled"
       );
 
     let siteWorkList = [];
