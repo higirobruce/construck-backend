@@ -212,7 +212,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       )
       .filter(
         (w) =>
-          !isNull(w.driver) && !isNull(w.workDone) && w.status !== "recalled"
+          // !isNull(w.driver) &&
+          !isNull(w.workDone) && w.status !== "recalled"
       );
 
     let siteWorkList = [];
@@ -274,10 +275,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
 
@@ -305,10 +307,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dNP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
 
@@ -336,10 +339,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dPP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
       } else {
@@ -364,10 +368,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
           startIndex: w.startIndex
-            ? // ? parseFloat(w.startIndex).toFixed(2)
-              w.startIndex
-            : 0,
-          millage: w.equipment.millage ? w.equipment.millage : 0,
+            ? parseFloat(w.startIndex).toFixed(2)
+            : "0.0",
+          millage: parseFloat(
+            w.equipment.millage ? w.equipment.millage : 0
+          ).toFixed(2),
         };
       }
 
@@ -510,14 +515,18 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           datesPosted.map((dP) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
+              "Created On": moment(Date.parse(dP.date)).format("M/D/YYYY"),
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project?.prjDescription,
               "Equipment Plate number": w.equipment.plateNumber,
               "Equipment Type": w.equipment?.eqDescription,
               "Unit of measurement": w.equipment?.uom,
-              "Duration (HRS)": dP.duration,
-              "Duration (DAYS)": dP.duration,
+              "Duration (HRS)":
+                w.equipment?.uom === "hour"
+                  ? dP.duration / (60 * 60 * 1000)
+                  : 0,
+              "Duration (DAYS)": w.equipment?.uom === "day" ? dP.duration : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               "Projected Revenue": w.projectedRevenue / w.workDurationDays,
@@ -540,6 +549,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           dateNotPosted.map((dNP) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
+              "Created On": moment(Date.parse(dNP)).format("M/D/YYYY"),
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project.prjDescription,
@@ -562,6 +572,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : 0,
               "Trips done": 0,
               "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              Customer: w.project?.customer,
               Status: "created",
             });
           });
@@ -571,6 +582,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           datesPendingPosted.map((dPP) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
+              "Created On": moment(Date.parse(dPP)).format("M/D/YYYY"),
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project.prjDescription,
@@ -593,6 +605,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : 0,
               "Trips done": 0,
               "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              Customer: w.project?.customer,
               Status: "in progress",
             });
           });
@@ -601,14 +614,16 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Dispatch date": w.siteWork
               ? moment().format("M/D/YYYY")
               : moment(Date.parse(w.dispatch.date)).format("M/D/YYYY"),
+            "Created On": moment(Date.parse(w.createdOn)).format("M/D/YYYY"),
             "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
             "Site work?": w.siteWork,
             "Project Description": w.project.prjDescription,
             "Equipment Plate number": w.equipment.plateNumber,
             "Equipment Type": w.equipment?.eqDescription,
             "Unit of measurement": w.equipment?.uom,
-            "Duration (HRS)": w.duration,
-            "Duration (DAYS)": w.duration,
+            "Duration (HRS)":
+              w.equipment?.uom === "hour" ? w.duration / (60 * 60 * 1000) : 0,
+            "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
             "Projected Revenue": w.projectedRevenue / w.workDurationDays,
@@ -621,6 +636,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
             "Driver's/Operator's Comment": w.comment,
+            Customer: w.project?.customer,
             Status: w.status,
           };
         }
