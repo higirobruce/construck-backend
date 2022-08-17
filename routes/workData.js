@@ -275,11 +275,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? parseFloat(w.startIndex).toFixed(2)
-              : "0.0",
-            millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
-            ).toFixed(2),
+              ? // ? parseFloat(w.startIndex).toFixed(2)
+                w.startIndex
+              : 0,
+            // millage: parseFloat(
+            //   w.equipment.millage ? w.equipment.millage : 0
+            // ).toFixed(2),
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
@@ -307,11 +309,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dNP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? parseFloat(w.startIndex).toFixed(2)
-              : "0.0",
-            millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
-            ).toFixed(2),
+              ? // ? parseFloat(w.startIndex).toFixed(2)
+                w.startIndex
+              : 0,
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
@@ -339,11 +340,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dPP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? parseFloat(w.startIndex).toFixed(2)
-              : "0.0",
-            millage: parseFloat(
-              w.equipment.millage ? w.equipment.millage : 0
-            ).toFixed(2),
+              ? // ? parseFloat(w.startIndex).toFixed(2)
+                w.startIndex
+              : 0,
+            // millage: parseFloat(
+            //   w.equipment.millage ? w.equipment.millage : 0
+            // ).toFixed(2),
+            millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
       } else {
@@ -368,11 +371,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
           startIndex: w.startIndex
-            ? parseFloat(w.startIndex).toFixed(2)
-            : "0.0",
-          millage: parseFloat(
-            w.equipment.millage ? w.equipment.millage : 0
-          ).toFixed(2),
+            ? // ? parseFloat(w.startIndex).toFixed(2)
+              w.startIndex
+            : 0,
+          // millage: parseFloat(
+          //   w.equipment.millage ? w.equipment.millage : 0
+          // ).toFixed(2),
+          millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
 
