@@ -1429,12 +1429,12 @@ router.put("/stop/:id", async (req, res) => {
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
           if (comment !== "Ibibazo bya panne") {
-            dailyWork.duration = duration ? duration * 3600000 : _duration;
+            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
 
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
           } else {
-            dailyWork.duration = duration ? duration * 3600000 : _duration;
+            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
           }
@@ -1557,11 +1557,11 @@ router.put("/stop/:id", async (req, res) => {
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
           if (comment !== "Ibibazo bya panne") {
-            work.duration = duration ? duration * 3600000 : _duration;
+            work.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * work.duration) / 3600000;
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
-            work.duration = duration ? duration * 3600000 : _duration;
+            work.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (tripsRatio * (rate * work.duration)) / 3600000;
             expenditure =
               (tripsRatio * (supplierRate * work.duration)) / 3600000;
