@@ -1353,7 +1353,7 @@ router.put("/stop/:id", async (req, res) => {
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
   let duration = Math.abs(req.body.duration);
-  if (duration > 8) duration = 8;
+  if (duration > 12) duration = 12;
 
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
