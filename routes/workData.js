@@ -659,8 +659,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         .filter(
           (w) =>
             w.siteWork === false ||
-            (w.siteWork === true &&
-              (w.status === "in progress" || w.status === "on going")) ||
+            // (w.siteWork === true &&
+            //   (w.status === "in progress" || w.status === "on going")) ||
             (w.siteWork === true &&
               _.filter(w.dailyWork, (dW) => {
                 return dW.date === moment().format("DD-MMM-YYYY");
