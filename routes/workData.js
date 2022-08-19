@@ -394,6 +394,229 @@ router.get("/v3/driver/:driverId", async (req, res) => {
   }
 });
 
+router.get("/v3/toreverse/:plateNumber", async (req, res) => {
+  let { plateNumber } = req.params;
+  let { startDate, endDate } = req.query;
+  // console.log(isValidObjectId(driverId));
+  if (plateNumber && startDate && endDate) {
+    try {
+      let workList = await workData.model
+        .find(
+          {
+            "equipment.plateNumber": { $regex: plateNumber.toUpperCase() },
+            workStartDate: { $gte: moment(startDate) },
+            workStartDate: { $lte: moment(endDate).add(23, "hours") },
+            $or: [
+              { status: "stopped" },
+              { status: "on going", "dailyWork.pending": false },
+            ],
+          },
+          {
+            "project.createdOn": false,
+            "equipment.__v": false,
+            "equipment.createdOn": false,
+            "dispatch.project": false,
+            "dispatch.equipments": false,
+            "driver.password": false,
+            "driver.email": false,
+            "driver.createdOn": false,
+            "driver.__v": false,
+            "driver._id": false,
+          }
+        )
+        .populate("equipment")
+        .populate("driver")
+        .populate("dispatch")
+        .populate("appovedBy")
+        .populate("createdBy")
+        .populate("workDone")
+        .sort([["_id", "descending"]]);
+
+      let listToSend = workList;
+
+      let siteWorkList = [];
+
+      let l = listToSend.map((w) => {
+        let work = null;
+
+        if (w.siteWork === true) {
+          let dailyWorks = w.dailyWork;
+
+          let datesPosted = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return {
+                _id: w._id,
+                date: d.date,
+                totalRevenue: d.totalRevenue,
+                totalExpenditure: d.totalExpenditure,
+                duration: d.duration,
+                uom: d.uom,
+              };
+            });
+          // console.log(datesPosted);
+
+          let datesPendingPosted = dailyWorks
+            .filter((d) => d.pending === true)
+
+            .map((d) => {
+              return d.date;
+            });
+          // let workStartDate = moment(w.workStartDate);
+          // let workDurationDays = w.workDurationDays;
+
+          // let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+          // for (let i = 0; i < workDurationDays - 1; i++) {
+          //   datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
+          // }
+
+          datesPosted.map((dP) => {
+            siteWorkList.push({
+              _id: dP._id,
+              totalRevenue: parseFloat(dP.totalRevenue).toFixed(2),
+              totalExpenditure: parseFloat(dP.totalExpenditure).toFixed(2),
+              duration:
+                dP.uom === "hour"
+                  ? dP.duration / (1000 * 60 * 60)
+                  : dP.duration,
+              status: "stopped",
+              project: w.project,
+              createdOn: w.createdOn,
+              equipment: w.equipment,
+              siteWork: w.siteWork,
+              targetTrips: w.dispatch.targetTrips
+                ? w.dispatch.targetTrips
+                : "N/A",
+              workStartDate: w.workStartDate,
+              dispatchDate: new Date(dP.date).toISOString(),
+              shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+              startIndex: w.startIndex
+                ? parseFloat(w.startIndex).toFixed(2)
+                : //  ? w.startIndex
+                  "0.0",
+              millage: parseFloat(
+                w.equipment.millage ? w.equipment.millage : 0
+              ).toFixed(2),
+              // millage: w.equipment.millage ? w.equipment.millage : 0,
+            });
+          });
+
+          // dateNotPosted.map((dNP) => {
+          //   siteWorkList.push({
+          //     workDone: w.workDone
+          //       ? w.workDone
+          //       : {
+          //           _id: "62690b67cf45ad62aa6144d8",
+          //           jobDescription: "Others",
+          //           eqType: "Truck",
+          //           createdOn: "2022-04-27T09:20:50.911Z",
+          //           __v: 0,
+          //         },
+          //     _id: w._id,
+          //     status: "created",
+          //     project: w.project,
+          //     createdOn: w.createdOn,
+          //     equipment: w.equipment,
+          //     siteWork: w.siteWork,
+          //     targetTrips: w.dispatch.targetTrips
+          //       ? w.dispatch.targetTrips
+          //       : "N/A",
+          //     workStartDate: w.workStartDate,
+          //     dispatchDate: new Date(dNP).toISOString(),
+          //     shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+          //     startIndex: w.startIndex
+          //       ? parseFloat(w.startIndex).toFixed(2)
+          //       : // ?
+          //         //   w.startIndex
+          //         "0.0",
+          //     millage: parseFloat(
+          //       w.equipment.millage ? w.equipment.millage : 0
+          //     ).toFixed(2),
+          //   });
+          // });
+
+          // datesPendingPosted.map((dPP) => {
+          //   siteWorkList.push({
+          //     workDone: w.workDone
+          //       ? w.workDone
+          //       : {
+          //           _id: "62690b67cf45ad62aa6144d8",
+          //           jobDescription: "Others",
+          //           eqType: "Truck",
+          //           createdOn: "2022-04-27T09:20:50.911Z",
+          //           __v: 0,
+          //         },
+          //     _id: w._id,
+          //     status: "in progress",
+          //     project: w.project,
+          //     createdOn: w.createdOn,
+          //     equipment: w.equipment,
+          //     siteWork: w.siteWork,
+          //     targetTrips: w.dispatch.targetTrips
+          //       ? w.dispatch.targetTrips
+          //       : "N/A",
+          //     workStartDate: w.workStartDate,
+          //     dispatchDate: new Date(dPP).toISOString(),
+          //     shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+          //     startIndex: w.startIndex
+          //       ? parseFloat(w.startIndex).toFixed(2)
+          //       : //  ? w.startIndex
+          //         "0.0",
+          //     millage: parseFloat(
+          //       w.equipment.millage ? w.equipment.millage : 0
+          //     ).toFixed(2),
+          //     // millage: w.equipment.millage ? w.equipment.millage : 0,
+          //   });
+          // });
+        } else {
+          work = {
+            _id: w._id,
+            totalRevenue: parseFloat(w.totalRevenue).toFixed(2),
+            totalExpenditure: parseFloat(w.totalExpenditure).toFixed(2),
+            duration: w.duration,
+            status: w.status,
+            project: w.project,
+            createdOn: w.createdOn,
+            equipment: w.equipment,
+            siteWork: w.siteWork,
+            targetTrips: w.dispatch.targetTrips
+              ? w.dispatch.targetTrips
+              : "N/A",
+            workStartDate: w.workStartDate,
+            dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
+            shift: w.dispatch.shift === "nightShift" ? "N" : "D",
+            startIndex: w.startIndex
+              ? parseFloat(w.startIndex).toFixed(2)
+              : //  ? w.startIndex
+                "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
+            // millage: w.equipment.millage ? w.equipment.millage : 0,
+          };
+        }
+
+        return work;
+      });
+
+      let finalList = l.concat(siteWorkList);
+
+      let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
+
+      res.status(200).send(orderedList.filter((d) => !isNull(d)));
+    } catch (err) {
+      res.send(err);
+    }
+  } else {
+    res
+      .send({
+        error: true,
+        message: "Please give all the query parameters!",
+      })
+      .status(204);
+  }
+});
+
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
 
@@ -1782,6 +2005,7 @@ router.put("/reverse/:id", async (req, res) => {
   // create a log to mention that it is a reverse
 
   let { id } = req.params;
+  let { reversedBy } = req.body;
   try {
     let work = await workData.model
       .findById(id)
@@ -1795,12 +2019,12 @@ router.put("/reverse/:id", async (req, res) => {
     work.duration = 0;
     work.totalRevenue = 0;
     work.tripsDone = 0;
-    work.status = "in progress";
+    work.status = "created";
 
     //log saving
     let log = {
       action: "DISPATCH REVERSED",
-      doneBy: req.body.reversedBy,
+      doneBy: reversedBy,
       payload: work,
     };
     let logTobeSaved = new logData.model(log);
@@ -1810,6 +2034,72 @@ router.put("/reverse/:id", async (req, res) => {
 
     res.send(work).status(201);
   } catch (err) {}
+});
+
+router.put("/swreverse/:id", async (req, res) => {
+  // reset duration
+  // reset totalRevenue
+  // only those that are not site works
+  // set status to "in progress"
+  // create a log to mention that it is a reverse
+
+  let { id } = req.params;
+  let { date, duration, totalRevenue, totalExpenditure } = req.query;
+  let { reversedBy } = req.body;
+
+  try {
+    let work = await workData.model.findOne({
+      _id: id,
+      "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
+      status: "on going",
+    });
+
+    let updatedDuration = work.duration - duration;
+    let updatedRevenue = work.totalRevenue - totalRevenue;
+    let updatedExpenditure = work.totalExpenditure - totalExpenditure;
+
+    work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
+        status: "on going",
+      },
+      {
+        $pull: {
+          dailyWork: {
+            date: moment(date).format("DD-MMM-YYYY"),
+          },
+        },
+      }
+    );
+
+    work.totalRevenue = updatedRevenue;
+    work.totalExpenditure = updatedExpenditure;
+    work.duration = updatedDuration;
+
+    // let _dailyWorks = work.dailyWork;
+
+    // _.remove(_dailyWorks, function (d) {
+    //   return d.date === moment(date).format("DD-MMM-YYYY");
+    // });
+
+    // work.dailyWork = _dailyWorks;
+
+    //log saving
+    let log = {
+      action: "DISPATCH REVERSED",
+      doneBy: reversedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+
+    await logTobeSaved.save();
+    await work.save();
+
+    res.send(work).status(201);
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 router.post("/gethoursperdriver/", async (req, res) => {
