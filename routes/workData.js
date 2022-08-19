@@ -655,29 +655,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
       // console.log(workList);
 
-      let listToSend = workList
-        .filter(
-          (w) =>
-            w.siteWork === false ||
-            // (w.siteWork === true &&
-            //   (w.status === "in progress" || w.status === "on going")) ||
-            (w.siteWork === true &&
-              _.filter(w.dailyWork, (dW) => {
-                return dW.date === moment().format("DD-MMM-YYYY");
-              }).length === 0)
-        )
-        .filter(
-          (w) =>
-            // !isNull(w.driver) &&
-            !isNull(w.workDone) && w.status !== "recalled"
-        );
+      let listToSend = workList;
 
       let siteWorkList = [];
 
       let l = listToSend.map((w) => {
         let work = null;
 
-        if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+        if (w.status !== "recalled") {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
