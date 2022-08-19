@@ -757,7 +757,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": w?.tripsDone ? w?.tripsDone : 0,
-              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              "Driver's/Operator's Comment": dP.comment
+                ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
+                : " ",
               Customer: w.project?.customer,
               Status: "stopped",
             });
@@ -788,7 +790,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": 0,
-              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              "Driver's/Operator's Comment": dNP.comment
+                ? dNP.comment + " - " + (dNP.moreComment ? dNP.moreComment : "")
+                : " ",
               Customer: w.project?.customer,
               Status: "created",
             });
@@ -821,7 +825,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? w.dispatch?.targetTrips
                 : 0,
               "Trips done": 0,
-              "Driver's/Operator's Comment": w.comment ? w.comment : " ",
+              "Driver's/Operator's Comment": dPP.comment
+                ? dPP.comment + " - " + (dPP.moreComment ? dPP.moreComment : "")
+                : " ",
               Customer: w.project?.customer,
               Status: "in progress",
             });
@@ -852,7 +858,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Driver contacts": w.driver?.phone,
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
-            "Driver's/Operator's Comment": w.comment,
+            "Driver's/Operator's Comment": w.comment
+              ? w.comment
+              : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
           };
