@@ -473,6 +473,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           datesPosted.map((dP) => {
             siteWorkList.push({
               _id: dP._id,
+              driverName: dP.driver?.firstName + " " + dP.driver?.lastName,
+              owner: dP.equipment?.eqOwner,
               totalRevenue: parseFloat(dP.totalRevenue).toFixed(2),
               totalExpenditure: parseFloat(dP.totalExpenditure).toFixed(2),
               duration:
@@ -571,6 +573,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
         } else {
           work = {
             _id: w._id,
+            driverName: w.driver?.firstName + " " + w.driver?.lastName,
+            owner: w.equipment.eqOwner,
             totalRevenue: parseFloat(w.totalRevenue).toFixed(2),
             totalExpenditure: parseFloat(w.totalExpenditure).toFixed(2),
             duration: w.duration,
