@@ -473,8 +473,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           datesPosted.map((dP) => {
             siteWorkList.push({
               _id: dP._id,
-              driverName: dP.driver?.firstName + " " + dP.driver?.lastName,
-              owner: dP.equipment?.eqOwner,
+              driverName: w.driver?.firstName + " " + w.driver?.lastName,
+              owner: w.equipment?.eqOwner,
               totalRevenue: parseFloat(dP.totalRevenue).toFixed(2),
               totalExpenditure: parseFloat(dP.totalExpenditure).toFixed(2),
               duration:
