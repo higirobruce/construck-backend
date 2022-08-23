@@ -25,6 +25,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  console.log(req.body);
   let {
     firstName,
     lastName,
@@ -35,6 +36,7 @@ router.post("/", async (req, res) => {
     userType,
     company,
     status,
+    assignedProject,
   } = req.body;
 
   try {
@@ -49,6 +51,7 @@ router.post("/", async (req, res) => {
       userType,
       company,
       status,
+      assignedProject,
     });
 
     let userCreated = await userToCreate.save();
@@ -173,6 +176,37 @@ router.put("/", async (req, res) => {
           error: true,
         });
       }
+    }
+  } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+
+router.put("/resetPassword/:id", async (req, res) => {
+  let newPassword = "password";
+  let { id } = req.params;
+
+  try {
+    let user = await userData.model.findById(id);
+    if (!user) {
+      res.status(401).send({
+        message: "User not found!",
+        error: true,
+      });
+    } else {
+      let hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      await user.save();
+
+      res.send({
+        message: "Allowed",
+        error: false,
+        newPassword,
+        user,
+      });
     }
   } catch (err) {
     res.status(500).send({

@@ -35,6 +35,9 @@ const UserSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "customers",
   },
+  assignedProject: {
+    type: Object,
+  },
   status: {
     type: String,
     default: "inactive",
