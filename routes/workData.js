@@ -680,6 +680,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               };
             });
 
+          let datePosted_Dates = dailyWorks
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return d.date;
+            });
+
           let datesPendingPosted = dailyWorks
             .filter((d) => d.pending === true)
 
@@ -698,7 +704,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
           let dateNotPosted = datesToPost.filter(
             (d) =>
-              !_.includes(datesPosted, d) &&
+              !_.includes(datePosted_Dates, d) &&
               !_.includes(datesPendingPosted, d) &&
               moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
           );
@@ -768,7 +774,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           dateNotPosted.map((dNP) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
-              "Posted On": moment(Date.parse(dNP)).format("M/D/YYYY"),
+              "Posted On": "",
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project.prjDescription,
@@ -803,7 +809,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           datesPendingPosted.map((dPP) => {
             siteWorkList.push({
               "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
-              "Posted On": moment(Date.parse(dPP)).format("M/D/YYYY"),
+              "Posted On": "",
               "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
               "Site work?": w.siteWork,
               "Project Description": w.project.prjDescription,
