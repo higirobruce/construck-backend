@@ -73,4 +73,20 @@ router.post("/project", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  let { name, phone, email, tinNumber } = req.body;
+  try {
+    const customer = await custData.model.findByIdAndUpdate(id, {
+      name,
+      phone,
+      email,
+      tinNumber,
+    });
+    res.status(200).send(customer);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 module.exports = router;
