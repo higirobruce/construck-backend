@@ -2061,7 +2061,7 @@ router.put("/swreverse/:id", async (req, res) => {
     let work = await workData.model.findOne({
       _id: id,
       "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
-      status: "on going",
+      status: { $in: ["on going", "stopped"] },
     });
 
     let updatedDuration = work.duration - duration;
@@ -2072,7 +2072,7 @@ router.put("/swreverse/:id", async (req, res) => {
       {
         _id: id,
         "dailyWork.date": moment(date).format("DD-MMM-YYYY"),
-        status: "on going",
+        status: { $in: ["on going", "stopped"] },
       },
       {
         $pull: {
