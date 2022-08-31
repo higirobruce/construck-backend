@@ -23,6 +23,7 @@ router.get("/v2", async (req, res) => {
         cProjects.forEach((p) => {
           let _p = { ...p._doc };
           _p.customer = c?.name;
+          _p.customerId = c?._id;
           projects.push(_p);
         });
       }
