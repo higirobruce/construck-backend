@@ -2,6 +2,7 @@ const router = require("express").Router();
 const custData = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const logData = require("../models/logs");
 
 router.get("/", async (req, res) => {
   try {
@@ -83,9 +84,37 @@ router.put("/:id", async (req, res) => {
       email,
       tinNumber,
     });
+
     res.status(200).send(customer);
   } catch (err) {
     res.send(err);
+  }
+});
+
+router.put("/project/:id", async (req, res) => {
+  let { id } = req.params;
+  let { customerId, prjDescription } = req.body;
+  try {
+    let customer = await custData.model.findOneAndUpdate(
+      { _id: customerId, "projects._id": id },
+      { $set: { "projects.$.prjDescription": prjDescription } },
+      function (error, success) {
+        if (error) {
+          res.status(201).send(id);
+        } else {
+        }
+      }
+    );
+  } catch (err) {
+    let error = findError(err.code);
+    let keyPattern = err.keyPattern;
+    let key = _.findKey(keyPattern, function (key) {
+      return key === 1;
+    });
+    res.send({
+      error,
+      key,
+    });
   }
 });
 

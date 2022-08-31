@@ -185,6 +185,36 @@ router.put("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  console.log(id);
+  let {
+    firstName,
+    lastName,
+    email,
+    phone,
+    userType,
+    company,
+    assignedProject,
+  } = req.body;
+
+  try {
+    let user = await userData.model.findByIdAndUpdate(id, {
+      firstName,
+      lastName,
+      email,
+      phone,
+      userType,
+      company,
+      assignedProject,
+    });
+
+    res.status(200).send(user);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.put("/resetPassword/:id", async (req, res) => {
   let newPassword = "password";
   let { id } = req.params;

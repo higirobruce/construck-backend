@@ -498,4 +498,31 @@ router.put("/resetIndices", async (req, res) => {
   } catch (err) {}
 });
 
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    plateNumber,
+    eqDescription,
+    assetClass,
+    eqtype,
+    eqOwner,
+    rate,
+    supplierRate,
+    uom,
+  } = req.body;
+
+  let equipment = await eqData.model.findByIdAndUpdate(id, {
+    plateNumber,
+    eqDescription,
+    assetClass,
+    eqtype,
+    eqOwner,
+    rate,
+    supplierRate,
+    uom,
+  });
+
+  res.status(200).send(equipment);
+});
+
 module.exports = router;
