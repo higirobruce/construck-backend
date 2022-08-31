@@ -646,6 +646,20 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                       $regex: searchText.toUpperCase(),
                     },
                   },
+                  {
+                    "project.prjDescription": {
+                      $regex: searchText.toUpperCase(),
+                    },
+                  },
+                ],
+              },
+              {
+                workStartDate: { $gte: new Date(startDate) },
+              },
+              {
+                workEndDate: { $lte: new Date(endDate) },
+              },
+            ],
           },
           {
             "project.createdOn": false,
