@@ -654,7 +654,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ],
               },
               {
-                workStartDate: { $gte: new Date(startDate) },
+                workEndDate: { $gte: new Date(startDate) },
               },
               {
                 workEndDate: { $lte: new Date(endDate) },
