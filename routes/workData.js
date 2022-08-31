@@ -275,13 +275,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            // millage: parseFloat(
-            //   w.equipment.millage ? w.equipment.millage : 0
-            // ).toFixed(2),
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : //  ? w.startIndex
+                "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
+            // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
 
@@ -309,10 +309,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dNP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : // ?
+                //   w.startIndex
+                "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
           });
         });
 
@@ -340,13 +343,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             dispatchDate: new Date(dPP).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
-              ? // ? parseFloat(w.startIndex).toFixed(2)
-                w.startIndex
-              : 0,
-            // millage: parseFloat(
-            //   w.equipment.millage ? w.equipment.millage : 0
-            // ).toFixed(2),
-            millage: w.equipment.millage ? w.equipment.millage : 0,
+              ? parseFloat(w.startIndex).toFixed(2)
+              : //  ? w.startIndex
+                "0.0",
+            millage: parseFloat(
+              w.equipment.millage ? w.equipment.millage : 0
+            ).toFixed(2),
+            // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
       } else {
@@ -371,13 +374,13 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           dispatchDate: w.siteWork ? moment().toISOString() : w.dispatch.date,
           shift: w.dispatch.shift === "nightShift" ? "N" : "D",
           startIndex: w.startIndex
-            ? // ? parseFloat(w.startIndex).toFixed(2)
-              w.startIndex
-            : 0,
-          // millage: parseFloat(
-          //   w.equipment.millage ? w.equipment.millage : 0
-          // ).toFixed(2),
-          millage: w.equipment.millage ? w.equipment.millage : 0,
+            ? parseFloat(w.startIndex).toFixed(2)
+            : //  ? w.startIndex
+              "0.0",
+          millage: parseFloat(
+            w.equipment.millage ? w.equipment.millage : 0
+          ).toFixed(2),
+          // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
 
@@ -1089,6 +1092,7 @@ router.post("/mobileData", async (req, res) => {
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
+
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2112,7 +2116,12 @@ router.post("/gethoursperdriver/", async (req, res) => {
     let works = await workData.model.aggregate([
       {
         $match: {
-          driver: { $ne: null },
+          $and: [
+            { driver: { $ne: null } },
+            { workStartDate: { $gte: new Date(startDate) } },
+            { workEndDate: { $lte: new Date(endDate) } },
+          ],
+          // workEndDate: { $lte: endDate },
         },
       },
       // {
@@ -2160,19 +2169,22 @@ router.post("/gethoursperdriver/", async (req, res) => {
         },
       },
     ]);
-    let refinedData = await works.map((w) => {
-      return {
-        "Main Driver":
-          w.driverDetails[0].firstName + " " + w.driverDetails[0].lastName,
-        Drivers: w.assistantDetails,
-        Phone: w.driverDetails[0].phone,
-        "Total Duration":
-          w._id.uom === "day"
-            ? w.totalDuration
-            : w.totalDuration / (1000 * 60 * 60),
-        "Unit of measurement": w._id.uom,
-      };
-    });
+
+    let refinedData = works
+      .map((w) => {
+        return {
+          "Main Driver":
+            w.driverDetails[0]?.firstName + " " + w.driverDetails[0]?.lastName,
+          Drivers: w.assistantDetails,
+          Phone: w.driverDetails[0]?.phone,
+          "Total Duration":
+            w._id.uom === "day"
+              ? w.totalDuration
+              : w.totalDuration / (1000 * 60 * 60),
+          "Unit of measurement": w._id.uom,
+        };
+      })
+      .filter((w) => w["Main Driver"] !== "undefined undefined");
 
     res.send(refinedData);
   } catch (err) {
