@@ -251,4 +251,14 @@ router.put("/status", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  try {
+    let employee = await employeeData.model.findByIdAndUpdate(id, req.body);
+    res.status(200).send(employee);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 module.exports = router;
