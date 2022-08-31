@@ -631,20 +631,21 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
+  let { startDate, endDate, searchText } = req.query;
 
   if (canViewRevenues === true || canViewRevenues === "true") {
     try {
       let workList = await workData.model
         .find(
           {
-            // $or: [
-            //   {
-            //     "equipment.eqOwner": driverId,
-            //   },
-            //   {
-            //     driver: isValidObjectId(driverId) ? driverId : "123456789011",
-            //   },
-            // ],
+            $and: [
+              {
+                $or: [
+                  {
+                    "equipment.plateNumber": {
+                      $regex: searchText.toUpperCase(),
+                    },
+                  },
           },
           {
             "project.createdOn": false,
