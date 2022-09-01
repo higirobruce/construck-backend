@@ -27,7 +27,7 @@ const send = require("./utils/sendEmailNode");
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
 
 // var mongoDB =
-// "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck?retryWrites=true&w=majority";
+//   "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
 // "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
 var mongoDB = "";
@@ -70,5 +70,5 @@ app.use("/assetAvailability", avblty);
 app.use("/email", sendEmail);
 
 app.listen(PORT, () => {
-  // console.log(`Listening on Port ${PORT}`);
+  console.log(`Listening on Port ${PORT}`);
 });
