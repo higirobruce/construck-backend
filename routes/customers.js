@@ -3,6 +3,7 @@ const custData = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const logData = require("../models/logs");
+const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -94,17 +95,25 @@ router.put("/:id", async (req, res) => {
 router.put("/project/:id", async (req, res) => {
   let { id } = req.params;
   let { customerId, prjDescription } = req.body;
+  let updatedProject = false;
+
   try {
     let customer = await custData.model.findOneAndUpdate(
       { _id: customerId, "projects._id": id },
       { $set: { "projects.$.prjDescription": prjDescription } },
-      function (error, success) {
-        if (error) {
-          res.status(201).send(id);
-        } else {
-        }
+      {
+        new: true,
       }
     );
+
+    await workData.model.updateMany(
+      {
+        "project._id": id,
+      },
+      { $set: { "project.prjDescription": prjDescription } }
+    );
+
+    res.status(201).send({ customer });
   } catch (err) {
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
