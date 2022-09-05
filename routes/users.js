@@ -25,7 +25,6 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  console.log(req.body);
   let {
     firstName,
     lastName,
@@ -187,7 +186,6 @@ router.put("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   let { id } = req.params;
-  console.log(id);
   let {
     firstName,
     lastName,

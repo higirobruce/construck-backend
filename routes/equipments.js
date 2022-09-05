@@ -513,8 +513,6 @@ router.put("/:id", async (req, res) => {
     uom,
   } = req.body;
 
-  console.log(id);
-
   let equipment = await eqData.model.findByIdAndUpdate(
     id,
     {
