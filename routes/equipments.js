@@ -2,10 +2,12 @@ const router = require("express").Router();
 const eqData = require("../models/equipments");
 const assetAvblty = require("../models/assetAvailability");
 const downTimeData = require("../models/downtimes");
+const workData = require("../models/workData");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
 const { eq } = require("lodash");
+const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
@@ -511,16 +513,40 @@ router.put("/:id", async (req, res) => {
     uom,
   } = req.body;
 
-  let equipment = await eqData.model.findByIdAndUpdate(id, {
-    plateNumber,
-    eqDescription,
-    assetClass,
-    eqtype,
-    eqOwner,
-    rate,
-    supplierRate,
-    uom,
-  });
+  console.log(id);
+
+  let equipment = await eqData.model.findByIdAndUpdate(
+    id,
+    {
+      plateNumber,
+      eqDescription,
+      assetClass,
+      eqtype,
+      eqOwner,
+      rate,
+      supplierRate,
+      uom,
+    },
+    { new: true }
+  );
+
+  await workData.model.updateMany(
+    {
+      "equipment._id": new mongoose.Types.ObjectId(id),
+    },
+    {
+      $set: {
+        "equipment.plateNumber": plateNumber,
+        "equipment.eqDescription": eqDescription,
+        "equipment.assetClass": assetClass,
+        "equipment.eqtype": eqtype,
+        "equipment.eqOwner": eqOwner,
+        "equipment.rate": rate,
+        "equipment.supplierRate": supplierRate,
+        "equipment.uom": uom,
+      },
+    }
+  );
 
   res.status(200).send(equipment);
 });
