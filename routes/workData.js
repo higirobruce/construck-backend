@@ -582,7 +582,10 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             owner: w.equipment.eqOwner,
             totalRevenue: parseFloat(w.totalRevenue).toFixed(2),
             totalExpenditure: parseFloat(w.totalExpenditure).toFixed(2),
-            duration: w.duration,
+            duration:
+              w.equipment.uom === "hour"
+                ? w.duration / (1000 * 60 * 60)
+                : w.duration,
             status: w.status,
             project: w.project,
             createdOn: w.createdOn,
@@ -680,8 +683,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         .populate("createdBy")
         .populate("workDone")
         .sort([["_id", "descending"]]);
-
-      // console.log(workList);
 
       let listToSend = workList;
 
