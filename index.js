@@ -44,12 +44,21 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+//Basic Authorization
+// app.use((req, res, next) => {
+//   const auth = { login: "yourlogin", password: "yourpassword" }; // change this
+//   const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
+//   const [login, password] = Buffer.from(b64auth, "base64")
+//     .toString()
+//     .split(":");
+//   if (login && password && login === auth.login && password === auth.password) {
+//     return next();
+//   }
+//   res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
+//   res.status(401).send("Authentication required."); // custom message
+// });
+
 app.get("/", (req, res) => {
-  // send("appinfo@construck.rw", "bhigiro@cvl.co.rw", "sub", "test", "").catch(
-  //   (err) => {
-  //     console.log(err);
-  //   }
-  // );
   res.send("Welcome");
 });
 
