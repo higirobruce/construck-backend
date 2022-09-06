@@ -31,4 +31,14 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  let { id } = req.params;
+  try {
+    let vendor = await venData.model.findByIdAndUpdate(id, req.body);
+    res.status(200).send(vendor);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 module.exports = router;
