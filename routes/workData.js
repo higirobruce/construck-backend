@@ -763,7 +763,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           datesPosted.map((dP) => {
             if (
               moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dP.date)).isSameOrBefore(endDate)
+              moment(Date.parse(dP.date)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
             ) {
               siteWorkList.push({
                 "Dispatch date": moment(Date.parse(dP.date)).format("M/D/YYYY"),
@@ -806,7 +811,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           dateNotPosted.map((dNP) => {
             if (
               moment(Date.parse(dNP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dNP.date)).isSameOrBefore(endDate)
+              moment(Date.parse(dNP.date)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
             ) {
               siteWorkList.push({
                 "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
@@ -850,7 +860,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           datesPendingPosted.map((dPP) => {
             if (
               moment(Date.parse(dPP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dPP.date)).isSameOrBefore(endDate)
+              moment(Date.parse(dPP.date)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
             ) {
               siteWorkList.push({
                 "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
@@ -893,7 +908,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             moment(Date.parse(w.dispatch.date)).isSameOrAfter(
               moment(startDate)
             ) &&
-            moment(Date.parse(w.dispatch.date)).isSameOrBefore(endDate)
+            moment(Date.parse(w.dispatch.date)).isSameOrBefore(
+              moment(endDate)
+                .add(23, "hours")
+                .add(59, "minutes")
+                .add(59, "seconds")
+            )
           ) {
             work = {
               "Dispatch date": w.siteWork
