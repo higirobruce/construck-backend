@@ -1175,7 +1175,14 @@ router.post("/getAnalytics", async (req, res) => {
         { siteWork: true },
         {
           siteWork: false,
-          "dispatch.date": { $gte: startDate, $lte: endDate },
+          "dispatch.date": {
+            $gte: startDate,
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+              .toISOString(),
+          },
         },
       ]);
 
@@ -1222,13 +1229,23 @@ router.post("/getAnalytics", async (req, res) => {
         //PStart and PEnd are before range stare
         let case1 =
           moment(w.workStartDate).diff(moment(startDate)) < 0 &&
-          moment(w.workEndDate).diff(moment(endDate)) < 0;
+          moment(w.workEndDate).diff(
+            moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+          ) < 0;
 
         //PStart before Start and PEnd after Start and PEnd before End
         let case2 =
           moment(w.workStartDate).diff(moment(startDate)) < 0 &&
           moment(w.workEndDate).diff(moment(startDate)) > 0 &&
-          moment(w.workEndDate).diff(moment(endDate)) < 0;
+          moment(w.workEndDate).diff(
+            moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+          ) < 0;
 
         //PStart before to Start and PEnd After end
         // OR
@@ -1237,17 +1254,32 @@ router.post("/getAnalytics", async (req, res) => {
         //PStart equal to Start and PEnd after End
         let case3 =
           moment(w.workStartDate).diff(moment(startDate)) <= 0 &&
-          moment(w.workEndDate).diff(moment(endDate)) >= 0;
+          moment(w.workEndDate).diff(
+            moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+          ) >= 0;
 
         //PStart after Start and PEnd before Start
         let case4 =
           moment(w.workStartDate).diff(moment(startDate)) > 0 &&
-          moment(w.workEndDate).diff(moment(endDate)) < 0;
+          moment(w.workEndDate).diff(
+            moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+          ) < 0;
 
         //PStart after Start and PEnd after End
         let case5 =
           moment(w.workStartDate).diff(moment(startDate)) > 0 &&
-          moment(w.workEndDate).diff(moment(endDate)) > 0 &&
+          moment(w.workEndDate).diff(
+            moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds")
+          ) > 0 &&
           moment(endDate).diff(moment(w.workStartDate)) > 0;
 
         if (case1) daysDiff = 0;
@@ -1289,7 +1321,12 @@ router.post("/getAnalytics", async (req, res) => {
           postedDates?.map((p) => {
             if (
               moment(p.date, "DD-MMM-YYYY").isSameOrAfter(moment(startDate)) &&
-              moment(p.date, "DD-MMM-YYYY").isSameOrBefore(moment(endDate))
+              moment(p.date, "DD-MMM-YYYY").isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
             ) {
               totalRevenue = totalRevenue + p.totalRevenue;
             }
@@ -1297,7 +1334,12 @@ router.post("/getAnalytics", async (req, res) => {
         } else {
           if (
             moment(w.dispatch.date).isSameOrAfter(moment(startDate)) &&
-            moment(w.dispatch.date).isSameOrBefore(moment(endDate))
+            moment(w.dispatch.date).isSameOrBefore(
+              moment(endDate)
+                .add(23, "hours")
+                .add(59, "minutes")
+                .add(59, "seconds")
+            )
           ) {
             totalRevenue = totalRevenue + w.totalRevenue;
           }
