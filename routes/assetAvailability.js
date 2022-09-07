@@ -54,13 +54,14 @@ router.post("/getAnalytics", async (req, res) => {
     if (totAvailable === 0) totAvailable = 1;
 
     res.send({
-      assetAvailability: _.round((totAvailable / totAssets) * 100, 2).toFixed(
-        2
-      ),
-      assetUtilization: _.round(
-        (totDispatched / totAvailable) * 100,
-        2
-      ).toFixed(2),
+      assetAvailability:
+        _.round((totAvailable / totAssets) * 100, 2).toFixed(2) <= 100
+          ? _.round((totAvailable / totAssets) * 100, 2).toFixed(2)
+          : 100,
+      assetUtilization:
+        _.round((totDispatched / totAvailable) * 100, 2).toFixed(2) <= 100
+          ? _.round((totDispatched / totAvailable) * 100, 2).toFixed(2)
+          : 100,
     });
   } catch (err) {}
 });
