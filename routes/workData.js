@@ -113,14 +113,30 @@ router.get("/v3", async (req, res) => {
 });
 
 router.get("/filtered", async (req, res) => {
-  let { startDate, endDate } = req.query;
+  let { startDate, endDate, searchText } = req.query;
   console.log(req.query);
 
   try {
     let workList = await workData.model
       .find({
-        workStartDate: { $gte: moment(startDate).toISOString() },
-        workStartDate: { $lte: moment(endDate).toISOString() },
+        $and: [
+          {
+            // $or: [
+            //   {
+            //     "equipment.plateNumber": {
+            //       $regex: searchText.toUpperCase(),
+            //     },
+            //   },
+            //   {
+            //     "project.prjDescription": {
+            //       $regex: searchText.toUpperCase(),
+            //     },
+            //   },
+            // ],
+            workStartDate: { $gte: moment(startDate).toISOString() },
+            workStartDate: { $lte: moment(endDate).toISOString() },
+          },
+        ],
       })
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
@@ -1232,7 +1248,7 @@ router.post("/getAnalytics", async (req, res) => {
         //       },
       })
       .or([
-        { siteWork: true, workStartDate: { $gte: "2022-07-01" } },
+        { siteWork: true, workStartDate: { $gte: startDate } },
         {
           siteWork: false,
           "dispatch.date": {
