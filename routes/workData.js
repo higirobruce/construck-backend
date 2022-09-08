@@ -81,7 +81,7 @@ router.get("/v2", async (req, res) => {
 router.get("/v3", async (req, res) => {
   try {
     let workList = await workData.model
-      .find({})
+      .find({ workStartDate: { $gte: "2022-07-01" } })
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer
@@ -114,12 +114,13 @@ router.get("/v3", async (req, res) => {
 
 router.get("/filtered", async (req, res) => {
   let { startDate, endDate } = req.query;
+  console.log(req.query);
 
   try {
     let workList = await workData.model
       .find({
-        workStartDate: { $gte: startDate },
-        workEndDate: { $lte: endDate },
+        workStartDate: { $gte: moment(startDate).toISOString() },
+        workStartDate: { $lte: moment(endDate).toISOString() },
       })
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
@@ -1231,7 +1232,7 @@ router.post("/getAnalytics", async (req, res) => {
         //       },
       })
       .or([
-        { siteWork: true },
+        { siteWork: true, workStartDate: { $gte: "2022-07-01" } },
         {
           siteWork: false,
           "dispatch.date": {
