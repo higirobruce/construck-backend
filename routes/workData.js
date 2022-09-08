@@ -112,6 +112,45 @@ router.get("/v3", async (req, res) => {
   }
 });
 
+router.get("/filtered", async (req, res) => {
+  let { startDate, endDate } = req.query;
+
+  try {
+    let workList = await workData.model
+      .find({
+        workStartDate: { $gte: startDate },
+        workEndDate: { $lte: endDate },
+      })
+      .select(
+        `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
+        project.prjDescription project.customer
+        equipment.plateNumber equipment.eqDescription equipment.assetClass equipment.eqtype equipment.eqOwner
+        equipment.eqStatus equipment.millage equipment.rate equipment.supplieRate equipment.uom
+        startTime endTime duration tripsDone totalRevenue totalExpenditure projectedRevenue status siteWork workStartDate workEndDate
+        workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
+        `
+      )
+
+      // .populate("project")
+      // .populate({
+      //   path: "project",
+      //   populate: {
+      //     path: "customer",
+      //     model: "customers",
+      //   },
+      // })
+      .populate("driver")
+      .populate("createdBy", "firstName lastName")
+      .populate("workDone", "jobDescription")
+      .sort([["_id", "descending"]]);
+
+    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+    res.status(200).send(workList);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.get("/v3/:vendorName", async (req, res) => {
   let { vendorName } = req.params;
   try {
