@@ -22,6 +22,8 @@ const employees = require("./routes/employees");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const send = require("./utils/sendEmailNode");
+
+app.use(cors());
 //Set up default mongoose connection
 // var mongoDB =
 //   "mongodb://riskAdmin:risk%40CVL2020@localhost:27017/construck?authSource=admin";
@@ -42,7 +44,6 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
 
 //Basic Authorization
 // app.use((req, res, next) => {
@@ -79,5 +80,5 @@ app.use("/assetAvailability", avblty);
 app.use("/email", sendEmail);
 
 app.listen(PORT, () => {
-  console.log(`Listening on Port ${PORT}`);
+  // console.log(`Listening on Port ${PORT}`);
 });
