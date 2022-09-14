@@ -127,16 +127,20 @@ router.get("/filtered", async (req, res) => {
           },
 
           {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-            },
-            workStartDate: {
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
+            $and: [
+              {
+                siteWork: false,
+                workStartDate: {
+                  $gte: moment(startDate),
+                },
+                workStartDate: {
+                  $lte: moment(endDate)
+                    .add(23, "hours")
+                    .add(59, "minutes")
+                    .add(59, "seconds"),
+                },
+              },
+            ],
           },
         ],
       })
