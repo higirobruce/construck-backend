@@ -131,6 +131,12 @@ router.get("/filtered", async (req, res) => {
             workStartDate: {
               $gte: moment(startDate),
             },
+            workStartDate: {
+              $gte: moment(endDate)
+                .add(23, "hours")
+                .add(59, "minutes")
+                .add(59, "seconds"),
+            },
           },
         ],
       })
