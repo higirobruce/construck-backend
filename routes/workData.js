@@ -736,7 +736,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let l = listToSend.map((w) => {
         let work = null;
 
-        if (w.siteWork && w.status !== "recalled") {
+        if (w.siteWork && w.status !== "recalled" && w.status !== "stopped") {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
