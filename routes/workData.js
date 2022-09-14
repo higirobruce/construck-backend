@@ -114,27 +114,23 @@ router.get("/v3", async (req, res) => {
 
 router.get("/filtered", async (req, res) => {
   let { startDate, endDate, searchText } = req.query;
-  console.log(req.query);
 
   try {
     let workList = await workData.model
       .find({
-        $and: [
+        $or: [
           {
-            // $or: [
-            //   {
-            //     "equipment.plateNumber": {
-            //       $regex: searchText.toUpperCase(),
-            //     },
-            //   },
-            //   {
-            //     "project.prjDescription": {
-            //       $regex: searchText.toUpperCase(),
-            //     },
-            //   },
-            // ],
-            workStartDate: { $gte: moment(startDate).toISOString() },
-            workStartDate: { $lte: moment(endDate).toISOString() },
+            siteWork: true,
+            workEndDate: {
+              $gte: moment(startDate),
+            },
+          },
+
+          {
+            siteWork: false,
+            workStartDate: {
+              $gte: moment(startDate),
+            },
           },
         ],
       })
@@ -694,31 +690,20 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let workList = await workData.model
         .find(
           {
-            $and: [
+            $or: [
               {
-                $or: [
-                  {
-                    "equipment.plateNumber": {
-                      $regex: searchText.toUpperCase(),
-                    },
-                  },
-                  {
-                    "project.prjDescription": {
-                      $regex: searchText.toUpperCase(),
-                    },
-                  },
-                ],
+                siteWork: true,
+                workEndDate: {
+                  $gte: moment(startDate),
+                },
               },
-              // {
-              //   $or: [
-              //     {
-              //       workStartDate: { $gte: new Date(startDate) },
-              //     },
-              //     {
-              //       workEndDate: { $lte: new Date(endDate) },
-              //     },
-              //   ],
-              // },
+
+              {
+                siteWork: false,
+                workStartDate: {
+                  $gte: moment(startDate),
+                },
+              },
             ],
           },
           {
@@ -866,8 +851,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
           dateNotPosted.map((dNP) => {
             if (
-              moment(Date.parse(dNP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dNP.date)).isSameOrBefore(
+              moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dNP)).isSameOrBefore(
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -915,8 +900,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
           datesPendingPosted.map((dPP) => {
             if (
-              moment(Date.parse(dPP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dPP.date)).isSameOrBefore(
+              moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dPP)).isSameOrBefore(
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
@@ -1010,7 +995,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
       let finalList = l.concat(siteWorkList);
 
-      let orderedList = _.orderBy(finalList, "dispatchDate", "desc");
+      let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
 
       res.status(200).send(orderedList.filter((w) => w !== null));
     } catch (err) {
