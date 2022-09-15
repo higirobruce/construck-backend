@@ -185,7 +185,6 @@ router.get("/filtered/:page", async (req, res) => {
           workEndDate: {
             $gte: moment(startDate),
           },
-          "equipment.eqOwner": vendorName,
         },
         {
           siteWork: false,
@@ -196,7 +195,6 @@ router.get("/filtered/:page", async (req, res) => {
               .add(59, "minutes")
               .add(59, "seconds"),
           },
-          "equipment.eqOwner": vendorName,
         },
       ],
     };
@@ -212,7 +210,6 @@ router.get("/filtered/:page", async (req, res) => {
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
 
         {
@@ -227,7 +224,6 @@ router.get("/filtered/:page", async (req, res) => {
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
       ],
     };
@@ -243,7 +239,6 @@ router.get("/filtered/:page", async (req, res) => {
           "project.prjDescription": {
             $regex: project.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
 
         {
@@ -258,7 +253,6 @@ router.get("/filtered/:page", async (req, res) => {
           "project.prjDescription": {
             $regex: project.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
       ],
     };
@@ -277,7 +271,6 @@ router.get("/filtered/:page", async (req, res) => {
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
 
         {
@@ -295,7 +288,6 @@ router.get("/filtered/:page", async (req, res) => {
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
           },
-          "equipment.eqOwner": vendorName,
         },
       ],
     };
