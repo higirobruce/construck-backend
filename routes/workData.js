@@ -177,246 +177,128 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  if (!isVendor) {
-    if (!searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
+  if (!searchByPlateNumber && !searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
           },
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
+          "equipment.eqOwner": vendorName,
+        },
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
-        ],
-      };
-    } else if (searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
+          "equipment.eqOwner": vendorName,
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && !searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
           },
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
           },
-        ],
-      };
-    } else if (!searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
+          "equipment.eqOwner": vendorName,
+        },
 
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
-
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
           },
-        ],
-      };
-    } else if (searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
+          "equipment.eqOwner": vendorName,
+        },
+      ],
+    };
+  } else if (!searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
           },
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
           },
-        ],
-      };
-    }
-  } else {
-    if (!searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-            "equipment.eqOwner": vendorName,
-          },
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    } else if (searchByPlateNumber && !searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
+          "equipment.eqOwner": vendorName,
+        },
 
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+          "equipment.eqOwner": vendorName,
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
           },
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
           },
-        ],
-      };
-    } else if (!searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+          "equipment.eqOwner": vendorName,
+        },
 
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
           },
-
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
           },
-        ],
-      };
-    } else if (searchByPlateNumber && searchByProject) {
-      query = {
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
           },
-
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-            "project.prjDescription": {
-              $regex: project.toUpperCase(),
-            },
-            "equipment.plateNumber": {
-              $regex: searchText.toUpperCase(),
-            },
-            "equipment.eqOwner": vendorName,
-          },
-        ],
-      };
-    }
+          "equipment.eqOwner": vendorName,
+        },
+      ],
+    };
   }
 
   try {
