@@ -112,7 +112,7 @@ router.get("/v3", async (req, res) => {
   }
 });
 
-router.get("/filteredNoPagination", async (req, res) => {
+router.get("/filtered", async (req, res) => {
   let { startDate, endDate, searchText } = req.query;
 
   try {
@@ -168,7 +168,7 @@ router.get("/filteredNoPagination", async (req, res) => {
   }
 });
 
-router.get("/filtered/:page", async (req, res) => {
+router.get("/filtered33/:page", async (req, res) => {
   let { startDate, endDate, searchText, project, isVendor, vendorName } =
     req.query;
   let { page } = req.params;
