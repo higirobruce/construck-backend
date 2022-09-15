@@ -968,42 +968,143 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
-  let { startDate, endDate, searchText } = req.query;
+  let { startDate, endDate, searchText, project } = req.query;
+
+  let query = {};
+  let searchByPlateNumber = searchText && searchText.length >= 1;
+  let searchByProject = project && project.length >= 1;
+
+  if (!searchByPlateNumber && !searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+        },
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && !searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (!searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  }
 
   if (canViewRevenues === true || canViewRevenues === "true") {
     try {
       let workList = await workData.model
-        .find(
-          {
-            $or: [
-              {
-                siteWork: true,
-                workEndDate: {
-                  $gte: moment(startDate),
-                },
-              },
-
-              {
-                siteWork: false,
-                workStartDate: {
-                  $gte: moment(startDate),
-                },
-              },
-            ],
-          },
-          {
-            "project.createdOn": false,
-            "equipment.__v": false,
-            "equipment.createdOn": false,
-            "dispatch.project": false,
-            "dispatch.equipments": false,
-            "driver.password": false,
-            "driver.email": false,
-            "driver.createdOn": false,
-            "driver.__v": false,
-            "driver._id": false,
-          }
-        )
+        .find(query, {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        })
         .populate("driver")
         .populate("appovedBy")
         .populate("createdBy")
