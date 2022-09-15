@@ -112,32 +112,72 @@ router.get("/v3", async (req, res) => {
   }
 });
 
-router.get("/filtered", async (req, res) => {
+router.get("/filtered/:page", async (req, res) => {
   let { startDate, endDate, searchText } = req.query;
+  let { page } = req.params;
+  let perPage = 15;
+  let query = {};
+
+  if (!searchText || searchText.length < 1) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+        },
+      ],
+    };
+  } else {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  }
 
   try {
-    let workList = await workData.model
-      .find({
-        $or: [
-          {
-            siteWork: true,
-            workEndDate: {
-              $gte: moment(startDate),
-            },
-          },
+    let fullWorkList = await workData.model.find(query).select(`workStartDate`);
 
-          {
-            siteWork: false,
-            workStartDate: {
-              $gte: moment(startDate),
-              $lte: moment(endDate)
-                .add(23, "hours")
-                .add(59, "minutes")
-                .add(59, "seconds"),
-            },
-          },
-        ],
-      })
+    let dataCount = fullWorkList.length;
+
+    let workList = await workData.model
+      .find(query)
       .select(
         `dispatch.targetTrips dispatch.drivers dispatch.astDrivers  dispatch.shift dispatch.date dispatch.otherJobType
         project.prjDescription project.customer
@@ -147,22 +187,15 @@ router.get("/filtered", async (req, res) => {
         workDurationDays dailyWork startIndex endIndex comment moreComment rate uom _id 
         `
       )
-
-      // .populate("project")
-      // .populate({
-      //   path: "project",
-      //   populate: {
-      //     path: "customer",
-      //     model: "customers",
-      //   },
-      // })
       .populate("driver")
       .populate("createdBy", "firstName lastName")
       .populate("workDone", "jobDescription")
+      .limit(perPage)
+      .skip(parseInt(page - 1) * perPage)
       .sort([["_id", "descending"]]);
 
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
-    res.status(200).send(workList);
+    res.status(200).send({ workList, dataCount });
   } catch (err) {
     res.send(err);
   }
@@ -689,40 +722,74 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
   let { startDate, endDate, searchText } = req.query;
 
+  if (!searchText || searchText.length < 1) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+        },
+      ],
+    };
+  } else {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  }
+
   if (canViewRevenues === true || canViewRevenues === "true") {
     try {
       let workList = await workData.model
-        .find(
-          {
-            $or: [
-              {
-                siteWork: true,
-                workEndDate: {
-                  $gte: moment(startDate),
-                },
-              },
-
-              {
-                siteWork: false,
-                workStartDate: {
-                  $gte: moment(startDate),
-                },
-              },
-            ],
-          },
-          {
-            "project.createdOn": false,
-            "equipment.__v": false,
-            "equipment.createdOn": false,
-            "dispatch.project": false,
-            "dispatch.equipments": false,
-            "driver.password": false,
-            "driver.email": false,
-            "driver.createdOn": false,
-            "driver.__v": false,
-            "driver._id": false,
-          }
-        )
+        .find(query, {
+          "project.createdOn": false,
+          "equipment.__v": false,
+          "equipment.createdOn": false,
+          "dispatch.project": false,
+          "dispatch.equipments": false,
+          "driver.password": false,
+          "driver.email": false,
+          "driver.createdOn": false,
+          "driver.__v": false,
+          "driver._id": false,
+        })
         .populate("driver")
         .populate("appovedBy")
         .populate("createdBy")
