@@ -113,12 +113,14 @@ router.get("/v3", async (req, res) => {
 });
 
 router.get("/filtered/:page", async (req, res) => {
-  let { startDate, endDate, searchText } = req.query;
+  let { startDate, endDate, searchText, project } = req.query;
   let { page } = req.params;
   let perPage = 15;
   let query = {};
+  let searchByPlateNumber = searchText && searchText.length >= 1;
+  let searchByProject = project && project.length >= 1;
 
-  if (!searchText || searchText.length < 1) {
+  if (!searchByPlateNumber && !searchByProject) {
     query = {
       $or: [
         {
@@ -127,7 +129,6 @@ router.get("/filtered/:page", async (req, res) => {
             $gte: moment(startDate),
           },
         },
-
         {
           siteWork: false,
           workStartDate: {
@@ -140,7 +141,7 @@ router.get("/filtered/:page", async (req, res) => {
         },
       ],
     };
-  } else {
+  } else if (searchByPlateNumber && !searchByProject) {
     query = {
       $or: [
         {
@@ -162,6 +163,70 @@ router.get("/filtered/:page", async (req, res) => {
               .add(23, "hours")
               .add(59, "minutes")
               .add(59, "seconds"),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (!searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
@@ -720,9 +785,12 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
-  let { startDate, endDate, searchText } = req.query;
+  let { startDate, endDate, searchText, project } = req.query;
 
-  if (!searchText || searchText.length < 1) {
+  let searchByPlateNumber = searchText && searchText.length >= 1;
+  let searchByProject = project && project.length >= 1;
+
+  if (!searchByPlateNumber && !searchByProject) {
     query = {
       $or: [
         {
@@ -731,7 +799,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             $gte: moment(startDate),
           },
         },
-
         {
           siteWork: false,
           workStartDate: {
@@ -744,7 +811,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         },
       ],
     };
-  } else {
+  } else if (searchByPlateNumber && !searchByProject) {
     query = {
       $or: [
         {
@@ -766,6 +833,70 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               .add(23, "hours")
               .add(59, "minutes")
               .add(59, "seconds"),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (!searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+        },
+      ],
+    };
+  } else if (searchByPlateNumber && searchByProject) {
+    query = {
+      $or: [
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
+          },
+          "equipment.plateNumber": {
+            $regex: searchText.toUpperCase(),
+          },
+        },
+
+        {
+          siteWork: false,
+          workStartDate: {
+            $gte: moment(startDate),
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+          "project.prjDescription": {
+            $regex: project.toUpperCase(),
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
