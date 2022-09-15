@@ -177,8 +177,6 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  console.log(isVendor);
-
   if (!isVendor || isVendor === "false") {
     if (!searchByPlateNumber && !searchByProject) {
       query = {
