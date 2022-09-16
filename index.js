@@ -46,38 +46,42 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 //Basic Authorization
-// app.use((req, res, next) => {
-//   const auth = { login: "yourlogin", password: "yourpassword" }; // change this
-//   const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
-//   const [login, password] = Buffer.from(b64auth, "base64")
-//     .toString()
-//     .split(":");
-//   if (login && password && login === auth.login && password === auth.password) {
-//     return next();
-//   }
-//   res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
-//   res.status(401).send("Authentication required."); // custom message
-// });
+let auth = (req, res, next) => {
+  // const auth = { login: "sh4b1k4", password: "@9T4Tr73%62l!iHqdhWv" }; // change this
+  const auth = {
+    login: process.env.CONS_API_USER,
+    password: process.env.CONS_API_PASS,
+  }; // change this
+  const b64auth = (req.headers.authorization || "").split(" ")[1] || "";
+  const [login, password] = Buffer.from(b64auth, "base64")
+    .toString()
+    .split(":");
+  if (login && password && login === auth.login && password === auth.password) {
+    return next();
+  }
+  res.set("WWW-Authenticate", 'Basic realm="401"'); // change this
+  res.status(401).send("Authentication required."); // custom message
+};
 
 app.get("/", (req, res) => {
   res.send("Welcome");
 });
 
-app.use("/equipments", equipments);
-app.use("/downtimes", downtimes);
-app.use("/customers", customers);
-app.use("/users", users);
-app.use("/vendors", vendors);
-app.use("/projects", projects);
-app.use("/works", works);
-app.use("/activities", activities);
-app.use("/reasons", reasons);
-app.use("/logs", logs);
-app.use("/dispatches", dispatches);
-app.use("/jobtypes", jobTypes);
-app.use("/employees", employees);
 app.use("/assetAvailability", avblty);
+app.use("/downtimes", downtimes);
+app.use("/works", works);
 app.use("/email", sendEmail);
+app.use("/equipments", auth, equipments);
+app.use("/customers", auth, customers);
+app.use("/users", auth, users);
+app.use("/vendors", auth, vendors);
+app.use("/projects", auth, projects);
+app.use("/activities", auth, activities);
+app.use("/reasons", auth, reasons);
+app.use("/logs", auth, logs);
+app.use("/dispatches", auth, dispatches);
+app.use("/jobtypes", auth, jobTypes);
+app.use("/employees", auth, employees);
 
 app.listen(PORT, () => {
   // console.log(`Listening on Port ${PORT}`);
