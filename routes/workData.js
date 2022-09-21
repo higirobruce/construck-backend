@@ -2059,7 +2059,7 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-    if (work.status === "created" || work.status === "on going") {
+    if (
       work.status === "created" ||
       (work.status === "on going" &&
         work.siteWork &&
