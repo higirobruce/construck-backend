@@ -3127,13 +3127,13 @@ router.put("/swreverse/:id", async (req, res) => {
       }
     );
 
-    if (updatedRevenue === 0) {
-      work.status = "created";
-    }
-
     work.totalRevenue = updatedRevenue;
     work.totalExpenditure = updatedExpenditure;
     work.duration = updatedDuration;
+
+    if (updatedDuration === 0) {
+      work.status = "created";
+    }
 
     // let _dailyWorks = work.dailyWork;
 
@@ -3152,6 +3152,7 @@ router.put("/swreverse/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
 
     await logTobeSaved.save();
+    await work.save();
 
     res.send(work).status(201);
   } catch (err) {
