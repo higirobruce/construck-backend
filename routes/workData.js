@@ -916,9 +916,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.eqOwner": driverId,
+              status: { $ne: "stopped" },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
+              status: { $ne: "stopped" },
             },
           ],
         },
