@@ -2060,6 +2060,12 @@ router.put("/start/:id", async (req, res) => {
       .populate("workDone");
 
     if (work.status === "created" || work.status === "on going") {
+      work.status === "created" ||
+      (work.status === "on going" &&
+        work.siteWork &&
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
+    ) {
       let eqId = work?.equipment?._id;
 
       await workData.model.updateMany(
@@ -2168,7 +2174,12 @@ router.put("/stop/:id", async (req, res) => {
       .populate("workDone");
 
     //You can only stop jobs in progress
-    if (work.status === "in progress") {
+    if (
+      work.status === "in progress" ||
+      (work.siteWork &&
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
+    ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = equipment.eqStatus === "standby" ? true : false;
 
