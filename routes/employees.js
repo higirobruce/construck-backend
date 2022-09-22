@@ -121,7 +121,7 @@ router.post("/login", async (req, res) => {
     if (userType === "employee") {
       if (!isDefaultPassword) {
         allowed = await bcrypt.compare(password, employee.password);
-        if (employee.status !== "inactive" || !allowed) {
+        if (employee.status !== "inactive" && allowed) {
           // employee.message = "Allowed";
           res.status(200).send({
             employee: {
