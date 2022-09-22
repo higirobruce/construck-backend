@@ -71,9 +71,10 @@ app.use("/assetAvailability", avblty);
 app.use("/downtimes", downtimes);
 app.use("/works", works);
 app.use("/email", sendEmail);
+app.use("/employees", employees);
+app.use("/users", users);
 app.use("/equipments", auth, equipments);
 app.use("/customers", auth, customers);
-app.use("/users", auth, users);
 app.use("/vendors", auth, vendors);
 app.use("/projects", auth, projects);
 app.use("/activities", auth, activities);
@@ -81,7 +82,6 @@ app.use("/reasons", auth, reasons);
 app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
-app.use("/employees", auth, employees);
 
 app.listen(PORT, () => {
   // console.log(`Listening on Port ${PORT}`);

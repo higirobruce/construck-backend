@@ -103,6 +103,26 @@ const WorkSchema = new mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
+  approved_amount: {
+    type: Number,
+    default: 0,
+  },
+  approved_duration: {
+    type: Number,
+    default: 0,
+  },
+  declined_amount: {
+    type: Number,
+    default: 0,
+  },
+  declined_duration: {
+    type: Number,
+    default: 0,
+  },
+  declined_reason: {
+    type: String,
+    default: "",
+  },
 });
 
 module.exports = {

@@ -82,16 +82,33 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
+  let defaultPassword = "password";
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
     let user = await userData.model.findOne({ phone: phone });
     let allowed = false;
     let userType = null;
+    let isDefaultPassword = false;
 
-    if (employee) userType = "employee"; //driver
-    if (vendor) userType = "vendor"; // vendor
-    if (user) userType = "consUser"; // cons User
+    if (employee) {
+      userType = "employee";
+      isDefaultPassword = await bcrypt.compare(
+        defaultPassword,
+        employee.password
+      );
+    } //driver
+    if (vendor) {
+      userType = "vendor";
+      isDefaultPassword = await bcrypt.compare(
+        defaultPassword,
+        vendor.password
+      );
+    } // vendor
+    if (user) {
+      userType = "consUser";
+      isDefaultPassword = await bcrypt.compare(defaultPassword, user.password);
+    } // cons User
 
     if (userType === null) {
       allowed = false;
@@ -100,26 +117,59 @@ router.post("/login", async (req, res) => {
         error: true,
       });
     }
+
     if (userType === "employee") {
-      allowed = await bcrypt.compare(password, employee.password);
-      if (employee.status !== "inactive") {
-        // employee.message = "Allowed";
-        res.status(200).send({
-          employee: {
-            _id: employee._id,
-            firstName: employee.firstName,
-            lastName: employee.lastName,
-            userId: employee._id,
-          },
-          message: "Allowed",
-          vendor: false,
-          userType,
-        });
+      if (!isDefaultPassword) {
+        allowed = await bcrypt.compare(password, employee.password);
+        if (employee.status !== "inactive" && allowed) {
+          // employee.message = "Allowed";
+          res.status(200).send({
+            employee: {
+              _id: employee._id,
+              firstName: employee.firstName,
+              lastName: employee.lastName,
+              userId: employee._id,
+            },
+            message: "Allowed",
+            vendor: false,
+            userType,
+          });
+        } else {
+          if (employee.status === "inactive")
+            res.status(401).send({
+              message: "Not activated!",
+              error: true,
+            });
+          else
+            res.status(401).send({
+              message: "Not allowed!",
+              error: true,
+            });
+        }
       } else {
-        res.status(401).send({
-          message: "Not activated!",
-          error: true,
-        });
+        let hashedPassword = await bcrypt.hash(password, 10);
+        employee.password = hashedPassword;
+        await employee.save();
+
+        if (employee.status !== "inactive") {
+          // employee.message = "Allowed";
+          res.status(200).send({
+            employee: {
+              _id: employee._id,
+              firstName: employee.firstName,
+              lastName: employee.lastName,
+              userId: employee._id,
+            },
+            message: "Allowed",
+            vendor: false,
+            userType,
+          });
+        } else {
+          res.status(401).send({
+            message: "Not activated!",
+            error: true,
+          });
+        }
       }
     }
 
