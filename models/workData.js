@@ -103,23 +103,31 @@ const WorkSchema = new mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "users",
   },
-  approved_amount: {
+  approvedRevenue: {
     type: Number,
     default: 0,
   },
-  approved_duration: {
+  approvedExpenditure: {
     type: Number,
     default: 0,
   },
-  declined_amount: {
+  approvedDuration: {
     type: Number,
     default: 0,
   },
-  declined_duration: {
+  rejectedRevenue: {
     type: Number,
     default: 0,
   },
-  declined_reason: {
+  rejectedEpenditure: {
+    type: Number,
+    default: 0,
+  },
+  rejectedDuration: {
+    type: Number,
+    default: 0,
+  },
+  rejectedReason: {
     type: String,
     default: "",
   },

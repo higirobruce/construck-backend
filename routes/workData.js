@@ -2381,6 +2381,106 @@ router.put("/approve/:id", async (req, res) => {
   } catch (err) {}
 });
 
+router.put("/approveDailyWork/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    postingDate,
+    approvedBy,
+    approvedRevenue,
+    approvedDuration,
+    approvedExpenditure,
+  } = req.body;
+
+  console.log(req.body);
+
+  let workRec = await workData.model.findById(id);
+
+  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
+  let _approvedExpenditure = workRec.approvedExpenditure
+    ? workRec.approvedExpenditure
+    : 0;
+  let _approvedDuration = workRec.approvedDuration
+    ? workRec.approvedDuration
+    : 0;
+
+  let work = await workData.model.findOneAndUpdate(
+    {
+      _id: id,
+      "dailyWork.date": postingDate,
+      pending: false,
+      $or: [
+        {
+          "dailyWork.$.status": { $exists: true },
+          "dailyWork.$.status": { $ne: "approved" },
+        },
+        {
+          "dailyWork.$.status": { $exists: false },
+        },
+      ],
+    },
+    {
+      $set: {
+        "dailyWork.$.status": "approved",
+        approvedRevenue: _approvedRevenue + approvedRevenue,
+        approvedDuration: _approvedDuration + approvedDuration,
+        approvedExpenditure: _approvedExpenditure + approvedExpenditure,
+      },
+    }
+  );
+  console.log(work);
+  res.send(work);
+});
+
+router.put("/rejectDailyWork/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    postingDate,
+    rejectedBy,
+    rejectedRevenue,
+    rejectedDuration,
+    rejectedExpenditure,
+    reason,
+  } = req.body;
+
+  let workRec = await workData.model.findById(id);
+
+  let _rejectedRevenue = workRec.rejectedRevenue ? workRec.rejectedRevenue : 0;
+  let _rejectedExpenditure = workRec.rejectedExpenditure
+    ? workRec.rejectedExpenditure
+    : 0;
+  let _rejectedDuration = workRec.rejectedDuration
+    ? workRec.rejectedDuration
+    : 0;
+
+  let work = await workData.model.findOneAndUpdate(
+    {
+      _id: id,
+      "dailyWork.date": postingDate,
+      pending: false,
+      $or: [
+        {
+          "dailyWork.$.status": { $exists: true },
+          "dailyWork.$.status": { $ne: "rejected" },
+        },
+        {
+          "dailyWork.$.status": { $exists: false },
+        },
+      ],
+    },
+    {
+      $set: {
+        "dailyWork.$.status": "rejected",
+        "dailyWork.$.rejectedReason": reason,
+        rejectedRevenue: _rejectedRevenue + rejectedRevenue,
+        rejectedDuration: _rejectedDuration + rejectedDuration,
+        rejectedExpenditure: _rejectedExpenditure + rejectedExpenditure,
+      },
+    }
+  );
+  console.log(work);
+  res.send(work);
+});
+
 router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
   try {
