@@ -2374,6 +2374,9 @@ router.put("/approve/:id", async (req, res) => {
     equipment.assignedShift = "";
 
     work.status = "approved";
+    work.approvedRevenue = work.totalRevenue;
+    work.approvedDuration = work.duration;
+    work.approvedExpenditure = work.totalExpenditure;
 
     let savedRecord = await work.save();
     await equipment.save();
@@ -2586,7 +2589,9 @@ router.put("/reject/:id", async (req, res) => {
 
     work.status = "rejected";
     work.reasonForRejection = reasonForRejection;
-    work.totalRevenue = 0;
+    work.rejectedRevenue = work.totalRevenue;
+    work.rejectedDuration = work.duration;
+    work.rejectedExpenditure = work.totalExpenditure;
     // work.projectedRevenue = 0;
 
     let eqId = work?.equipment?._id;
