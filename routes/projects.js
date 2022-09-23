@@ -3,6 +3,7 @@ const prjData = require("../models/projects");
 const custData = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -44,6 +45,63 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.get("/approvedRevenue/:prjDescription", async (req, res) => {
+  let { prjDescription } = req.params;
+
+  try {
+    let aggr = [
+      {
+        $match: {
+          "project.prjDescription": prjDescription,
+        },
+      },
+      {
+        $group: {
+          _id: "$project.prjDescription",
+          totalRevenue: {
+            $sum: "$approvedRevenue",
+          },
+        },
+      },
+    ];
+
+    let worksCursor = await workData.model.aggregate(aggr);
+    const result = await worksCursor;
+
+    res.send(worksCursor);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
+  let { prjDescription } = req.params;
+
+  try {
+    let aggr = [
+      {
+        $match: {
+          "project.prjDescription": prjDescription,
+        },
+      },
+      {
+        $group: {
+          _id: "$project.prjDescription",
+          totalRevenue: {
+            $sum: "$rejectedRevenue",
+          },
+        },
+      },
+    ];
+
+    let worksCursor = await workData.model.aggregate(aggr);
+    const result = await worksCursor;
+
+    res.send(worksCursor);
+  } catch (err) {
+    res.send(err);
+  }
+});
 router.post("/", async (req, res) => {
   let { prjDescription, customer, startDate, endDate, status } = req.body;
   try {
