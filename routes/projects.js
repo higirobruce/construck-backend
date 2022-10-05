@@ -102,6 +102,63 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
     res.send(err);
   }
 });
+
+router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
+  let { prjDescription } = req.params;
+
+  try {
+    /*
+     * Requires the MongoDB Node.js Driver
+     * https://mongodb.github.io/node-mongodb-native
+     */
+
+    const filter = {
+      "project.prjDescription": prjDescription,
+      $or: [
+        {
+          approvedRevenue: {
+            $gt: 0,
+          },
+        },
+        {
+          rejectedRevenue: {
+            $gt: 0,
+          },
+        },
+      ],
+    };
+    const projection = {
+      "project.prjDescription": 1,
+      "dailyWork.totalRevenue": 1,
+      "dailyWork.duration": 1,
+      "dailyWork.totalExpenditure": 1,
+      "dailyWork.rejectedReason": 1,
+      "dailyWork.date": 1,
+      "dailyWork.status": 1,
+      "dailyWork.uom": 1,
+      status: 1,
+      approvedDuration: 1,
+      approvedExpenditure: 1,
+      approvedRevenue: 1,
+      reasonForRejection: 1,
+      rejectedDuration: 1,
+      rejectedEpenditure: 1,
+      rejectedReason: 1,
+      rejectedRevenue: 1,
+      siteWork: 1,
+      workStartDate: 1,
+      "dispatch.date": 1,
+      "equipment.uom": 1,
+    };
+
+    let worksCursor = await workData.model.find(filter, projection);
+
+    res.send(worksCursor);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 router.post("/", async (req, res) => {
   let { prjDescription, customer, startDate, endDate, status } = req.body;
   try {

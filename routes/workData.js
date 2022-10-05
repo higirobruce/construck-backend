@@ -2411,15 +2411,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       _id: id,
       "dailyWork.date": postingDate,
       pending: false,
-      $or: [
-        {
-          "dailyWork.$.status": { $exists: true },
-          "dailyWork.$.status": { $ne: "approved" },
-        },
-        {
-          "dailyWork.$.status": { $exists: false },
-        },
-      ],
     },
     {
       $set: {
@@ -2430,8 +2421,85 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       },
     }
   );
-  console.log(work);
   res.send(work);
+});
+
+router.put("/validateDailyWork/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    postingDate,
+    approvedBy,
+    approvedRevenue,
+    approvedDuration,
+    approvedExpenditure,
+  } = req.body;
+
+  console.log(req.body);
+
+  let workRec = await workData.model.findById(id);
+  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
+  let _approvedExpenditure = workRec.approvedExpenditure
+    ? workRec.approvedExpenditure
+    : 0;
+  let _approvedDuration = workRec.approvedDuration
+    ? workRec.approvedDuration
+    : 0;
+
+  let work = await workData.model.findOneAndUpdate(
+    {
+      _id: id,
+      "dailyWork.date": postingDate,
+      pending: false,
+    },
+    {
+      $set: {
+        "dailyWork.$.status": "validated",
+        approvedRevenue: _approvedRevenue - approvedRevenue,
+        approvedDuration: _approvedDuration - approvedDuration,
+        approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+      },
+    }
+  );
+  res.send(workRec);
+});
+
+router.put("/validateWork/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    postingDate,
+    approvedBy,
+    approvedRevenue,
+    approvedDuration,
+    approvedExpenditure,
+  } = req.body;
+
+  console.log(req.body);
+
+  let workRec = await workData.model.findById(id);
+  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
+  let _approvedExpenditure = workRec.approvedExpenditure
+    ? workRec.approvedExpenditure
+    : 0;
+  let _approvedDuration = workRec.approvedDuration
+    ? workRec.approvedDuration
+    : 0;
+
+  let work = await workData.model.findOneAndUpdate(
+    {
+      _id: id,
+      "dispatch.date": postingDate,
+      status: "approved",
+    },
+    {
+      $set: {
+        status: "validated",
+        approvedRevenue: _approvedRevenue - approvedRevenue,
+        approvedDuration: _approvedDuration - approvedDuration,
+        approvedExpenditure: _approvedExpenditure - approvedExpenditure,
+      },
+    }
+  );
+  res.send(workRec);
 });
 
 router.put("/rejectDailyWork/:id", async (req, res) => {
@@ -2460,15 +2528,6 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
       _id: id,
       "dailyWork.date": postingDate,
       pending: false,
-      $or: [
-        {
-          "dailyWork.$.status": { $exists: true },
-          "dailyWork.$.status": { $ne: "rejected" },
-        },
-        {
-          "dailyWork.$.status": { $exists: false },
-        },
-      ],
     },
     {
       $set: {
