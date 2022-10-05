@@ -186,6 +186,7 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
+  console.log(req.query);
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
@@ -252,7 +253,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.eqOwner": vendorName,
             },
@@ -267,7 +268,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.eqOwner": vendorName,
             },
@@ -283,7 +284,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -301,7 +302,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -378,7 +379,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "project.customer": companyName,
             },
@@ -393,7 +394,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "project.customer": companyName,
             },
@@ -409,7 +410,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -427,7 +428,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -508,7 +509,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
 
               "project.prjDescription": userProject,
@@ -524,7 +525,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
 
               "project.prjDescription": userProject,
@@ -541,7 +542,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -560,7 +561,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -642,7 +643,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
 
               "project.prjDescription": userProject,
@@ -658,7 +659,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
 
               "project.prjDescription": userProject,
@@ -675,7 +676,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -694,7 +695,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -759,6 +760,7 @@ router.get("/filtered/:page", async (req, res) => {
           ],
         };
       } else if (!searchByPlateNumber && searchByProject) {
+        console.log("heeere");
         query = {
           $or: [
             {
@@ -768,7 +770,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
             },
 
@@ -782,7 +784,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
             },
           ],
@@ -797,7 +799,7 @@ router.get("/filtered/:page", async (req, res) => {
               },
 
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -814,7 +816,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
               "project.prjDescription": {
-                $regex: project.toUpperCase(),
+                $regex: project,
               },
               "equipment.plateNumber": {
                 $regex: searchText.toUpperCase(),
@@ -1443,7 +1445,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           },
 
           "project.prjDescription": {
-            $regex: project.toUpperCase(),
+            $regex: project,
           },
         },
 
@@ -1457,7 +1459,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               .add(59, "seconds"),
           },
           "project.prjDescription": {
-            $regex: project.toUpperCase(),
+            $regex: project,
           },
         },
       ],
@@ -1472,7 +1474,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           },
 
           "project.prjDescription": {
-            $regex: project.toUpperCase(),
+            $regex: project,
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
@@ -1489,7 +1491,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               .add(59, "seconds"),
           },
           "project.prjDescription": {
-            $regex: project.toUpperCase(),
+            $regex: project,
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
