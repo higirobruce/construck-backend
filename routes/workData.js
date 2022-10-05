@@ -2394,8 +2394,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  console.log(req.body);
-
   let workRec = await workData.model.findById(id);
 
   let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
@@ -2473,8 +2471,6 @@ router.put("/validateWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  console.log(req.body);
-
   let workRec = await workData.model.findById(id);
   let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
   let _approvedExpenditure = workRec.approvedExpenditure
@@ -2539,7 +2535,6 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
       },
     }
   );
-  console.log(work);
   res.send(work);
 });
 
