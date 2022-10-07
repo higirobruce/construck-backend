@@ -43,4 +43,35 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.put("/resetPassword/:id", async (req, res) => {
+  let newPassword = "password";
+  let { id } = req.params;
+
+  try {
+    let vendor = await venData.model.findById(id);
+    if (!vendor) {
+      res.status(401).send({
+        message: "Vendor not found!",
+        error: true,
+      });
+    } else {
+      let hashedPassword = await bcrypt.hash(newPassword, 10);
+      vendor.password = hashedPassword;
+      await vendor.save();
+
+      res.send({
+        message: "Allowed",
+        error: false,
+        newPassword,
+        vendor,
+      });
+    }
+  } catch (err) {
+    res.status(500).send({
+      message: `${err}`,
+      error: true,
+    });
+  }
+});
+
 module.exports = router;
