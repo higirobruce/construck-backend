@@ -38,6 +38,9 @@ const EquipmentSchema = new mongoose.Schema({
   assignedDate: {
     type: Date,
   },
+  assignedEndDate: {
+    type: Date,
+  },
   assignedShift: {
     type: String,
   },

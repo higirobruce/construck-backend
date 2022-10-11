@@ -103,33 +103,66 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 router.get("/:date/:shift", async (req, res) => {
   let { date, shift } = req.params;
   try {
-    const equipment = await eqData.model.find({
-      $or: [
-        { eqStatus: "standby" },
-        {
-          eqStatus: "dispatched",
-          assignedShift: { $ne: shift },
-          assignedToSiteWork: { $ne: true },
+    const _eqs = await eqData.model.aggregate([
+      {
+        $addFields: {
+          assignedDateStr: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$assignedDate",
+            },
+          },
+          assignedEndDateStr: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$assignedEndDate",
+            },
+          },
         },
-        {
-          eqStatus: "dispatched",
-          assignedDate: { $ne: date },
-          assignedToSiteWork: { $ne: true },
+      },
+      {
+        $match: {
+          $or: [
+            { eqStatus: "standby" },
+
+            //dispatched to daily works
+            {
+              assignedEndDate: {
+                $lt: new Date(date),
+              },
+              assignedToSiteWork: false,
+              eqStatus: "dispatched",
+            },
+            {
+              assignedEndDateStr: {
+                $eq: date,
+              },
+              assignedShift: { $ne: shift },
+              assignedToSiteWork: false,
+              eqStatus: "dispatched",
+            },
+
+            //disptached to siteWorks
+            {
+              assignedToSiteWork: true,
+              assignedEndDate: {
+                $lt: new Date(date),
+              },
+              eqStatus: "dispatched",
+            },
+            {
+              assignedShift: { $ne: shift },
+              assignedToSiteWork: true,
+              assignedEndDate: {
+                $gte: new Date(date),
+              },
+              eqStatus: "dispatched",
+            },
+          ],
         },
-        {
-          eqStatus: "dispatched",
-          assignedToSiteWork: true,
-          assignedShift: { $ne: shift },
-        },
-        {
-          eqStatus: "dispatched",
-          assignedToSiteWork: true,
-          assignedShift: shift,
-          assignedDate: { $lt: date },
-        },
-      ],
-    });
-    res.status(200).send(equipment);
+      },
+    ]);
+    res.status(200).send(_eqs);
   } catch (err) {
     res.send(err);
   }

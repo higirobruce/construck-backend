@@ -186,7 +186,6 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  console.log(req.query);
   switch (userType) {
     case "vendor":
       if (!searchByPlateNumber && !searchByProject) {
@@ -760,7 +759,6 @@ router.get("/filtered/:page", async (req, res) => {
           ],
         };
       } else if (!searchByPlateNumber && searchByProject) {
-        console.log("heeere");
         query = {
           $or: [
             {
@@ -1897,7 +1895,12 @@ router.post("/", async (req, res) => {
     let equipment = await eqData.model.findById(workToCreate?.equipment?._id);
     equipment.eqStatus = "dispatched";
     equipment.assignedToSiteWork = req.body?.siteWork;
-    equipment.assignedDate = req.body?.dispatch?.date;
+    equipment.assignedDate = moment(req.body?.workStartDate).format(
+      "YYYY-MM-DD"
+    );
+    equipment.assignedEndDate = moment(req.body?.workEndDate).format(
+      "YYYY-MM-DD"
+    );
     equipment.assignedShift = req.body?.dispatch?.shift;
     let driver = req.body?.driver === "NA" ? null : req.body?.driver;
 
@@ -1905,8 +1908,8 @@ router.post("/", async (req, res) => {
     if (employee) {
       employee.status = "dispatched";
       employee.assignedToSiteWork = req.body?.siteWork;
-      employee.assignedDate = req.body?.dispatch?.date;
-      employee.assignedShift = req.body?.dispatch?.shift;
+      employee.assignedDate = moment(req.body?.dispatch?.date);
+      employee.assignedShift = moment(req.body?.dispatch?.shift);
     }
 
     let rate = parseInt(equipment.rate);
@@ -2433,8 +2436,6 @@ router.put("/validateDailyWork/:id", async (req, res) => {
     approvedDuration,
     approvedExpenditure,
   } = req.body;
-
-  console.log(req.body);
 
   let workRec = await workData.model.findById(id);
   let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
