@@ -1909,7 +1909,7 @@ router.post("/", async (req, res) => {
       employee.status = "dispatched";
       employee.assignedToSiteWork = req.body?.siteWork;
       employee.assignedDate = moment(req.body?.dispatch?.date);
-      employee.assignedShift = moment(req.body?.dispatch?.shift);
+      employee.assignedShift = req.body?.dispatch?.shift;
     }
 
     let rate = parseInt(equipment.rate);
