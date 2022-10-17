@@ -50,7 +50,7 @@ router.post("/send", (req, res) => {
                                 <mj-text>
                                  Password: ${password}
                                 </mj-text>
-                                <mj-button background-color="#053566" href="http://${process.env.NODE_LOCAL_HOST}:3000">Go to the Application</mj-button>
+                                <mj-button background-color="#053566" href=${process.env.CTK_APP_URL}>Go to the Application</mj-button>
                         </mj-column>
                         </mj-section>
 
@@ -173,12 +173,10 @@ router.post("/send", (req, res) => {
                         Plate number: ${workPayload?.equipment?.plateNumber}<br>
                         Project: ${workPayload?.project?.prjDescription}<br>
                         Posting date: ${workPayload?.postingDate}<br>
-                        Reason for rejection:${
-                          workPayload?.reasonForRejection
-                        }<br>
+                        Reason for rejection:${workPayload?.reasonForRejection}<br>
                     </mj-text>
 
-                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${"https://playground-construck.vercel.app/"} padding="10px 25px">GO TO APPLICATION</mj-button>
+                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${process.env.CTK_APP_URL} padding="10px 25px">GO TO APPLICATION</mj-button>
                     
             </mj-column>
             </mj-section>
