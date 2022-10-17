@@ -1527,7 +1527,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
       let siteWorkList = [];
 
-      let l = listToSend.map((w) => {
+      let l = listToSend.map((w, index) => {
         let work = null;
 
         if (w.siteWork && w.status !== "recalled" && w.status !== "stopped") {
@@ -1572,7 +1572,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               !_.includes(datesPendingPosted, d) &&
               moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
           );
-
           // {
           //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
           //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
@@ -1598,6 +1597,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           //     Customer: w.project?.customer,
           //     Status: w.status,
           //   }
+          console.log(dateNotPosted);
 
           datesPosted.map((dP) => {
             if (
@@ -1627,7 +1627,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+                "Projected Revenue": dP.actualRevenue,
                 "Actual Revenue": dP.actualRevenue,
                 "Vendor payment": dP.expenditure,
                 "Driver Names": w.driver
@@ -1672,7 +1672,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+                "Projected Revenue":
+                  w.equipment?.uom === "hour"
+                    ? w.projectedRevenue / w.workDurationDays
+                    : w.projectedRevenue / w.workDurationDays,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
                 "Driver Names": w.driver
@@ -1721,7 +1724,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+                "Projected Revenue":
+                  w.equipment?.uom === "hour"
+                    ? w.projectedRevenue / w.workDurationDays
+                    : w.projectedRevenue / w.workDurationDays,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
                 "Driver Names": w.driver
@@ -1831,7 +1837,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
-              "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+              "Projected Revenue": w.projectedRevenue,
               "Actual Revenue": w.totalRevenue,
               "Vendor payment": w.totalExpenditure,
               "Driver Names": w.driver
@@ -2300,19 +2306,17 @@ router.post("/getAnalytics", async (req, res) => {
       });
     }
 
-    let workListByDay = await workData.model
-      .find({ uom: "day" })
-      .and([
-        {
-          "dispatch.date": {
-            $gte: startDate,
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
-          },
+    let workListByDay = await workData.model.find({ uom: "day" }).and([
+      {
+        "dispatch.date": {
+          $gte: startDate,
+          $lte: moment(endDate)
+            .add(23, "hours")
+            .add(59, "minutes")
+            .add(59, "seconds"),
         },
-      ]);
+      },
+    ]);
 
     let listDays = [];
 
