@@ -2,6 +2,7 @@ const express = require("express");
 var cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
+const cron = require("node-cron");
 
 const PORT = process.env.PORT ? process.env.PORT : 9000;
 
@@ -22,6 +23,8 @@ const employees = require("./routes/employees");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const send = require("./utils/sendEmailNode");
+
+const fun = require("./utils/cron-functions");
 
 //Set up default mongoose connection
 // var mongoDB =
@@ -78,11 +81,14 @@ app.use("/customers", auth, customers);
 app.use("/vendors", auth, vendors);
 app.use("/projects", auth, projects);
 app.use("/activities", auth, activities);
-app.use("/reasons", auth, reasons);
+app.use("/reasons", reasons);
 app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 
 app.listen(PORT, () => {
   // console.log(`Listening on Port ${PORT}`);
+  cron.schedule("0 8 * * *", () => {
+    fun.getWorksToExpireToday().then((res) => {});
+  });
 });
