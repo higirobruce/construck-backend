@@ -850,6 +850,7 @@ router.get("/filtered/:page", async (req, res) => {
       .sort([["_id", "descending"]]);
 
     // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
+
     res.status(200).send({ workList, dataCount });
   } catch (err) {
     res.send(err);
@@ -1157,6 +1158,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             workStartDate: { $lte: moment(endDate).add(23, "hours") },
             $or: [
               { status: "stopped" },
+              { status: "rejected" },
               { status: "on going", "dailyWork.pending": false },
             ],
           },
@@ -1201,6 +1203,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 totalExpenditure: d.totalExpenditure,
                 duration: d.duration,
                 uom: d.uom,
+                status: d.status ? d.status : "stopped",
               };
             });
           // console.log(datesPosted);
@@ -1232,7 +1235,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
                 dP.uom === "hour"
                   ? dP.duration / (1000 * 60 * 60)
                   : dP.duration,
-              status: "stopped",
+              status: dP.status,
               project: w.project,
               createdOn: w.createdOn,
               equipment: w.equipment,
@@ -2068,7 +2071,6 @@ router.post("/mobileData", async (req, res) => {
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
-
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2094,16 +2096,20 @@ router.post("/getAnalytics", async (req, res) => {
         //       },
       })
       .or([
-        { siteWork: true, workStartDate: { $gte: startDate } },
+        {
+          siteWork: true,
+          workEndDate: {
+            $gte: moment(startDate),
+          },
+        },
         {
           siteWork: false,
-          "dispatch.date": {
-            $gte: startDate,
+          workStartDate: {
+            $gte: moment(startDate),
             $lte: moment(endDate)
               .add(23, "hours")
               .add(59, "minutes")
-              .add(59, "seconds")
-              .toISOString(),
+              .add(59, "seconds"),
           },
         },
       ]);
@@ -2148,7 +2154,8 @@ router.post("/getAnalytics", async (req, res) => {
       }
 
       list.map((w) => {
-        //PStart and PEnd are before range stare
+        //PStart and PEnd are before range start
+        //days diff=0
         let case1 =
           moment(w.workStartDate).diff(moment(startDate)) < 0 &&
           moment(w.workEndDate).diff(
@@ -2158,7 +2165,8 @@ router.post("/getAnalytics", async (req, res) => {
               .add(59, "seconds")
           ) < 0;
 
-        //PStart before Start and PEnd after Start and PEnd before End
+        //PStart before RangeStart and PEnd after RangeStart and PEnd before RangeEnd
+        //day diff = PEnd - RangeStart
         let case2 =
           moment(w.workStartDate).diff(moment(startDate)) < 0 &&
           moment(w.workEndDate).diff(moment(startDate)) > 0 &&
@@ -2169,11 +2177,12 @@ router.post("/getAnalytics", async (req, res) => {
               .add(59, "seconds")
           ) < 0;
 
-        //PStart before to Start and PEnd After end
+        //PStart before to RangeStart and PEnd After RangeEnd
         // OR
-        //PStart equal to Start and PEnd equal End
+        //PStart equal to RangeStart and PEnd equal RangeEnd
         //OR
-        //PStart equal to Start and PEnd after End
+        //PStart equal to RangeStart and PEnd after RangeEnd
+        //days diff = RangeEnd - RangeStart
         let case3 =
           moment(w.workStartDate).diff(moment(startDate)) <= 0 &&
           moment(w.workEndDate).diff(
@@ -2183,7 +2192,8 @@ router.post("/getAnalytics", async (req, res) => {
               .add(59, "seconds")
           ) >= 0;
 
-        //PStart after Start and PEnd before Start
+        //PStart after RangeStart and PEnd before RangeEnd
+        //days diff = PEnd-PStart
         let case4 =
           moment(w.workStartDate).diff(moment(startDate)) > 0 &&
           moment(w.workEndDate).diff(
@@ -2193,7 +2203,8 @@ router.post("/getAnalytics", async (req, res) => {
               .add(59, "seconds")
           ) < 0;
 
-        //PStart after Start and PEnd after End
+        //PStart after RangeStart and PEnd after RangeEnd
+        //days diff = RangeEnd - PStart
         let case5 =
           moment(w.workStartDate).diff(moment(startDate)) > 0 &&
           moment(w.workEndDate).diff(
@@ -2204,32 +2215,41 @@ router.post("/getAnalytics", async (req, res) => {
           ) > 0 &&
           moment(endDate).diff(moment(w.workStartDate)) > 0;
 
-        if (case1) daysDiff = 0;
-        else if (case2)
+        if (case1) {
+          daysDiff = 0;
+        } //days diff=0
+        else if (case2) {
+          //day diff = PEnd - RangeStart
           daysDiff = _.round(
             moment(w.workEndDate).diff(moment(startDate), "days"),
             0
           );
-        else if (case3)
+        } else if (case3) {
+          //days diff = RangeEnd - RangeStart
           daysDiff = _.round(
             moment(endDate).diff(moment(startDate), "days"),
             0
           );
-        else if (case4)
-          daysDiff = _.round(
-            moment(w.workEndDate).diff(moment(w.workStartDate), "days"),
-            0
-          );
-        else if (case5)
+        } else if (case4) {
+          {
+            //days diff = PEnd-PStart
+            daysDiff = _.round(
+              moment(w.workEndDate).diff(moment(w.workStartDate), "days"),
+              0
+            );
+          }
+        } else if (case5) {
+          //days diff = RangeEnd - PStart
           daysDiff = _.round(
             moment(endDate).diff(moment(w.workStartDate), "days"),
             0
           );
-        else
+        } else {
           daysDiff = _.round(
             moment(endDate).diff(moment(startDate), "days"),
             0
           );
+        }
 
         if (daysDiff < 0) daysDiff = 0;
 
@@ -2271,7 +2291,9 @@ router.post("/getAnalytics", async (req, res) => {
           w.siteWork === true
             ? projectedRevenue +
               w?.equipment.rate *
-                (w?.equipment.uom === "hour" ? 5 * daysDiff + 1 : daysDiff + 1)
+                (w?.equipment.uom === "hour"
+                  ? 5 * (daysDiff + 1)
+                  : daysDiff + 1)
             : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
@@ -2280,7 +2302,17 @@ router.post("/getAnalytics", async (req, res) => {
 
     let workListByDay = await workData.model
       .find({ uom: "day" })
-      .and([{ "dispatch.date": { $gte: startDate, $lte: endDate } }]);
+      .and([
+        {
+          "dispatch.date": {
+            $gte: startDate,
+            $lte: moment(endDate)
+              .add(23, "hours")
+              .add(59, "minutes")
+              .add(59, "seconds"),
+          },
+        },
+      ]);
 
     let listDays = [];
 
@@ -2322,19 +2354,19 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays = totalDays + w.duration;
     });
 
-    let dispatches = await workData.model.find({
-      createdOn: { $gte: startDate, $lte: endDate },
-    });
+    // let dispatches = await workData.model.find({
+    //   createdOn: { $gte: startDate, $lte: endDate },
+    // });
 
-    let listDispaches = [];
-    if (customer) {
-      listDispaches = dispatches.filter((w) => {
-        let nameLowerCase = w?.project?.customer?.toLowerCase();
-        return nameLowerCase.includes(customer?.toLowerCase());
-      });
-    } else {
-      listDispaches = dispatches;
-    }
+    // let listDispaches = [];
+    // if (customer) {
+    //   listDispaches = dispatches.filter((w) => {
+    //     let nameLowerCase = w?.project?.customer?.toLowerCase();
+    //     return nameLowerCase.includes(customer?.toLowerCase());
+    //   });
+    // } else {
+    //   listDispaches = dispatches;
+    // }
 
     res.status(200).send({
       totalRevenue: _.round(totalRevenue, 0).toFixed(2),
@@ -2356,6 +2388,7 @@ router.post("/getAnalytics", async (req, res) => {
 
 router.put("/approve/:id", async (req, res) => {
   let { id } = req.params;
+
   try {
     let work = await workData.model
       .findById(id)
@@ -2385,6 +2418,16 @@ router.put("/approve/:id", async (req, res) => {
 
     let savedRecord = await work.save();
     await equipment.save();
+
+    //log saving
+    let log = {
+      action: "DISPATCH APPROVED",
+      doneBy: req.body.approvedBy,
+      request: req.body,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
     res.status(201).send(savedRecord);
   } catch (err) {}
 });
@@ -2424,6 +2467,17 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       },
     }
   );
+
+  //log saving
+  let log = {
+    action: "DISPATCH APPROVED",
+    doneBy: req.body.approvedBy,
+    request: req.body,
+    payload: workRec,
+  };
+  let logTobeSaved = new logData.model(log);
+  await logTobeSaved.save();
+
   res.send(work);
 });
 
@@ -2461,6 +2515,16 @@ router.put("/validateDailyWork/:id", async (req, res) => {
       },
     }
   );
+
+  //log saving
+  let log = {
+    action: "DISPATCH VALIDATED",
+    doneBy: req.body.validatedBy,
+    request: req.body,
+    payload: workRec,
+  };
+  let logTobeSaved = new logData.model(log);
+  await logTobeSaved.save();
   res.send(workRec);
 });
 
@@ -2498,6 +2562,17 @@ router.put("/validateWork/:id", async (req, res) => {
       },
     }
   );
+
+  //log saving
+  let log = {
+    action: "DISPATCH VALIDATED",
+    doneBy: req.body.validatedBy,
+    request: req.body,
+    payload: workRec,
+  };
+  let logTobeSaved = new logData.model(log);
+  await logTobeSaved.save();
+
   res.send(workRec);
 });
 
@@ -2538,6 +2613,17 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
       },
     }
   );
+
+  //log saving
+  let log = {
+    action: "DISPATCH REJECTED",
+    doneBy: req.body.rejectedBy,
+    request: req.body,
+    payload: workRec,
+  };
+  let logTobeSaved = new logData.model(log);
+  await logTobeSaved.save();
+
   res.send(work);
 });
 
@@ -2665,6 +2751,14 @@ router.put("/reject/:id", async (req, res) => {
 
     let savedRecord = await work.save();
     await equipment.save();
+
+    let log = {
+      action: "DISPATCH REJECTED",
+      doneBy: req.body.rejectedBy,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
     res.status(201).send(savedRecord);
   } catch (err) {}
 });
@@ -3249,6 +3343,231 @@ router.put("/reverse/:id", async (req, res) => {
     await work.save();
 
     res.send(work).status(201);
+  } catch (err) {}
+});
+
+router.put("/amend/:id", async (req, res) => {
+  // reset duration
+  // reset totalRevenue
+  // only those that are not site works
+  // set status to "in progress"
+  // create a log to mention that it is a reverse
+
+  let { id } = req.params;
+  let { tripsDone, comment, moreComment, stoppedBy, duration } = req.body;
+
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("appovedBy")
+      .populate("dispatch")
+      .populate("workDone");
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+
+    work.status = "stopped";
+    work.tripsDone = parseInt(tripsDone);
+    let uom = equipment?.uom;
+
+    let rate = equipment?.rate;
+    let supplierRate = equipment?.supplierRate;
+    let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
+
+    let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
+    let revenue = 0;
+    let expenditure = 0;
+
+    // if rate is per hour and we have target trips to be done
+    if (uom === "hour") {
+      if (comment !== "Ibibazo bya panne") {
+        work.duration = duration > 0 ? duration * 3600000 : 0;
+        revenue = (rate * work.duration) / 3600000;
+        expenditure = (supplierRate * work.duration) / 3600000;
+      } else {
+        work.duration = duration > 0 ? duration * 3600000 : 0;
+        revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+        expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
+      }
+    }
+
+    //if rate is per day
+    if (uom === "day") {
+      // work.duration = duration;
+      // revenue = rate * duration;
+      if (comment !== "Ibibazo bya panne") {
+        work.duration = duration / HOURS_IN_A_DAY;
+        revenue = rate * (duration >= 1 ? 1 : 0);
+        expenditure = supplierRate * (duration >= 1 ? 1 : 0);
+      } else {
+        work.duration = duration / HOURS_IN_A_DAY;
+        let tripRatio = tripsDone / targetTrips;
+        if (tripsDone && targetTrips) {
+          if (tripRatio > 1) {
+            revenue = rate;
+            expenditure = supplierRate;
+            // revenue = rate;
+          } else {
+            revenue = rate * tripRatio;
+            expenditure = supplierRate * tripRatio;
+          }
+        }
+        if (!targetTrips || targetTrips == "0") {
+          {
+            let targetDuration = 5;
+            let durationRation =
+              duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+            work.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate;
+            expenditure = supplierRate;
+          }
+        }
+      }
+    }
+
+    work.rate = rate;
+    work.uom = uom;
+    work.totalRevenue = revenue ? revenue : 0;
+    work.totalExpenditure = expenditure ? expenditure : 0;
+    work.comment = comment;
+    work.moreComment = moreComment;
+    let savedRecord = await work.save();
+    //log saving
+    let log = {
+      action: "DISPATCH AMENDED",
+      doneBy: req.body.amendedBy,
+      request: req.body,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
+    res.status(201).send(savedRecord);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.put("/swamend/:id", async (req, res) => {
+  let { id } = req.params;
+  let {
+    tripsDone,
+    comment,
+    moreComment,
+    postingDate,
+    prevDuration,
+    prevTotalRevenue,
+    prevTotalExpenditure,
+  } = req.body;
+
+  let duration = Math.abs(req.body.duration);
+  if (duration > 12) duration = 12;
+
+  let dd = postingDate?.split(".")[0];
+  let mm = postingDate?.split(".")[1];
+  let yyyy = postingDate?.split(".")[2];
+  if (dd?.length < 2) dd = "0" + dd;
+  if (mm?.length < 2) mm = "0" + mm;
+  if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
+  try {
+    let work = await workData.model.findOne({
+      _id: id,
+      "dailyWork.date": postingDate,
+      status: { $in: ["on going", "stopped"] },
+    });
+
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+
+    let dailyWork = {};
+    let currentTotalRevenue = work.totalRevenue;
+    let currentDuration = Math.abs(work.duration);
+    let currentTotalExpenditure = work.totalExpenditure;
+
+    let _duration = Math.abs(work.endTime - work.startTime);
+
+    let uom = equipment?.uom;
+    let rate = equipment?.rate;
+    let supplierRate = equipment?.supplierRate;
+    let revenue = 0;
+    let expenditure = 0;
+
+    // if rate is per hour and we have target trips to be done
+    if (uom === "hour") {
+      if (comment !== "Ibibazo bya panne") {
+        dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
+
+        revenue = (rate * dailyWork.duration) / 3600000;
+        expenditure = (supplierRate * dailyWork.duration) / 3600000;
+      } else {
+        dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
+        revenue = (rate * dailyWork.duration) / 3600000;
+        expenditure = (supplierRate * dailyWork.duration) / 3600000;
+      }
+    }
+
+    //if rate is per day
+    if (uom === "day") {
+      // work.duration = duration;
+      // revenue = rate * duration;
+      if (comment !== "Ibibazo bya panne") {
+        dailyWork.duration = duration / HOURS_IN_A_DAY;
+        revenue = rate * (duration >= 1 ? 1 : 0);
+        expenditure = supplierRate * (duration >= 1 ? 1 : 0);
+      } else {
+        dailyWork.duration = duration / HOURS_IN_A_DAY;
+
+        let targetDuration = 5;
+        let durationRation =
+          duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+        dailyWork.duration = duration / HOURS_IN_A_DAY;
+        revenue = rate * (duration >= 1 ? 1 : 0);
+        expenditure = supplierRate;
+      }
+    }
+
+    dailyWork.totalRevenue = revenue ? revenue : 0;
+    dailyWork.totalExpenditure = expenditure ? expenditure : 0;
+    dailyWork.comment = comment;
+    dailyWork.moreComment = moreComment;
+
+    work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        "dailyWork.date": postingDate,
+        status: { $in: ["on going", "stopped"] },
+      },
+      {
+        $set: {
+          "dailyWork.$.totalRevenue": dailyWork.totalRevenue,
+          "dailyWork.$.duration": dailyWork.duration,
+          "dailyWork.$.totalExpenditure": dailyWork.totalExpenditure,
+          "dailyWork.$.comment": dailyWork.comment,
+          "dailyWork.$.moreComment": dailyWork.moreComment,
+          "dailyWork.$.status": "",
+        },
+      }
+    );
+
+    work.duration = currentDuration - prevDuration + dailyWork.duration;
+    work.totalRevenue = currentTotalRevenue - prevTotalRevenue + revenue;
+    work.totalExpenditure =
+      currentTotalExpenditure - prevTotalExpenditure + expenditure;
+    work.moreComment = moreComment;
+
+    let savedRecord = await work.save();
+
+    //log saving
+    let log = {
+      action: "DISPATCH AMENDED",
+      doneBy: req.body.amendedby,
+      request: req.body,
+      payload: work,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
+    res.status(201).send(savedRecord);
   } catch (err) {}
 });
 
