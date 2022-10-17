@@ -1,14 +1,18 @@
 ###
-<<<<<<< HEAD
-GET https://construck-backend.herokuapp.com/equipments/v2
-=======
-GET http://localhost:9000/equipments/v2
->>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
-###
-GET https://construck-backend.herokuapp.com/customers/
+GET http://localhost:9000/equipments/2022-11-01/nightShift
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
 
 ###
-POST https://construck-backend.herokuapp.com/works/getAnalytics
+GET https://construck-backend-live.herokuapp.com/works/v3
+
+###
+GET http://localhost:9000/downtimes/
+
+###
+GET http://localhost:9000/employees/62bacdcc0a8ded52cc67ed5a
+
+###
+POST http://localhost:9000/works/getAnalytics
 Content-Type: application/json
 
 {
@@ -20,53 +24,45 @@ Content-Type: application/json
 
 
 ###
-GET https://construck-backend.herokuapp.com/jobtypes/
+GET http://localhost:9000/jobtypes/
 
 
 ###
-<<<<<<< HEAD
-GET https://construck-backend.herokuapp.com/vendors/
-
-
-###
-GET https://construck-backend.herokuapp.com/works/detailed
-=======
 GET http://localhost:9000/vendors/
 
 
 ###
-GET http://localhost:9000/works/detailed
->>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
+GET http://localhost:9000/works/detailed/true?startDate=2022-10-01&endDate=2022-10-17
 
 
 ###
-GET https://construck-backend.herokuapp.com/activities/
+GET http://localhost:9000/activities/
 
 
 ###
-GET https://construck-backend.herokuapp.com/reasons/
+GET http://localhost:9000/reasons/
 
 ###
-GET https://construck-backend.herokuapp.com/assetAvailability/
+GET http://localhost:9000/assetAvailability/
 
-
-
-###
-<<<<<<< HEAD
-GET https://construck-backend.herokuapp.com/works/v3/driver/62bacdcc0a8ded52cc67ed64
-=======
-GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ed64
->>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
-
-###
-GET https://construck-backend.herokuapp.com/dispatches/
-
-###
-GET https://construck-backend.herokuapp.com/logs/
 
 
 ###
-POST https://construck-backend.herokuapp.com/assetAvailability/
+GET http://localhost:9000/works/v3/driver/62bacdcc0a8ded52cc67ed2c
+
+
+###
+GET http://localhost:9000/works/v3
+
+###
+GET http://localhost:9000/dispatches/
+
+###
+GET http://localhost:9000/logs/
+
+
+###
+POST http://localhost:9000/assetAvailability/
 Content-Type: application/json
 
 {
@@ -78,7 +74,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/reasons/
+POST http://localhost:9000/reasons/
 Content-Type: application/json
 
 {
@@ -88,7 +84,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/jobtypes/
+POST http://localhost:9000/jobtypes/
 Content-Type: application/json
 
 {
@@ -98,7 +94,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/activities/
+POST http://localhost:9000/activities/
 Content-Type: application/json
 
 {
@@ -108,7 +104,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/equipments/
+POST http://localhost:9000/equipments/
 Content-Type: application/json
 
 {
@@ -124,7 +120,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://construck-backend.herokuapp.com/customers/project
+POST http://localhost:9000/customers/project
 Content-Type: application/json
 
 {
@@ -138,7 +134,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/customers/
+POST http://localhost:9000/customers/
 Content-Type: application/json
 
 {
@@ -151,18 +147,18 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/vendors/
+POST http://localhost:9000/vendors/
 Content-Type: application/json
 
 {
-    "name":"KARENZI EPIMAQUE",
-    "phone":"100990229",
+    "name":"GAHIMA BALINDA INNOCENT",
+    "phone":"0788469688",
     "password":"$2a$10$sDKLYeUih.Ee0Gxt1CRhk.I.d04TQjEkO.pYmj5k63o2GpMjN38RK"
 }
 
 
 ###
-POST https://construck-backend.herokuapp.com/users
+POST http://localhost:9000/users
 Content-Type: application/json
 
 {
@@ -180,16 +176,16 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/employees
+POST http://localhost:9000/employees
 Content-Type: application/json
 
 {
-    "firstName":"NYIRINGABO",
-    "lastName":"HASSAN",
-    "username":"hnyiringabo",
+    "firstName":"NIYONZIMA",
+    "lastName":"PATRICK",
+    "username":"pniyonzima",
     "password":"password",
     "email":" ",
-    "phone":"0788453617",
+    "phone":"0785253919",
     "type":"driver",
     "title": "DRIVER - TRUCK",
     "status":"active"
@@ -197,7 +193,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/employees/login
+POST http://localhost:9000/employees/login
 Content-Type: application/json
 
 {
@@ -218,11 +214,7 @@ Content-Type: application/json
 
 
 ###
-<<<<<<< HEAD
-PUT https://construck-backend.herokuapp.com/users/status
-=======
 PUT http://localhost:9000/users/status
->>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 Content-Type: application/json
 
 {
@@ -246,7 +238,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/projects
+POST http://localhost:9000/projects
 Content-Type: application/json
 
 {
@@ -259,7 +251,7 @@ Content-Type: application/json
 
 
 ###
-POST https://construck-backend.herokuapp.com/works
+POST http://localhost:9000/works
 Content-Type: application/json
 
 {
@@ -274,21 +266,17 @@ Content-Type: application/json
 }
 
 ###
-PUT https://construck-backend.herokuapp.com/works/start/62a06a49f169107671a1aaf4
+PUT http://localhost:9000/works/start/62a06a49f169107671a1aaf4
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-<<<<<<< HEAD
-PUT https://construck-backend.herokuapp.com/works/reverse/62dd534b3281390c0b6aaefb
-=======
 PUT http://localhost:9000/works/reverse/62dd534b3281390c0b6aaefb
->>>>>>> 9e0f7bbe390f3150f314252931fbcc2f8e53279b
 Content-Type: application/x-www-form-urlencoded
 
 
 ###
-POST https://construck-backend.herokuapp.com/dispatches
+POST http://localhost:9000/dispatches
 Content-Type: application/json
 
 {
@@ -303,10 +291,14 @@ Content-Type: application/json
 
 
 ###
-PUT https://construck-backend.herokuapp.com/equipments/makeAllAvailable
+PUT http://localhost:9000/equipments/makeAllAvailable
 
 ###
-POST https://construck-backend.herokuapp.com/assetAvailability/getAnalytics
+PUT http://localhost:9000/equipments/syncWorkshopStatus
+
+
+###
+POST http://localhost:9000/assetAvailability/getAnalytics
 Content-Type: application/json
 
 {
@@ -316,11 +308,11 @@ Content-Type: application/json
 
 
 ###
-DELETE https://construck-backend.herokuapp.com/equipments/hired
+DELETE http://localhost:9000/equipments/hired
 
 
 ###
-POST https://construck-backend.herokuapp.com/email/send
+POST http://localhost:9000/email/send
 Content-Type: application/json
 
 {
@@ -332,7 +324,7 @@ Content-Type: application/json
 }
 
 ###
-PUT https://construck-backend.herokuapp.com/users/
+PUT http://localhost:9000/users/
 Content-Type: application/json
 
 {
@@ -343,5 +335,45 @@ Content-Type: application/json
 }
 
 
+
+###
+POST http://localhost:9000/downtimes/getAnalytics
+Content-Type: application/json
+
+{
+    "startDate": "2022-08-01",
+    "endDate": "2022-08-30"
+}
+
+###
+POST http://localhost:9000/works/gethoursperdriver
+Content-Type: application/json
+
+{
+    "startDate": "2022-06-01",
+    "endDate": "2022-12-31"
+}
+
+###
+PUT http://localhost:9000/works/driverassistants
+
+
+###
+GET http://localhost:9000/works/v3/toreverse/RAF 898 F?startDate=2022-07-01&endDate=2022-12-31
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+{
+    "startDate": "2022-10-10",
+    "endDate": "2022-10-14"
+}
+
+
+###
+PUT http://localhost:9000/works/amend/6347c57be790ec5e892456fe
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+{ "tripsDone":"3", "comment":"Updates", "moreComment":"", "stoppedBy":"62ba73314866f297799e1816", "duration":"5" }
 
 
