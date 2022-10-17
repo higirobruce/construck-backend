@@ -1,12 +1,13 @@
 const templates = require("../utils/emailTemplates");
 const send = require("../utils/sendEmailNode");
+const moment = require("moment");
 
 const express = require("express");
 const router = express.Router();
 const mjml2html = require("mjml");
 
 router.post("/send", (req, res) => {
-  let { from, to, subject, messageType, password } = req.body;
+  let { from, to, subject, messageType, password, workPayload } = req.body;
   if (messageType === "accountCreated") {
     templates.accountCreated = `<mjml>
                     <mj-body>
@@ -80,7 +81,7 @@ router.post("/send", (req, res) => {
                     <mj-text  font-style=""
                             font-size="25px"
                             color="#000000" align="center">
-                    ConsTruck Sales Application
+                    ConsTruck - SHABIKA
                     </mj-text>
                 </mj-column>
             </mj-section>
@@ -101,7 +102,7 @@ router.post("/send", (req, res) => {
                 <mj-column width="400px">
                     <mj-text color="#525252">
                         Good day, <br/>
-                        This is to notify you that your password to access the ConsTruck Sales Application has been reset.<br>
+                        This is to notify you that your password to access the ConsTruck - SHABIKA has been reset.<br>
                     </mj-text>
                     <mj-text font-weight="bold">
                         Username: ${to}
@@ -116,6 +117,68 @@ router.post("/send", (req, res) => {
                     </mj-text>
 
                     <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${process.env.CTK_APP_URL} padding="10px 25px">GO TO APPLICATION</mj-button>
+                    
+            </mj-column>
+            </mj-section>
+
+        </mj-body>
+    </mjml>`;
+  }
+
+  if (messageType === "workRejected") {
+    templates.workRejected = `
+      <mjml>
+        <mj-head>
+            <mj-attributes>
+            <mj-text font-family="Ubuntu, Helvetica, Arial, sans-serif" color="#000000"></mj-text>
+            <mj-class name="description"></mj-class>
+            <mj-class name="preheader" color="#000000" font-size="11px" padding-left="25px" padding-right="25px"></mj-class>
+            <mj-class name="button" background-color="#fcc245" color="#000000" font-size="18px" border-radius="3px" font-family="Ubuntu, Helvetica, Arial, sans-serif"></mj-class>
+            </mj-attributes>
+            <mj-style inline="inline">a { text-decoration: none!important; }
+            </mj-style>
+        </mj-head>
+        <mj-body>
+            <!-- Company Header -->
+            <mj-section background-color="#FBD588">
+                <mj-column>
+                    <mj-text  font-style=""
+                            font-size="25px"
+                            color="#000000" align="center">
+                    ConsTruck - SHABIKA
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+
+            <!-- Image Header -->
+            <mj-section  background-color="#fafafa" >
+            <mj-column width="600px">
+                    <mj-text  align="center"
+                        color="#000000"
+                        font-size="20px"
+                    >Some of the posted revenues were rejected.</mj-text>
+            </mj-column>
+            </mj-section>
+            
+
+            <!-- Intro text -->
+            <mj-section background-color="#fafafa">
+                <mj-column width="400px">
+                    <mj-text color="#525252">
+                        Good day, <br/>
+                        This is to notify you that some the posted revenues were rejected by the customer.<br>
+                        Please see the details below:
+                    </mj-text>
+                    <mj-text font-weight="bold">
+                        Plate number: ${workPayload?.equipment?.plateNumber}<br>
+                        Project: ${workPayload?.project?.prjDescription}<br>
+                        Posting date: ${workPayload?.postingDate}<br>
+                        Reason for rejection:${
+                          workPayload?.reasonForRejection
+                        }<br>
+                    </mj-text>
+
+                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${"https://playground-construck.vercel.app/"} padding="10px 25px">GO TO APPLICATION</mj-button>
                     
             </mj-column>
             </mj-section>
