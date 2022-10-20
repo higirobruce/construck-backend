@@ -128,7 +128,7 @@ router.get("/:date/:shift", async (req, res) => {
             //dispatched to daily works
             {
               assignedEndDate: {
-                $lt: new Date(date),
+                $ne: new Date(date),
               },
               assignedToSiteWork: false,
               eqStatus: "dispatched",
