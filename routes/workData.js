@@ -4,12 +4,15 @@ const _ = require("lodash");
 const workData = require("../models/workData");
 const employeeData = require("../models/employees");
 const assetAvblty = require("../models/assetAvailability");
+const userData = require("../models/users");
 const logData = require("../models/logs");
 const eqData = require("../models/equipments");
 const moment = require("moment");
 const e = require("express");
 const { isNull, intersection } = require("lodash");
 const { default: mongoose } = require("mongoose");
+const send = require("../utils/sendEmailNode");
+const { sendEmail } = require("./sendEmailRoute");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -1597,7 +1600,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           //     Customer: w.project?.customer,
           //     Status: w.status,
           //   }
-          console.log(dateNotPosted);
 
           datesPosted.map((dP) => {
             if (
@@ -1896,6 +1898,172 @@ router.get("/:id", async (req, res) => {
     res.send(err);
   }
 });
+
+router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { status } = req.query;
+
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": projectName,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": status,
+          },
+          {
+            status: status,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        validatedValue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+  ];
+
+  try {
+    let monthlyRevenues = await workData.model.aggregate(pipeline);
+    res.send(monthlyRevenues);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+router.get(
+  "/detailed/monthlyRevenuePerProject/:projectName",
+  async (req, res) => {
+    let { projectName } = req.params;
+    let { status } = req.body;
+
+    let pipeline = [
+      {
+        $match: {
+          "project.prjDescription": projectName,
+        },
+      },
+      {
+        $unwind: {
+          path: "$dailyWork",
+          includeArrayIndex: "string",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          $or: [
+            {
+              "dailyWork.status": status,
+            },
+            {
+              status: status,
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          transactionDate: {
+            $cond: {
+              if: {
+                $eq: ["$siteWork", false],
+              },
+              then: "$workStartDate",
+              else: {
+                $dateFromString: {
+                  dateString: "$dailyWork.date",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          newTotalRevenue: {
+            $cond: {
+              if: {
+                $eq: ["$siteWork", false],
+              },
+              then: "$totalRevenue",
+              else: "$dailyWork.totalRevenue",
+            },
+          },
+        },
+      },
+    ];
+
+    try {
+      let monthlyRevenues = await workData.model.aggregate(pipeline);
+      res.send(monthlyRevenues);
+    } catch (err) {
+      res.send(err);
+    }
+  }
+);
 
 router.post("/", async (req, res) => {
   try {
@@ -2410,18 +2578,12 @@ router.put("/approve/:id", async (req, res) => {
       }
     );
 
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "standby";
-    equipment.assignedDate = null;
-    equipment.assignedShift = "";
-
     work.status = "approved";
     work.approvedRevenue = work.totalRevenue;
     work.approvedDuration = work.duration;
     work.approvedExpenditure = work.totalExpenditure;
 
     let savedRecord = await work.save();
-    await equipment.save();
 
     //log saving
     let log = {
@@ -2591,45 +2753,174 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
-  let workRec = await workData.model.findById(id);
+  try {
+    let workRec = await workData.model.findById(id);
 
-  let _rejectedRevenue = workRec.rejectedRevenue ? workRec.rejectedRevenue : 0;
-  let _rejectedExpenditure = workRec.rejectedExpenditure
-    ? workRec.rejectedExpenditure
-    : 0;
-  let _rejectedDuration = workRec.rejectedDuration
-    ? workRec.rejectedDuration
-    : 0;
+    let _rejectedRevenue = workRec.rejectedRevenue
+      ? workRec.rejectedRevenue
+      : 0;
+    let _rejectedExpenditure = workRec.rejectedExpenditure
+      ? workRec.rejectedExpenditure
+      : 0;
+    let _rejectedDuration = workRec.rejectedDuration
+      ? workRec.rejectedDuration
+      : 0;
 
-  let work = await workData.model.findOneAndUpdate(
-    {
-      _id: id,
-      "dailyWork.date": postingDate,
-      pending: false,
-    },
-    {
-      $set: {
-        "dailyWork.$.status": "rejected",
-        "dailyWork.$.rejectedReason": reason,
-        rejectedRevenue: _rejectedRevenue + rejectedRevenue,
-        rejectedDuration: _rejectedDuration + rejectedDuration,
-        rejectedExpenditure: _rejectedExpenditure + rejectedExpenditure,
+    let work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        "dailyWork.date": postingDate,
+        pending: false,
       },
+      {
+        $set: {
+          "dailyWork.$.status": "rejected",
+          "dailyWork.$.rejectedReason": reason,
+          rejectedRevenue: _rejectedRevenue + rejectedRevenue,
+          rejectedDuration: _rejectedDuration + rejectedDuration,
+          rejectedExpenditure: _rejectedExpenditure + rejectedExpenditure,
+        },
+      }
+    );
+
+    //log saving
+    let log = {
+      action: "DISPATCH REJECTED",
+      doneBy: req.body.rejectedBy,
+      request: req.body,
+      payload: workRec,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
+
+    res.send(work);
+
+    let receipts = await getReceiverEmailList(["admin"]);
+   
+    if (receipts.length > 0) {
+      await sendEmail(
+        "appinfo@construck.rw",
+        receipts,
+        "Work Rejected",
+        "workRejected",
+        "",
+        {
+          equipment: work?.equipment,
+          project: work?.project,
+          postingDate,
+          reasonForRejection: reason,
+        }
+      );
     }
-  );
-
-  //log saving
-  let log = {
-    action: "DISPATCH REJECTED",
-    doneBy: req.body.rejectedBy,
-    request: req.body,
-    payload: workRec,
-  };
-  let logTobeSaved = new logData.model(log);
-  await logTobeSaved.save();
-
-  res.send(work);
+  } catch (err) {
+    res.send(err);
+  }
 });
+
+router.put("/releaseValidated/:projectName", async (req, res) => {
+  let { month, year } = req.query;
+  let { projectName } = req.params;
+  try {
+    let monthDigit = month;
+    if (month < 10) month = "0" + month;
+    const startOfMonth = moment()
+      .startOf("month")
+      .format(`${year}-${month}-DD`);
+    const endOfMonth = moment()
+      .endOf("month")
+      .format(
+        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(9)}`
+      );
+
+    let q1 = await workData.model.updateMany(
+      {
+        siteWork: false,
+        "project.prjDescription": projectName,
+        status: "validated",
+        workStartDate: { $gte: startOfMonth },
+        workStartDate: { $lte: endOfMonth },
+      },
+      {
+        $set: {
+          status: "released",
+        },
+      }
+    );
+
+    let q2 = await workData.model.updateMany(
+      {
+        siteWork: true,
+        "project.prjDescription": projectName,
+        "dailyWork.date": new RegExp(`${monthHelper(month)}-${year}`),
+        "dailyWork.status": "validated",
+      },
+      {
+        $set: {
+          "dailyWork.$.status": "released",
+        },
+      }
+    );
+
+    res.send({ q2 });
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+function monthHelper(mon) {
+  switch (parseInt(mon)) {
+    case 1:
+      return "Jan";
+      break;
+
+    case 2:
+      return "Feb";
+      break;
+
+    case 3:
+      return "Mar";
+      break;
+
+    case 4:
+      return "Apr";
+      break;
+
+    case 5:
+      return "May";
+      break;
+
+    case 6:
+      return "Jun";
+      break;
+
+    case 7:
+      return "Jul";
+      break;
+
+    case 8:
+      return "Aug";
+      break;
+
+    case 9:
+      return "Sep";
+      break;
+
+    case 10:
+      return "Oct";
+      break;
+
+    case 11:
+      return "Nov";
+      break;
+
+    case 12:
+      return "Dec";
+      break;
+
+    default:
+      break;
+  }
+}
 
 router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
@@ -2652,20 +2943,34 @@ router.put("/recall/:id", async (req, res) => {
       }
     );
 
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "standby";
-    equipment.assignedDate = null;
-    equipment.assignedShift = "";
-    equipment.assignedToSiteWork = false;
+    let worksInProgress = await workData.model.find({
+      "equipment._id": eqId,
+      status: { $in: ["on going", "in progress", "created"] },
+    });
+
+    if (worksInProgress.length <= 1) {
+      let equipment = await eqData.model.findById(work?.equipment?._id);
+      equipment.eqStatus = "standby";
+      equipment.assignedDate = null;
+      equipment.assignedShift = "";
+      equipment.assignedToSiteWork = false;
+      work.equipment = equipment;
+      if (equipment) await equipment.save();
+    } else {
+      let equipment = await eqData.model.findById(work?.equipment?._id);
+      equipment.assignedDate = worksInProgress[0].equipment.assignedDate;
+      equipment.assignedShift = worksInProgress[0].equipment.assignedShift;
+      equipment.assignedToSiteWork =
+        worksInProgress[0].equipment.assignedToSiteWork;
+      work.equipment = equipment;
+      if (equipment) await equipment.save();
+    }
 
     work.status = "recalled";
-    work.equipment = equipment;
     work.projectedRevenue = 0;
     work.totalRevenue = 0;
 
     let savedRecord = await work.save();
-
-    await equipment.save();
     if (employee) await employee.save();
 
     //log saving
@@ -3762,5 +4067,19 @@ async function getEmployees(listIds) {
   }
 
   return list;
+}
+
+async function getReceiverEmailList(userType) {
+  try {
+    let reipts = await userData.model.find(
+      {
+        userType: { $in: userType },
+      },
+      { email: 1, _id: 0 }
+    );
+    return reipts?.map(($) => {
+      return $.email;
+    });
+  } catch (err) {}
 }
 module.exports = router;

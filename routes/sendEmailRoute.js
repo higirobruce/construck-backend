@@ -6,8 +6,33 @@ const express = require("express");
 const router = express.Router();
 const mjml2html = require("mjml");
 
-router.post("/send", (req, res) => {
+router.post("/send", async (req, res) => {
   let { from, to, subject, messageType, password, workPayload } = req.body;
+  try {
+    await sendEmail(from, to, subject, messageType, password, workPayload);
+    res.send({
+      error: false,
+      message: "Email Sent!",
+    });
+  } catch (err) {
+    res.status(500).send({
+      error: true,
+      errorMessage: err.response,
+    });
+  }
+});
+
+async function sendEmail(
+  from,
+  to,
+  subject,
+  messageType,
+  password,
+  workPayload
+) {
+  let link = process.env.CTK_APP_URL
+    ? process.env.CTK_APP_URL
+    : "https://playground-construck.vercel.app/";
   if (messageType === "accountCreated") {
     templates.accountCreated = `<mjml>
                     <mj-body>
@@ -47,10 +72,7 @@ router.post("/send", (req, res) => {
                                  Username: ${to}
                                 </mj-text>
                                 
-                                <mj-text>
-                                 Password: ${password}
-                                </mj-text>
-                                <mj-button background-color="#053566" href=${process.env.CTK_APP_URL}>Go to the Application</mj-button>
+                                <mj-button background-color="#053566" href=${link}>Go to the Application</mj-button>
                         </mj-column>
                         </mj-section>
 
@@ -107,16 +129,12 @@ router.post("/send", (req, res) => {
                     <mj-text font-weight="bold">
                         Username: ${to}
                     </mj-text>
-                    
-                    <mj-text font-weight="bold">
-                        Current Password: ${password}
-                    </mj-text>
 
                         <mj-text color="#525252">
                         Please following the link below to reset your password. Use the provided password as the current one.
                     </mj-text>
 
-                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${process.env.CTK_APP_URL} padding="10px 25px">GO TO APPLICATION</mj-button>
+                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${link} padding="10px 25px">GO TO APPLICATION</mj-button>
                     
             </mj-column>
             </mj-section>
@@ -166,7 +184,7 @@ router.post("/send", (req, res) => {
                 <mj-column width="400px">
                     <mj-text color="#525252">
                         Good day, <br/>
-                        This is to notify you that some the posted revenues were rejected by the customer.<br>
+                        This is to notify you that some of the posted revenues were rejected by the customer.<br>
                         Please see the details below:
                     </mj-text>
                     <mj-text font-weight="bold">
@@ -176,7 +194,7 @@ router.post("/send", (req, res) => {
                         Reason for rejection:${workPayload?.reasonForRejection}<br>
                     </mj-text>
 
-                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${process.env.CTK_APP_URL} padding="10px 25px">GO TO APPLICATION</mj-button>
+                    <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${link} padding="10px 25px">GO TO APPLICATION</mj-button>
                     
             </mj-column>
             </mj-section>
@@ -185,7 +203,7 @@ router.post("/send", (req, res) => {
     </mjml>`;
   }
 
-  send(
+  return send(
     from,
     to,
     subject,
@@ -193,19 +211,22 @@ router.post("/send", (req, res) => {
     mjml2html(templates[messageType], {
       keepComments: false,
     }).html
-  )
-    .then(() =>
-      res.send({
-        error: false,
-        message: "Email Sent!",
-      })
-    )
-    .catch((err) => {
-      res.status(500).send({
-        error: true,
-        errorMessage: err.response,
-      });
-    });
-});
+  );
+  // .then(() =>
+  //   res.send({
+  //     error: false,
+  //     message: "Email Sent!",
+  //   })
+  // )
+  // .catch((err) => {
+  //   res.status(500).send({
+  //     error: true,
+  //     errorMessage: err.response,
+  //   });
+  // });
+}
 
-module.exports = router;
+module.exports = {
+  router,
+  sendEmail,
+};

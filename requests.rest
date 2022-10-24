@@ -376,4 +376,24 @@ Content-Type: application/json
 
 { "tripsDone":"3", "comment":"Updates", "moreComment":"", "stoppedBy":"62ba73314866f297799e1816", "duration":"5" }
 
+###
+GET http://localhost:9000/works/detailed/monthlyRevenuePerProject/KIP KACYIRU BY PASS?status=validated
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
 
+
+
+###
+GET http://localhost:9000/works/monthlyRevenuePerProject/KIP KACYIRU BY PASS?status=validated
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+{
+    "status": "validated"
+}
+
+
+###
+PUT http://localhost:9000/works/releaseValidated/KIP KACYIRU BY PASS?month=9&year=2022
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json

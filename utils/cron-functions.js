@@ -5,6 +5,10 @@ const moment = require("moment");
 const send = require("../utils/sendEmailNode");
 const mjml2html = require("mjml");
 
+let link = process.env.CTK_APP_URL
+  ? process.env.CTK_APP_URL
+  : "https://shabika.construck.rw/";
+
 async function getDispatchOfficers() {
   try {
     let dispatchOfficers = await userData.model.find(
@@ -19,6 +23,10 @@ async function getDispatchOfficers() {
 
 async function getWorksToExpireToday() {
   let list = await getDispatchOfficers();
+  let emailList = list?.map(($) => {
+    return $.email;
+  });
+
   try {
     let worksToExpireToday = await workData.model.aggregate([
       {
@@ -96,9 +104,7 @@ async function getWorksToExpireToday() {
                     </mj-text>`;
                       })}        
         
-                      <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${
-                        process.env.CTK_APP_URL
-                      } padding="10px 25px">GO TO SHABIKA</mj-button>
+                      <mj-button background-color="#000000" color="#fcc245" font-size="16px" border-radius="0px" href=${link} padding="10px 25px">GO TO SHABIKA</mj-button>
                       
               </mj-column>
               </mj-section>
@@ -109,7 +115,7 @@ async function getWorksToExpireToday() {
     if (worksToExpireToday.length > 0)
       send(
         "appinfo@construck.rw",
-        ["bhigiro@cvl.co.rw", "tiradukunda@construck.rw"], //TO CHANGE
+        emailList, //TO CHANGE
         "Jobs to expire today.",
         "",
         mjml2html(emailBody, {

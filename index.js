@@ -44,6 +44,8 @@ var db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
+db.once("open", () => console.log("connected to db"));
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -73,7 +75,7 @@ app.get("/", (req, res) => {
 app.use("/assetAvailability", avblty);
 app.use("/downtimes", downtimes);
 app.use("/works", works);
-app.use("/email", sendEmail);
+app.use("/email", sendEmail.router);
 app.use("/employees", employees);
 app.use("/users", users);
 app.use("/equipments", auth, equipments);
