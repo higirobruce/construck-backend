@@ -1676,8 +1676,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Other work description": w.dispatch?.otherJobType,
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
-                    ? w.projectedRevenue / w.workDurationDays
-                    : w.projectedRevenue / w.workDurationDays,
+                    ? w.equipment?.rate * 5
+                    : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
                 "Driver Names": w.driver
@@ -1728,8 +1728,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Other work description": w.dispatch?.otherJobType,
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
-                    ? w.projectedRevenue / w.workDurationDays
-                    : w.projectedRevenue / w.workDurationDays,
+                    ? w.projectedRevenue / (w.workDurationDays * 5)
+                    : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
                 "Driver Names": w.driver
@@ -1991,6 +1991,44 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
   } catch (err) {
     res.send(err);
   }
+});
+
+router.get("/monthlyValidatedRevenues/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let result = await getValidatedRevenuesByProject(projectName);
+
+  res.send(result);
+});
+
+router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let result = await getNonValidatedRevenuesByProject(projectName);
+
+  res.send(result);
+});
+
+router.get("/validatedList/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+  let result = await getValidatedListByProjectAndMonth(
+    projectName,
+    month,
+    year
+  );
+
+  res.send(result);
+});
+
+router.get("/nonValidatedList/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+  let result = await getNonValidatedListByProjectAndMonth(
+    projectName,
+    month,
+    year
+  );
+
+  res.send(result);
 });
 
 router.get(
@@ -2465,9 +2503,7 @@ router.post("/getAnalytics", async (req, res) => {
           w.siteWork === true
             ? projectedRevenue +
               w?.equipment.rate *
-                (w?.equipment.uom === "hour"
-                  ? 5 * (daysDiff + 1)
-                  : daysDiff + 1)
+                (w?.equipment.uom === "hour" ? 5 * daysDiff : daysDiff + 1)
             : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
@@ -2796,7 +2832,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     res.send(work);
 
     let receipts = await getReceiverEmailList(["admin"]);
-   
+
     if (receipts.length > 0) {
       await sendEmail(
         "appinfo@construck.rw",
@@ -2866,61 +2902,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
     res.send(err);
   }
 });
-
-function monthHelper(mon) {
-  switch (parseInt(mon)) {
-    case 1:
-      return "Jan";
-      break;
-
-    case 2:
-      return "Feb";
-      break;
-
-    case 3:
-      return "Mar";
-      break;
-
-    case 4:
-      return "Apr";
-      break;
-
-    case 5:
-      return "May";
-      break;
-
-    case 6:
-      return "Jun";
-      break;
-
-    case 7:
-      return "Jul";
-      break;
-
-    case 8:
-      return "Aug";
-      break;
-
-    case 9:
-      return "Sep";
-      break;
-
-    case 10:
-      return "Oct";
-      break;
-
-    case 11:
-      return "Nov";
-      break;
-
-    case 12:
-      return "Dec";
-      break;
-
-    default:
-      break;
-  }
-}
 
 router.put("/recall/:id", async (req, res) => {
   let { id } = req.params;
@@ -4082,4 +4063,451 @@ async function getReceiverEmailList(userType) {
     });
   } catch (err) {}
 }
+
+async function getValidatedRevenuesByProject(prjDescription) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": "validated",
+            siteWork: true,
+          },
+          {
+            status: "validated",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+    let list = validatedJobs.map(($) => {
+      return {
+        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue,
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getNonValidatedRevenuesByProject(prjDescription) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          { "dailyWork.status": { $exists: false }, siteWork: true },
+          { status: "stopped", siteWork: false },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+  ];
+
+  try {
+    let nonValidatedJobs = await workData.model.aggregate(pipeline);
+    let list = nonValidatedJobs.map(($) => {
+      return {
+        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue,
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": "validated",
+            siteWork: true,
+          },
+          {
+            status: "validated",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $project: {
+        "project.prjDescription": 1,
+        "equipment.plateNumber": 1,
+        dailyWork: 1,
+        transactionDate: 1,
+        siteWork: 1,
+        newTotalRevenue: 1,
+      },
+    },
+    {
+      $sort: {
+        transactionDate: 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+
+    return validatedJobs;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getNonValidatedListByProjectAndMonth(
+  prjDescription,
+  month,
+  year
+) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $project: {
+        "project.prjDescription": 1,
+        "equipment.plateNumber": 1,
+        transactionDate: 1,
+        dailyWork: 1,
+        siteWork: 1,
+        newTotalRevenue: 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+
+    return validatedJobs;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+function monthHelper(mon) {
+  switch (parseInt(mon)) {
+    case 1:
+      return "Jan";
+      break;
+
+    case 2:
+      return "Feb";
+      break;
+
+    case 3:
+      return "Mar";
+      break;
+
+    case 4:
+      return "Apr";
+      break;
+
+    case 5:
+      return "May";
+      break;
+
+    case 6:
+      return "Jun";
+      break;
+
+    case 7:
+      return "Jul";
+      break;
+
+    case 8:
+      return "Aug";
+      break;
+
+    case 9:
+      return "Sep";
+      break;
+
+    case 10:
+      return "Oct";
+      break;
+
+    case 11:
+      return "Nov";
+      break;
+
+    case 12:
+      return "Dec";
+      break;
+
+    default:
+      break;
+  }
+}
+
 module.exports = router;
