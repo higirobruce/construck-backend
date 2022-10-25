@@ -198,7 +198,9 @@ router.post("/login", async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             userId: user._id,
-            assignedProject: user.assignedProject?.prjDescription,
+            assignedProject: user.assignedProject?.prjDescription
+              ? user.assignedProject?.prjDescription
+              : "na",
           },
           message: "Allowed",
           vendor: false,
