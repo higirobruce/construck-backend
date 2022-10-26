@@ -2007,6 +2007,22 @@ router.get("/monthlyNonValidatedRevenues/:projectName", async (req, res) => {
   res.send(result);
 });
 
+router.get("/dailyValidatedRevenues/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+  let result = await getDailyValidatedRevenues(projectName, month, year);
+
+  res.send(result);
+});
+
+router.get("/dailyNonValidatedRevenues/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+  let result = await getDailyNonValidatedRevenues(projectName, month, year);
+
+  res.send(result);
+});
+
 router.get("/validatedList/:projectName", async (req, res) => {
   let { projectName } = req.params;
   let { month, year } = req.query;
@@ -4165,6 +4181,108 @@ async function getValidatedRevenuesByProject(prjDescription) {
   }
 }
 
+async function getDailyValidatedRevenues(prjDescription, month, year) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": "validated",
+            siteWork: true,
+          },
+          {
+            status: "validated",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $group: {
+        _id: {
+          date: "$transactionDate",
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+    let list = validatedJobs.map(($) => {
+      return {
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
 async function getNonValidatedRevenuesByProject(prjDescription) {
   let pipeline = [
     {
@@ -4249,6 +4367,110 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     let list = nonValidatedJobs.map(($) => {
       return {
         monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getDailyNonValidatedRevenues(prjDescription, month, year) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        month: parseInt(month),
+        year: parseInt(year),
+      },
+    },
+    {
+      $group: {
+        _id: {
+          date: "$transactionDate",
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+    let list = validatedJobs.map(($) => {
+      return {
         totalRevenue: $?.totalRevenue.toLocaleString(),
         id: $?._id,
       };
@@ -4350,7 +4572,15 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
   try {
     let validatedJobs = await workData.model.aggregate(pipeline);
 
-    return validatedJobs;
+    let _validated = [...validatedJobs];
+
+    let __val = _validated.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __val;
   } catch (err) {
     console.log(err);
     return err;
@@ -4446,9 +4676,17 @@ async function getNonValidatedListByProjectAndMonth(
   ];
 
   try {
-    let validatedJobs = await workData.model.aggregate(pipeline);
+    let jobs = await workData.model.aggregate(pipeline);
 
-    return validatedJobs;
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __jobs;
   } catch (err) {
     console.log(err);
     return err;
