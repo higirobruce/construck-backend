@@ -4154,7 +4154,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
     let list = validatedJobs.map(($) => {
       return {
         monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-        totalRevenue: $?.totalRevenue,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
         id: $?._id,
       };
     });
@@ -4249,7 +4249,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     let list = nonValidatedJobs.map(($) => {
       return {
         monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-        totalRevenue: $?.totalRevenue,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
         id: $?._id,
       };
     });
