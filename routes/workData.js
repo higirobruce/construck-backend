@@ -2047,6 +2047,22 @@ router.get("/nonValidatedList/:projectName", async (req, res) => {
   res.send(result);
 });
 
+router.get("/validatedByDay/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { transactionDate } = req.query;
+  let result = await getValidatedListByDay(projectName, transactionDate);
+
+  res.send(result);
+});
+
+router.get("/nonValidatedByDay/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { transactionDate } = req.query;
+  let result = await getNonValidatedListByDay(projectName, transactionDate);
+
+  res.send(result);
+});
+
 router.get(
   "/detailed/monthlyRevenuePerProject/:projectName",
   async (req, res) => {
@@ -4671,6 +4687,186 @@ async function getNonValidatedListByProjectAndMonth(
         dailyWork: 1,
         siteWork: 1,
         newTotalRevenue: 1,
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __jobs;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getValidatedListByDay(prjDescription, transactionDate) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": "validated",
+            siteWork: true,
+          },
+          {
+            status: "validated",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: new Date(transactionDate),
+      },
+    },
+  ];
+
+  try {
+    let jobs = await workData.model.aggregate(pipeline);
+
+    let _jobs = [...jobs];
+
+    let __jobs = _jobs.map((v) => {
+      let strRevenue = v.newTotalRevenue.toLocaleString();
+      v.strRevenue = strRevenue;
+      return v;
+    });
+
+    return __jobs;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getNonValidatedListByDay(prjDescription, transactionDate) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": {
+              $exists: false,
+            },
+            siteWork: true,
+          },
+          {
+            status: "stopped",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    {
+      $match: {
+        transactionDate: new Date(transactionDate),
       },
     },
   ];
