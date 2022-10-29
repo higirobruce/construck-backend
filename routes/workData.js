@@ -2897,8 +2897,10 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
     const endOfMonth = moment()
       .endOf("month")
       .format(
-        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(9)}`
+        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
+
+    console.log(new RegExp(`${monthHelper(month)}-${year}`));
 
     let q1 = await workData.model.updateMany(
       {
@@ -2919,18 +2921,25 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       {
         siteWork: true,
         "project.prjDescription": projectName,
-        "dailyWork.date": new RegExp(`${monthHelper(month)}-${year}`),
-        "dailyWork.status": "validated",
       },
       {
         $set: {
-          "dailyWork.$.status": "released",
+          "dailyWork.$[elemX].status": "released",
         },
+      },
+      {
+        arrayFilters: [
+          {
+            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
+            "elemX.status": "validated",
+          },
+        ],
       }
     );
 
     res.send({ q2 });
   } catch (err) {
+    console.log(err);
     res.send(err);
   }
 });

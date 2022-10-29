@@ -86,9 +86,23 @@ const WorkSchema = new mongoose.Schema({
     type: Date,
   },
   workDurationDays: { type: Number, default: 0 },
-  dailyWork: {
-    type: Array,
-  },
+  dailyWork: [
+    {
+      date: String,
+      startIndex: Number,
+      endIndex: Number,
+      duration: Number,
+      rate: Number,
+      uom: String,
+      totalRevenue: Number,
+      totalExpenditure: Number,
+      comment: String,
+      moreComment: String,
+      pending: Boolean,
+      rejectedReason: String,
+      status: String,
+    },
+  ],
   appovedBy: {
     type: mongoose.SchemaTypes.ObjectId,
     transform: (v) => (v === "" ? null : v),
