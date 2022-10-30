@@ -129,7 +129,7 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: "na",
+              assignedProject: "NA",
             },
             message: "Allowed",
             vendor: false,
