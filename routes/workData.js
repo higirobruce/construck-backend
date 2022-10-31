@@ -4188,11 +4188,112 @@ async function getValidatedRevenuesByProject(prjDescription) {
         "_id.month": 1,
       },
     },
+    {
+      $limit: 4,
+    },
   ];
 
   try {
     let validatedJobs = await workData.model.aggregate(pipeline);
     let list = validatedJobs.map(($) => {
+      return {
+        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+async function getNonValidatedRevenuesByProject(prjDescription) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          { "dailyWork.status": { $exists: false }, siteWork: true },
+          { status: "stopped", siteWork: false },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+    {
+      $limit: 4,
+    },
+  ];
+
+  try {
+    let nonValidatedJobs = await workData.model.aggregate(pipeline);
+    let list = nonValidatedJobs.map(($) => {
       return {
         monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
         totalRevenue: $?.totalRevenue.toLocaleString(),
@@ -4297,101 +4398,6 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
     let validatedJobs = await workData.model.aggregate(pipeline);
     let list = validatedJobs.map(($) => {
       return {
-        totalRevenue: $?.totalRevenue.toLocaleString(),
-        id: $?._id,
-      };
-    });
-    return list;
-  } catch (err) {
-    console.log(err);
-    return err;
-  }
-}
-
-async function getNonValidatedRevenuesByProject(prjDescription) {
-  let pipeline = [
-    {
-      $match: {
-        "project.prjDescription": prjDescription,
-      },
-    },
-    {
-      $unwind: {
-        path: "$dailyWork",
-        includeArrayIndex: "string",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $match: {
-        $or: [
-          { "dailyWork.status": { $exists: false }, siteWork: true },
-          { status: "stopped", siteWork: false },
-        ],
-      },
-    },
-    {
-      $addFields: {
-        transactionDate: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        newTotalRevenue: {
-          $cond: {
-            if: {
-              $eq: ["$siteWork", false],
-            },
-            then: "$totalRevenue",
-            else: "$dailyWork.totalRevenue",
-          },
-        },
-      },
-    },
-    {
-      $group: {
-        _id: {
-          month: {
-            $month: "$transactionDate",
-          },
-          year: {
-            $year: "$transactionDate",
-          },
-        },
-        totalRevenue: {
-          $sum: "$newTotalRevenue",
-        },
-      },
-    },
-    {
-      $sort: {
-        "_id.year": 1,
-      },
-    },
-    {
-      $sort: {
-        "_id.month": 1,
-      },
-    },
-  ];
-
-  try {
-    let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs.map(($) => {
-      return {
-        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
         totalRevenue: $?.totalRevenue.toLocaleString(),
         id: $?._id,
       };
