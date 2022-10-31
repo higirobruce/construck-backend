@@ -2980,6 +2980,7 @@ router.put("/recall/:id", async (req, res) => {
       if (equipment) await equipment.save();
     } else {
       let equipment = await eqData.model.findById(work?.equipment?._id);
+      equipment.eqStatus = "standby";
       equipment.assignedDate = worksInProgress[0].equipment.assignedDate;
       equipment.assignedShift = worksInProgress[0].equipment.assignedShift;
       equipment.assignedToSiteWork =
