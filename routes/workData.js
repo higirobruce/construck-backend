@@ -2676,44 +2676,52 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     approvedExpenditure,
   } = req.body;
 
-  let workRec = await workData.model.findById(id);
+  try {
+    let workRec = await workData.model.findById(id);
 
-  let _approvedRevenue = workRec.approvedRevenue ? workRec.approvedRevenue : 0;
-  let _approvedExpenditure = workRec.approvedExpenditure
-    ? workRec.approvedExpenditure
-    : 0;
-  let _approvedDuration = workRec.approvedDuration
-    ? workRec.approvedDuration
-    : 0;
+    let _approvedRevenue = workRec.approvedRevenue
+      ? workRec.approvedRevenue
+      : 0;
+    let _approvedExpenditure = workRec.approvedExpenditure
+      ? workRec.approvedExpenditure
+      : 0;
+    let _approvedDuration = workRec.approvedDuration
+      ? workRec.approvedDuration
+      : 0;
 
-  let work = await workData.model.findOneAndUpdate(
-    {
-      _id: id,
-      "dailyWork.date": postingDate,
-      pending: false,
-    },
-    {
-      $set: {
-        "dailyWork.$.status": "approved",
-        approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
-        approvedDuration: _approvedDuration + parseFloat(approvedDuration),
-        approvedExpenditure:
-          _approvedExpenditure + parseFloat(approvedExpenditure),
+    let work = await workData.model.findOneAndUpdate(
+      {
+        _id: id,
+        "dailyWork.date": postingDate,
+        pending: false,
       },
-    }
-  );
+      {
+        $set: {
+          "dailyWork.$.status": "approved",
+          approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
+          approvedDuration: _approvedDuration + parseFloat(approvedDuration),
+          approvedExpenditure:
+            _approvedExpenditure + parseFloat(approvedExpenditure),
+        },
+      }
+    );
 
-  //log saving
-  let log = {
-    action: "DISPATCH APPROVED",
-    doneBy: req.body.approvedBy,
-    request: req.body,
-    payload: workRec,
-  };
-  let logTobeSaved = new logData.model(log);
-  await logTobeSaved.save();
+    //log saving
+    let log = {
+      action: "DISPATCH APPROVED",
+      doneBy: req.body.approvedBy,
+      request: req.body,
+      payload: workRec,
+    };
+    let logTobeSaved = new logData.model(log);
+    await logTobeSaved.save();
 
-  res.status(201).send(work);
+    res.status(201).send(work);
+  } catch (err) {
+    res.status(500).send({
+      error: err,
+    });
+  }
 });
 
 router.put("/validateDailyWork/:id", async (req, res) => {
