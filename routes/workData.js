@@ -2695,9 +2695,10 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     {
       $set: {
         "dailyWork.$.status": "approved",
-        approvedRevenue: _approvedRevenue + approvedRevenue,
-        approvedDuration: _approvedDuration + approvedDuration,
-        approvedExpenditure: _approvedExpenditure + approvedExpenditure,
+        approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
+        approvedDuration: _approvedDuration + parseFloat(approvedDuration),
+        approvedExpenditure:
+          _approvedExpenditure + parseFloat(approvedExpenditure),
       },
     }
   );
