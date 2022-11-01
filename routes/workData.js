@@ -2712,7 +2712,7 @@ router.put("/approveDailyWork/:id", async (req, res) => {
   let logTobeSaved = new logData.model(log);
   await logTobeSaved.save();
 
-  res.send(work);
+  res.status(201).send(work);
 });
 
 router.put("/validateDailyWork/:id", async (req, res) => {
