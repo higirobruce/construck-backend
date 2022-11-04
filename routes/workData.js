@@ -2689,10 +2689,18 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       ? workRec.approvedDuration
       : 0;
 
+    console.log(moment(postingDate).format("DD-MMM-YYYY"));
     let work = await workData.model.findOneAndUpdate(
       {
         _id: id,
-        "dailyWork.date": postingDate,
+        $or: [
+          {
+            "dailyWork.date": moment(postingDate).format("DD-MMM-YYYY"),
+          },
+          {
+            "dailyWork.date": postingDate,
+          },
+        ],
         pending: false,
       },
       {
@@ -2715,6 +2723,8 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
+
+    console.log(work);
 
     res.status(201).send(work);
   } catch (err) {
@@ -2830,6 +2840,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
+  console.log(req.body);
+
   try {
     let workRec = await workData.model.findById(id);
 
@@ -2846,16 +2858,24 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     let work = await workData.model.findOneAndUpdate(
       {
         _id: id,
-        "dailyWork.date": postingDate,
+        $or: [
+          {
+            "dailyWork.date": moment(postingDate).format("DD-MMM-YYYY"),
+          },
+          {
+            "dailyWork.date": postingDate,
+          },
+        ],
         pending: false,
       },
       {
         $set: {
           "dailyWork.$.status": "rejected",
           "dailyWork.$.rejectedReason": reason,
-          rejectedRevenue: _rejectedRevenue + rejectedRevenue,
-          rejectedDuration: _rejectedDuration + rejectedDuration,
-          rejectedExpenditure: _rejectedExpenditure + rejectedExpenditure,
+          rejectedRevenue: _rejectedRevenue + parseFloat(rejectedRevenue),
+          rejectedDuration: _rejectedDuration + parseFloat(rejectedDuration),
+          rejectedExpenditure:
+            _rejectedExpenditure + parseFloat(rejectedExpenditure),
         },
       }
     );
@@ -2872,7 +2892,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     res.send(work);
 
-    let receipts = await getReceiverEmailList(["admin"]);
+    // let receipts = await getReceiverEmailList(["admin"]);
+    let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -2884,12 +2905,13 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
         {
           equipment: work?.equipment,
           project: work?.project,
-          postingDate,
+          postingDate: moment(postingDate).format("DD-MMM-YYYY"),
           reasonForRejection: reason,
         }
       );
     }
   } catch (err) {
+    console.log();
     res.send(err);
   }
 });
@@ -2908,8 +2930,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       .format(
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
-
-    console.log(new RegExp(`${monthHelper(month)}-${year}`));
 
     let q1 = await workData.model.updateMany(
       {
@@ -2934,6 +2954,65 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       {
         $set: {
           "dailyWork.$[elemX].status": "released",
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
+            "elemX.status": "validated",
+          },
+        ],
+      }
+    );
+
+    res.send({ q2 });
+  } catch (err) {
+    console.log(err);
+    res.send(err);
+  }
+});
+
+router.put("/rejectValidated/:projectName", async (req, res) => {
+  let { month, year } = req.query;
+  let { projectName } = req.params;
+  let { reason } = req.body;
+  try {
+    let monthDigit = month;
+    if (month < 10) month = "0" + month;
+    const startOfMonth = moment()
+      .startOf("month")
+      .format(`${year}-${month}-DD`);
+    const endOfMonth = moment()
+      .endOf("month")
+      .format(
+        `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
+      );
+
+    let q1 = await workData.model.updateMany(
+      {
+        siteWork: false,
+        "project.prjDescription": projectName,
+        status: "validated",
+        workStartDate: { $gte: startOfMonth },
+        workStartDate: { $lte: endOfMonth },
+      },
+      {
+        $set: {
+          status: "rejected",
+        },
+      }
+    );
+
+    let q2 = await workData.model.updateMany(
+      {
+        siteWork: true,
+        "project.prjDescription": projectName,
+      },
+      {
+        $set: {
+          "dailyWork.$[elemX].status": "rejected",
+          "dailyWork.$[elemX].rejectedReason": reason,
         },
       },
       {
@@ -3072,26 +3151,14 @@ router.put("/reject/:id", async (req, res) => {
       .populate("workDone");
 
     work.status = "rejected";
-    work.reasonForRejection = reasonForRejection;
+    // work.reasonForRejection = reasonForRejection;
+    work.reasonForRejection = "Reason";
     work.rejectedRevenue = work.totalRevenue;
     work.rejectedDuration = work.duration;
     work.rejectedExpenditure = work.totalExpenditure;
     // work.projectedRevenue = 0;
 
-    let eqId = work?.equipment?._id;
-    await workData.model.updateMany(
-      { "equipment._id": eqId },
-      {
-        $set: { eqStatus: "standby", assignedDate: null, assignedShift: "" },
-      }
-    );
-    let equipment = await eqData.model.findById(work?.equipment?._id);
-    equipment.eqStatus = "standby";
-    equipment.assignedDate = null;
-    equipment.assignedShift = "";
-
     let savedRecord = await work.save();
-    await equipment.save();
 
     let log = {
       action: "DISPATCH REJECTED",
@@ -3100,8 +3167,31 @@ router.put("/reject/:id", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
+
+    // let receipts = await getReceiverEmailList(["admin"]);
+
+    let receipts = ["bhigiro@cvl.co.rw"];
+
+    if (receipts.length > 0) {
+      await sendEmail(
+        "appinfo@construck.rw",
+        receipts,
+        "Work Rejected",
+        "workRejected",
+        "",
+        {
+          equipment: work?.equipment,
+          project: work?.project,
+          postingDate: moment(work?.workStartDate).format("DD-MMM-YYYY"),
+          reasonForRejection: reasonForRejection,
+        }
+      );
+    }
     res.status(201).send(savedRecord);
-  } catch (err) {}
+  } catch (err) {
+    console.log(err);
+    res.send("Error occured!!");
+  }
 });
 
 router.put("/start/:id", async (req, res) => {
@@ -4237,6 +4327,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
       $match: {
         $or: [
           { "dailyWork.status": { $exists: false }, siteWork: true },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
           { status: "stopped", siteWork: false },
         ],
       },
@@ -4442,6 +4533,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
             },
             siteWork: true,
           },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
           {
             status: "stopped",
             siteWork: false,
@@ -4655,6 +4747,7 @@ async function getNonValidatedListByProjectAndMonth(
             },
             siteWork: true,
           },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
           {
             status: "stopped",
             siteWork: false,
@@ -4846,6 +4939,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
             },
             siteWork: true,
           },
+          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
           {
             status: "stopped",
             siteWork: false,
