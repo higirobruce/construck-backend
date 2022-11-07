@@ -4210,6 +4210,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
     {
       $match: {
         "project.prjDescription": prjDescription,
+        status: { $nin: ["recalled", "created"] },
       },
     },
     {
@@ -4314,6 +4315,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     {
       $match: {
         "project.prjDescription": prjDescription,
+        status: { $nin: ["recalled", "created"] },
       },
     },
     {
