@@ -1330,7 +1330,9 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
         } else {
           work = {
             _id: w._id,
-            driverName: w.driver?.firstName + " " + w.driver?.lastName,
+            driverName: w.driver
+              ? w.driver?.firstName + " " + w.driver?.lastName
+              : w.equipment?.eqOwner,
             owner: w.equipment.eqOwner,
             totalRevenue: parseFloat(w.totalRevenue).toFixed(2),
             totalExpenditure: parseFloat(w.totalExpenditure).toFixed(2),
@@ -1629,7 +1631,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue": dP.actualRevenue,
+                "Projected Revenue":
+                  w.equipment?.uom === "hour"
+                    ? w.equipment?.rate * 5
+                    : w.equipment?.rate,
                 "Actual Revenue": dP.actualRevenue,
                 "Vendor payment": dP.expenditure,
                 "Driver Names": w.driver
@@ -1728,7 +1733,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Other work description": w.dispatch?.otherJobType,
                 "Projected Revenue":
                   w.equipment?.uom === "hour"
-                    ? w.projectedRevenue / (w.workDurationDays * 5)
+                    ? w.equipment?.rate * 5
                     : w.equipment?.rate,
                 "Actual Revenue": 0,
                 "Vendor payment": 0,
@@ -1792,7 +1797,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue": w.projectedRevenue / w.workDurationDays,
+                "Projected Revenue":
+                  w.equipment?.uom === "hour"
+                    ? w.equipment?.rate * 5
+                    : w.equipment?.rate,
                 "Actual Revenue": dP.actualRevenue,
                 "Vendor payment": dP.expenditure,
                 "Driver Names": w.driver
@@ -2502,19 +2510,82 @@ router.post("/getAnalytics", async (req, res) => {
 
         if (isSiteWork) {
           let dailyWork = w.dailyWork;
+          let datesPosted = dailyWork
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return {
+                date: d.date,
+                duration: d.duration,
+                actualRevenue: d.totalRevenue,
+                expenditure: d.totalExpenditure,
+              };
+            });
 
-          let postedDates = dailyWork.filter((d) => d.pending === false);
-          postedDates?.map((p) => {
+          let datePosted_Dates = dailyWork
+            .filter((d) => d.pending === false)
+            .map((d) => {
+              return d.date;
+            });
+
+          let datesPendingPosted = dailyWork
+            .filter((d) => d.pending === true)
+
+            .map((d) => {
+              return d.date;
+            });
+
+          let workStartDate = moment(w.workStartDate);
+          let workDurationDays = w.workDurationDays;
+
+          let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+          for (let i = 0; i < workDurationDays - 1; i++) {
+            datesToPost.push(
+              workStartDate.add(1, "days").format("DD-MMM-YYYY")
+            );
+          }
+
+          let dateNotPosted = datesToPost.filter(
+            (d) =>
+              !_.includes(datePosted_Dates, d) &&
+              !_.includes(datesPendingPosted, d) &&
+              moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+          );
+
+          datesPosted.map((dP) => {
             if (
-              moment(p.date, "DD-MMM-YYYY").isSameOrAfter(moment(startDate)) &&
-              moment(p.date, "DD-MMM-YYYY").isSameOrBefore(
+              moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dP.date)).isSameOrBefore(
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
                   .add(59, "seconds")
               )
             ) {
-              totalRevenue = totalRevenue + p.totalRevenue;
+              projectedRevenue =
+                projectedRevenue +
+                (w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate);
+
+              totalRevenue = totalRevenue + dP.actualRevenue;
+            }
+          });
+
+          dateNotPosted.map((dNP) => {
+            if (
+              moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
+              moment(Date.parse(dNP)).isSameOrBefore(
+                moment(endDate)
+                  .add(23, "hours")
+                  .add(59, "minutes")
+                  .add(59, "seconds")
+              )
+            ) {
+              projectedRevenue =
+                projectedRevenue +
+                (w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate);
             }
           });
         } else {
@@ -2528,15 +2599,13 @@ router.post("/getAnalytics", async (req, res) => {
             )
           ) {
             totalRevenue = totalRevenue + w.totalRevenue;
+            projectedRevenue =
+              projectedRevenue +
+              (w.equipment?.uom === "hour"
+                ? w.equipment?.rate * 5
+                : w.equipment?.rate);
           }
         }
-
-        projectedRevenue =
-          w.siteWork === true
-            ? projectedRevenue +
-              w?.equipment.rate *
-                (w?.equipment.uom === "hour" ? 5 * daysDiff : daysDiff + 1)
-            : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
       });
@@ -2614,6 +2683,7 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays: _.round(totalDays, 1).toFixed(1),
     });
   } catch (err) {
+    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -2689,7 +2759,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       ? workRec.approvedDuration
       : 0;
 
-    console.log(moment(postingDate).format("DD-MMM-YYYY"));
     let work = await workData.model.findOneAndUpdate(
       {
         _id: id,
@@ -2723,8 +2792,6 @@ router.put("/approveDailyWork/:id", async (req, res) => {
     };
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
-
-    console.log(work);
 
     res.status(201).send(work);
   } catch (err) {
@@ -2840,8 +2907,6 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     reason,
   } = req.body;
 
-  console.log(req.body);
-
   try {
     let workRec = await workData.model.findById(id);
 
@@ -2911,7 +2976,6 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
       );
     }
   } catch (err) {
-    console.log();
     res.send(err);
   }
 });
@@ -3392,9 +3456,9 @@ router.put("/stop/:id", async (req, res) => {
 
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
+          dailyWork.projectedRevenue = rate * 5;
           if (comment !== "Ibibazo bya panne") {
             dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
-
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
           } else {
@@ -3431,6 +3495,7 @@ router.put("/stop/:id", async (req, res) => {
           : moment(postingDate, "DD.MM.YYYY").format("DD-MMM-YYYY");
         dailyWork.totalRevenue = revenue ? revenue : 0;
         dailyWork.totalExpenditure = expenditure ? expenditure : 0;
+
         dailyWork.comment = comment;
         dailyWork.moreComment = moreComment;
         dailyWork.pending = false;
@@ -3452,7 +3517,7 @@ router.put("/stop/:id", async (req, res) => {
         work.dailyWork = dailyWorks;
         work.duration = dailyWork.duration + currentDuration;
         work.totalRevenue = currentTotalRevenue + revenue;
-        if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
+        // if (workEnded) work.projectedRevenue = currentTotalRevenue + revenue;
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;

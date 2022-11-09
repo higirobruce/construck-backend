@@ -96,6 +96,7 @@ const WorkSchema = new mongoose.Schema({
       uom: String,
       totalRevenue: Number,
       totalExpenditure: Number,
+      projectedRevenue: Number,
       comment: String,
       moreComment: String,
       pending: Boolean,
