@@ -1330,9 +1330,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
         } else {
           work = {
             _id: w._id,
-            driverName: w.driver
-              ? w.driver?.firstName + " " + w.driver?.lastName
-              : w.equipment?.eqOwner,
+            driverName: w.driver?.firstName + " " + w.driver?.lastName,
             owner: w.equipment.eqOwner,
             totalRevenue: parseFloat(w.totalRevenue).toFixed(2),
             totalExpenditure: parseFloat(w.totalExpenditure).toFixed(2),
@@ -1386,6 +1384,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
   let { startDate, endDate, searchText, project } = req.query;
+
+  console.log(req.query);
 
   let query = {};
   let searchByPlateNumber = searchText && searchText.length >= 1;
@@ -2510,82 +2510,19 @@ router.post("/getAnalytics", async (req, res) => {
 
         if (isSiteWork) {
           let dailyWork = w.dailyWork;
-          let datesPosted = dailyWork
-            .filter((d) => d.pending === false)
-            .map((d) => {
-              return {
-                date: d.date,
-                duration: d.duration,
-                actualRevenue: d.totalRevenue,
-                expenditure: d.totalExpenditure,
-              };
-            });
 
-          let datePosted_Dates = dailyWork
-            .filter((d) => d.pending === false)
-            .map((d) => {
-              return d.date;
-            });
-
-          let datesPendingPosted = dailyWork
-            .filter((d) => d.pending === true)
-
-            .map((d) => {
-              return d.date;
-            });
-
-          let workStartDate = moment(w.workStartDate);
-          let workDurationDays = w.workDurationDays;
-
-          let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
-          for (let i = 0; i < workDurationDays - 1; i++) {
-            datesToPost.push(
-              workStartDate.add(1, "days").format("DD-MMM-YYYY")
-            );
-          }
-
-          let dateNotPosted = datesToPost.filter(
-            (d) =>
-              !_.includes(datePosted_Dates, d) &&
-              !_.includes(datesPendingPosted, d) &&
-              moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
-          );
-
-          datesPosted.map((dP) => {
+          let postedDates = dailyWork.filter((d) => d.pending === false);
+          postedDates?.map((p) => {
             if (
-              moment(Date.parse(dP.date)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dP.date)).isSameOrBefore(
+              moment(p.date, "DD-MMM-YYYY").isSameOrAfter(moment(startDate)) &&
+              moment(p.date, "DD-MMM-YYYY").isSameOrBefore(
                 moment(endDate)
                   .add(23, "hours")
                   .add(59, "minutes")
                   .add(59, "seconds")
               )
             ) {
-              projectedRevenue =
-                projectedRevenue +
-                (w.equipment?.uom === "hour"
-                  ? w.equipment?.rate * 5
-                  : w.equipment?.rate);
-
-              totalRevenue = totalRevenue + dP.actualRevenue;
-            }
-          });
-
-          dateNotPosted.map((dNP) => {
-            if (
-              moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dNP)).isSameOrBefore(
-                moment(endDate)
-                  .add(23, "hours")
-                  .add(59, "minutes")
-                  .add(59, "seconds")
-              )
-            ) {
-              projectedRevenue =
-                projectedRevenue +
-                (w.equipment?.uom === "hour"
-                  ? w.equipment?.rate * 5
-                  : w.equipment?.rate);
+              totalRevenue = totalRevenue + p.totalRevenue;
             }
           });
         } else {
@@ -2599,13 +2536,15 @@ router.post("/getAnalytics", async (req, res) => {
             )
           ) {
             totalRevenue = totalRevenue + w.totalRevenue;
-            projectedRevenue =
-              projectedRevenue +
-              (w.equipment?.uom === "hour"
-                ? w.equipment?.rate * 5
-                : w.equipment?.rate);
           }
         }
+
+        projectedRevenue =
+          w.siteWork === true
+            ? projectedRevenue +
+              w?.equipment.rate *
+                (w?.equipment.uom === "hour" ? 5 * daysDiff : daysDiff + 1)
+            : projectedRevenue + w?.projectedRevenue;
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
       });
@@ -2683,7 +2622,6 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays: _.round(totalDays, 1).toFixed(1),
     });
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
