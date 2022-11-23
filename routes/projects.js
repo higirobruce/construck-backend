@@ -112,51 +112,66 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
      * https://mongodb.github.io/node-mongodb-native
      */
 
-    const filter = {
-      "project.prjDescription": prjDescription,
-      $or: [
-        {
-          approvedRevenue: {
-            $gt: 0,
-          },
+    let pipeline = [
+      {
+        $match: {
+          "project.prjDescription": prjDescription,
+          $or: [
+            {
+              approvedRevenue: {
+                $gt: 0,
+              },
+            },
+            {
+              rejectedRevenue: {
+                $gt: 0,
+              },
+            },
+          ],
         },
-        {
-          rejectedRevenue: {
-            $gt: 0,
-          },
+      },
+      {
+        $project: {
+          "project.prjDescription": 1,
+          "dailyWork.totalRevenue": 1,
+          "dailyWork.duration": 1,
+          "dailyWork.totalExpenditure": 1,
+          "dailyWork.rejectedReason": 1,
+          "dailyWork.date": 1,
+          "dailyWork.status": 1,
+          "dailyWork.uom": 1,
+          status: 1,
+          approvedDuration: 1,
+          approvedExpenditure: 1,
+          approvedRevenue: 1,
+          reasonForRejection: 1,
+          rejectedDuration: 1,
+          rejectedEpenditure: 1,
+          rejectedReason: 1,
+          rejectedRevenue: 1,
+          siteWork: 1,
+          workStartDate: 1,
+          "dispatch.date": 1,
+          "equipment.uom": 1,
         },
-      ],
-    };
-    const projection = {
-      "project.prjDescription": 1,
-      "dailyWork.totalRevenue": 1,
-      "dailyWork.duration": 1,
-      "dailyWork.totalExpenditure": 1,
-      "dailyWork.rejectedReason": 1,
-      "dailyWork.date": 1,
-      "dailyWork.status": 1,
-      "dailyWork.uom": 1,
-      status: 1,
-      approvedDuration: 1,
-      approvedExpenditure: 1,
-      approvedRevenue: 1,
-      reasonForRejection: 1,
-      rejectedDuration: 1,
-      rejectedEpenditure: 1,
-      rejectedReason: 1,
-      rejectedRevenue: 1,
-      siteWork: 1,
-      workStartDate: 1,
-      "dispatch.date": 1,
-      "equipment.uom": 1,
-    };
+      },
+    ];
 
-    let worksCursor = await workData.model.find(filter, projection);
+    let worksCursor = await workData.model.aggregate(pipeline);
 
     res.send(worksCursor);
   } catch (err) {
     res.send(err);
   }
+});
+
+router.get("/releasedRevenue/:projectName", async (req, res) => {
+  let { projectName } = req.params;
+  let { month, year } = req.query;
+
+  let result = await getReleasedPerMonth(projectName, month, year);
+
+  res.send(result);
 });
 
 router.post("/", async (req, res) => {
@@ -183,5 +198,177 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
+async function getReleasedPerMonth(prjDescription, month, year) {
+  let pipeline = [
+    {
+      $match: {
+        "project.prjDescription": prjDescription,
+      },
+    },
+    {
+      $unwind: {
+        path: "$dailyWork",
+        includeArrayIndex: "string",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "dailyWork.status": "released",
+            siteWork: true,
+          },
+          {
+            status: "released",
+            siteWork: false,
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$workStartDate",
+            else: {
+              $dateFromString: {
+                dateString: "$dailyWork.date",
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        newTotalRevenue: {
+          $cond: {
+            if: {
+              $eq: ["$siteWork", false],
+            },
+            then: "$totalRevenue",
+            else: "$dailyWork.totalRevenue",
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        month: {
+          $month: "$transactionDate",
+        },
+        year: {
+          $year: "$transactionDate",
+        },
+      },
+    },
+    // {
+    //   $match: {
+    //     month: parseInt(month),
+    //     year: parseInt(year),
+    //   },
+    // },
+    {
+      $group: {
+        _id: {
+          month: {
+            $month: "$transactionDate",
+          },
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+        totalRevenue: {
+          $sum: "$newTotalRevenue",
+        },
+      },
+    },
+    {
+      $sort: {
+        "_id.year": 1,
+      },
+    },
+    {
+      $sort: {
+        "_id.month": 1,
+      },
+    },
+  ];
+
+  try {
+    let validatedJobs = await workData.model.aggregate(pipeline);
+    let list = validatedJobs.map(($) => {
+      return {
+        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+        totalRevenue: $?.totalRevenue.toLocaleString(),
+        id: $?._id,
+      };
+    });
+    return list;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+}
+
+function monthHelper(mon) {
+  switch (parseInt(mon)) {
+    case 1:
+      return "Jan";
+      break;
+
+    case 2:
+      return "Feb";
+      break;
+
+    case 3:
+      return "Mar";
+      break;
+
+    case 4:
+      return "Apr";
+      break;
+
+    case 5:
+      return "May";
+      break;
+
+    case 6:
+      return "Jun";
+      break;
+
+    case 7:
+      return "Jul";
+      break;
+
+    case 8:
+      return "Aug";
+      break;
+
+    case 9:
+      return "Sep";
+      break;
+
+    case 10:
+      return "Oct";
+      break;
+
+    case 11:
+      return "Nov";
+      break;
+
+    case 12:
+      return "Dec";
+      break;
+
+    default:
+      break;
+  }
+}
 
 module.exports = router;

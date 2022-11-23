@@ -3,6 +3,7 @@ const downTimeData = require("../models/downtimes");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const moment = require("moment");
+const workData = require("../models/workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -70,5 +71,113 @@ router.post("/getAnalytics", async (req, res) => {
     });
   } catch (err) {}
 });
+
+router.post("/trucks", async (req, res) => {
+  let { startDate, endDate } = req.body;
+  let result = await getAvgDowntime(startDate, "Truck");
+
+  res.send(result);
+});
+
+router.post("/machines", async (req, res) => {
+  let { startDate, endDate } = req.body;
+  let result = await getAvgDowntime(startDate, "Machine");
+
+  res.send(result);
+});
+
+async function getAvgDowntime(startDate, eqType) {
+  try {
+    let pipeline = [
+      {
+        $match: {
+          $or: [
+            {
+              dateFromWorkshop: {
+                $gte: new Date(
+                  moment(startDate).format("YYYY-MM-DD").toString()
+                ),
+              },
+            },
+            {
+              dateFromWorkshop: { $exists: false },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "equipments",
+          localField: "equipment",
+          foreignField: "_id",
+          as: "equipmentOb",
+        },
+      },
+      {
+        $project: {
+          date: 1,
+          dateToWorkshop: 1,
+          dateFromWorkshop: 1,
+          durationInWorkshop: 1,
+          equipmentOb: 1,
+        },
+      },
+      {
+        $unwind: {
+          path: "$equipmentOb",
+        },
+      },
+      {
+        $addFields: {
+          duration: {
+            $cond: {
+              if: {
+                $not: ["$durationInWorkshop"],
+              },
+              then: {
+                $dateDiff: {
+                  startDate: "$dateToWorkshop",
+                  endDate: new Date(),
+                  unit: "hour",
+                },
+              },
+              else: "$durationInWorkshop",
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          // $or: [
+          //   {
+          //     dateFromWorkshop: {
+          //       $exists: true,
+          //     },
+          //   },
+          // ],
+          "equipmentOb.eqtype": eqType,
+        },
+      },
+      {
+        $group: {
+          _id: "avgDowntime",
+          downtime: {
+            $avg: "$duration",
+          },
+        },
+      },
+    ];
+
+    let avgDowntimeObj = await downTimeData.model.aggregate(pipeline);
+
+    return avgDowntimeObj;
+  } catch (err) {
+    console.log(err);
+    return {
+      _id: "avgDownTime",
+      downtime: 0,
+    };
+  }
+}
 
 module.exports = router;

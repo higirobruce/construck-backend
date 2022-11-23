@@ -2809,7 +2809,6 @@ router.post("/getAnalytics", async (req, res) => {
             }
           }
         }
-        console.table(logs);
 
         if (isNaN(projectedRevenue)) projectedRevenue = 0;
       });
