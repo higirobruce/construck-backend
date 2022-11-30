@@ -193,17 +193,17 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/employees/login
+POST https://localhost:9000/employees/login
 Content-Type: application/json
 
 {
     "password":"password",
-    "phone":"0788394618"
+    "phone":"0788808114"
 }
 
 
 ###
-POST https://construck-backend-live.herokuapp.com/users/login
+POST https://localhost:9000/users/login
 Content-Type: application/json
 
 {
@@ -248,6 +248,15 @@ Content-Type: application/json
     "endDate":"2022-12-31T11:20:19.858Z",
     "status":"ongoing"
 }
+
+###
+GET http://localhost:9000/projects/releasedRevenue/KIP KACYIRU BY PASS?month=7&year=2022
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+
+
+###
+GET http://localhost:9000/projects/worksToBeValidated/KIP KACYIRU BY PASS
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
 
 
 ###
@@ -346,6 +355,16 @@ Content-Type: application/json
 }
 
 ###
+POST http://localhost:9000/downtimes/trucks
+Content-Type: application/json
+
+{
+    "startDate": "2022-11-01",
+    "endDate": "2022-08-30"
+}
+
+
+###
 POST http://localhost:9000/works/gethoursperdriver
 Content-Type: application/json
 
@@ -359,13 +378,13 @@ PUT http://localhost:9000/works/driverassistants
 
 
 ###
-GET http://localhost:9000/works/v3/toreverse/RAF 898 F?startDate=2022-07-01&endDate=2022-12-31
+GET http://localhost:9000/works/v3/toreverse/RAE 746 K?startDate=2022-07-01&endDate=2022-12-31
 Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
 Content-Type: application/json
 
 {
-    "startDate": "2022-10-10",
-    "endDate": "2022-10-14"
+    "startDate": "2022-07-10",
+    "endDate": "2022-12-31"
 }
 
 
@@ -394,6 +413,21 @@ Content-Type: application/json
 
 
 ###
-PUT http://localhost:9000/works/releaseValidated/KIP KACYIRU BY PASS?month=9&year=2022
+PUT http://localhost:9000/works/releaseValidated/KIP KACYIRU BY PASS?month=10&year=2022
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+###
+GET http://localhost:9000/works/monthlyNonValidatedRevenues/KIP KACYIRU BY PASS
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+###
+GET http://localhost:9000/works/nonValidatedByDay/KIP KACYIRU BY PASS?transactionDate=2022-10-30T00:00:00.000Z
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
+Content-Type: application/json
+
+###
+GET http://localhost:9000/works/dailyNonValidatedRevenues/KIP KACYIRU BY PASS?month=10&year=2022
 Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
 Content-Type: application/json

@@ -44,6 +44,9 @@ const EmployeeSchema = mongoose.Schema({
   assignedShift: {
     type: String,
   },
+  deviceToken:{
+    type: String,
+  },
   assignedToSiteWork: { type: Boolean, default: false },
 });
 
