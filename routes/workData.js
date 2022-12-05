@@ -2392,12 +2392,14 @@ router.post("/", async (req, res) => {
 
     let driverToken = await getDeviceToken(driver)
 
-    console.log(driverToken)
-    sendPushNotification(
-      driverToken,
-      "New Dispatch!",
-      driverNotification
-    );
+    
+    if(driverToken !== 'none'){
+      sendPushNotification(
+        driverToken,
+        "New Dispatch!",
+        driverNotification
+      );
+    }
 
     res.status(201).send(workCreated);
   } catch (err) {
