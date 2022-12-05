@@ -23,8 +23,9 @@ const employees = require("./routes/employees");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const send = require("./utils/sendEmailNode");
-
 const fun = require("./utils/cron-functions");
+const { sendPushNotification } = require("./utils/sendNotification");
+
 
 //Set up default mongoose connection
 // var mongoDB =

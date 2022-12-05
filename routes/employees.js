@@ -5,6 +5,7 @@ const venData = require("../models/vendors");
 const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
+const { getDeviceToken } = require("../controllers.js/employees");
 
 router.get("/", async (req, res) => {
   try {
@@ -22,6 +23,15 @@ router.get("/:id", async (req, res) => {
     res.status(200).send(employee);
   } catch (err) {
     res.send(err);
+  }
+});
+
+router.get("/token/:id", async (req, res) => {
+  let {id} = req.params;
+  let result = await getDeviceToken(id);
+  if (result.error) {
+  } else {
+    res.send(result);
   }
 });
 
@@ -315,12 +325,12 @@ router.put("/token/:id", async (req, res) => {
     let employeeD = await employeeData.model.findById(id);
     employeeD.deviceToken = token;
     await employeeD.save();
-    res.status(201).send({tokenUpdated: true});
+    res.status(201).send({ tokenUpdated: true });
   } catch (err) {
     res.status(500).send({
       message: `${err}`,
       error: true,
-      tokenUpdated: false
+      tokenUpdated: false,
     });
   }
 });
@@ -365,5 +375,6 @@ router.put("/:id", async (req, res) => {
     res.send(err);
   }
 });
+
 
 module.exports = router;

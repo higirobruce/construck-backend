@@ -193,17 +193,36 @@ Content-Type: application/json
 
 
 ###
-POST https://localhost:9000/employees/login
+POST http://localhost:9000/employees/login
 Content-Type: application/json
 
 {
     "password":"password",
-    "phone":"0788808114"
+    "phone":"0788610243"
+}
+
+###
+PUT http://localhost:9000/employees/token/62bacdcc0a8ded52cc67ed2f
+Content-Type: application/json
+
+{
+    "employee":"62bacdcc0a8ded52cc67ed38",
+    "token":"0783575588"
+}
+
+###
+GET http://localhost:9000/employees/token/62bacdcc0a8ded52cc67ed33
+Content-Type: application/json
+
+{
+    "employee":"62bacdcc0a8ded52cc67ed38",
+    "token":"0783575588"
 }
 
 
+
 ###
-POST https://localhost:9000/users/login
+POST http://localhost:9000/users/login
 Content-Type: application/json
 
 {

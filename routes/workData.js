@@ -15,6 +15,7 @@ const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
 const { sendPushNotification } = require("../utils/sendNotification");
+const { getDeviceToken } = require("../controllers.js/employees");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -2385,14 +2386,17 @@ router.post("/", async (req, res) => {
       await dateDataToSave.save();
     }
 
-    let driverNotification = `You have been dispatched to ${
+    let driverNotification = `${employee?.firstName + ' ' + employee?.lastName} Muhawe akazi kuri ${
       req.body?.project?.prjDescription
-    } on the ${moment(req.body?.workStartDate).format("DD-MMM-YYYY")} - ${
+    } taliki ${moment(req.body?.workStartDate).format("DD-MMM-YYYY")} - ${
       req.body?.dispatch?.shift
-    } with ${workToCreate?.equipment?.plateNumber}`;
+    }, muzakoresha ${workToCreate?.equipment?.eqDescription} ${workToCreate?.equipment?.plateNumber}`;
 
+    let driverToken = await getDeviceToken(driver)
+
+    console.log(driverToken)
     sendPushNotification(
-      "dPlGSsQkQmuvKdzxl5I5N6:APA91bFcipbVJeYJHw27HRj-yLK7flefkSUZO8qq3Rb09e2XCu72l6kl3_dkVOEcZ-JrbLa-KuAE4e7bTonRbDZQ75Zj-pede3eya6eHeitCtlcxCjc8D8wTsiedYZGFWIh1xLKfMDCf",
+      driverToken,
       "New Dispatch!",
       driverNotification
     );
