@@ -2745,9 +2745,9 @@ router.post("/getAnalytics", async (req, res) => {
               if (w.status !== "recalled") {
                 projectedRevenue =
                   projectedRevenue +
-                  (w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate);
+                  parseInt((w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate));
                 logs.push({
                   seq: 1,
                   id: w._id,
@@ -2777,9 +2777,9 @@ router.post("/getAnalytics", async (req, res) => {
               if (w.status !== "recalled") {
                 projectedRevenue =
                   projectedRevenue +
-                  (w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate);
+                  parseInt((w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate));
 
                 logs.push({
                   seq: 2,
@@ -2809,9 +2809,9 @@ router.post("/getAnalytics", async (req, res) => {
             if (w.status !== "recalled") {
               projectedRevenue =
                 projectedRevenue +
-                (w.equipment?.uom === "hour"
-                  ? w.equipment?.rate * 5
-                  : w.equipment?.rate);
+                parseInt((w.equipment?.uom === "hour"
+                ? w.equipment?.rate * 5
+                : w.equipment?.rate));
               logs.push({
                 seq: 3,
                 id: w._id,
@@ -2896,11 +2896,11 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
-
+    console.log(totalRevenue,projectedRevenue,totalDays)
     res.status(200).send({
-      totalRevenue: _.round(totalRevenue, 0).toFixed(2),
-      projectedRevenue: projectedRevenue.toFixed(2),
-      totalDays: _.round(totalDays, 1).toFixed(1),
+      totalRevenue: totalRevenue? _.round(totalRevenue, 0).toFixed(2) :0.00,
+      projectedRevenue: projectedRevenue? projectedRevenue.toFixed(2):0.00,
+      totalDays: totalDays? _.round(totalDays, 1).toFixed(1):0.0,
     });
   } catch (err) {
     let error = findError(err.code);
