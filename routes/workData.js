@@ -2898,9 +2898,9 @@ router.post("/getAnalytics", async (req, res) => {
     // }
     console.log(totalRevenue,projectedRevenue,totalDays)
     res.status(200).send({
-      totalRevenue: totalRevenue? _.round(totalRevenue, 0).toFixed(2) :0.00,
-      projectedRevenue: projectedRevenue? projectedRevenue.toFixed(2):0.00,
-      totalDays: totalDays? _.round(totalDays, 1).toFixed(1):0.0,
+      totalRevenue: totalRevenue? _.round(totalRevenue, 0).toFixed(2) :"0.00",
+      projectedRevenue: projectedRevenue? projectedRevenue.toFixed(2):"0.00",
+      totalDays: totalDays? _.round(totalDays, 1).toFixed(1): "0.0",
     });
   } catch (err) {
     let error = findError(err.code);
