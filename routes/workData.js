@@ -1388,8 +1388,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
   let { startDate, endDate, searchText, project } = req.query;
 
-  console.log(req.query);
-
   let query = {};
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
@@ -2903,7 +2901,6 @@ router.post("/getAnalytics", async (req, res) => {
       totalDays: _.round(totalDays, 1).toFixed(1),
     });
   } catch (err) {
-    console.log(err);
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
@@ -3252,7 +3249,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
-    console.log(err);
+    (err);
     res.send(err);
   }
 });
@@ -3311,7 +3308,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
-    console.log(err);
+    (err);
     res.send(err);
   }
 });
@@ -3473,7 +3470,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err);
+    (err);
     res.send("Error occured!!");
   }
 });
@@ -4590,7 +4587,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
     });
     return list;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -4690,7 +4687,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     });
     return list;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -4792,7 +4789,7 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -4897,7 +4894,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -5002,7 +4999,7 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
 
     return __val;
   } catch (err) {
-    console.log(err);
+    
     return err;
   }
 }
@@ -5109,7 +5106,7 @@ async function getNonValidatedListByProjectAndMonth(
 
     return __jobs;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -5198,7 +5195,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
 
     return __jobs;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
@@ -5290,7 +5287,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
     return __jobs;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }

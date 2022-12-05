@@ -20,7 +20,7 @@ function sendPushNotification(fcm_token, title, body) {
       if (err) {
         throw err;
       } else {
-        console.log("Successfully sent notification");
+        // console.log("Successfully sent notification");
       }
     });
   } catch (err) {

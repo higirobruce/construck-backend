@@ -102,6 +102,7 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 
 router.get("/:date/:shift", async (req, res) => {
   let { date, shift } = req.params;
+
   try {
     const _eqs = await eqData.model.aggregate([
       {

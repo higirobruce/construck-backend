@@ -321,7 +321,6 @@ router.put("/token/:id", async (req, res) => {
   try {
     let { employee, token } = req.body;
     let { id } = req.params;
-    console.log(id)
     let employeeD = await employeeData.model.findById(id);
     employeeD.deviceToken = token;
     await employeeD.save();

@@ -124,10 +124,10 @@ async function getWorksToExpireToday() {
       )
         .then(() => console.log("Sent"))
         .catch((err) => {
-          console.log(err);
+          (err);
         });
   } catch (err) {
-    console.log(err);
+    (err);
   }
 }
 

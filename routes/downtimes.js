@@ -172,7 +172,6 @@ async function getAvgDowntime(startDate, eqType) {
 
     return avgDowntimeObj;
   } catch (err) {
-    console.log(err);
     return {
       _id: "avgDownTime",
       downtime: 0,

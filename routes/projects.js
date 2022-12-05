@@ -311,7 +311,7 @@ async function getReleasedPerMonth(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    console.log(err);
+    (err);
     return err;
   }
 }
