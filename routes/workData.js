@@ -1387,7 +1387,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
   let { startDate, endDate, searchText, project } = req.query;
-
+  
   let query = {};
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
@@ -1508,8 +1508,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     };
   }
 
-  if (canViewRevenues === true || canViewRevenues === "true") {
-    try {
+   try {
       let workList = await workData.model
         .find(query, {
           "project.createdOn": false,
@@ -1536,7 +1535,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let l = listToSend.map((w, index) => {
         let work = null;
 
-        if (w.siteWork && w.status !== "stopped") {
+        if (w.siteWork && w.status !== "stopped" && w.status !== 'recalled') {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
@@ -1632,12 +1631,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": dP.actualRevenue,
-                "Vendor payment": dP.expenditure,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {
+                  "Projected Revenue":
+                    w.equipment?.uom === "hour"
+                      ? w.equipment?.rate * 5
+                      : w.equipment?.rate,
+                  "Actual Revenue": dP.actualRevenue,
+                  "Vendor payment": dP.expenditure,
+                },
+
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : w.equipment?.eqOwner,
@@ -1680,12 +1682,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,},
+                
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : w.equipment?.eqOwner,
@@ -1732,12 +1735,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": 0,
+              "Vendor payment": 0,},
+                
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : w.equipment?.eqOwner,
@@ -1852,12 +1856,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   ? w?.workDone?.jobDescription
                   : "Others",
                 "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": dP.actualRevenue,
-                "Vendor payment": dP.expenditure,
+                ...(canViewRevenues==='true' || canViewRevenues===true) && {"Projected Revenue":
+                w.equipment?.uom === "hour"
+                  ? w.equipment?.rate * 5
+                  : w.equipment?.rate,
+              "Actual Revenue": dP.actualRevenue,
+              "Vendor payment": dP.expenditure,},
+                
                 "Driver Names": w.driver
                   ? w?.driver?.firstName + " " + w?.driver?.lastName
                   : w.equipment?.eqOwner,
@@ -1976,7 +1981,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           //     });
           //   }
           // });
-        } else if (w.siteWork === false ) {
+        } else if (w.siteWork === false || (w.siteWork && w.status ==='recalled')) {
           if (
             moment(Date.parse(w.dispatch.date)).isSameOrAfter(
               moment(startDate)
@@ -2004,12 +2009,15 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
-              "Projected Revenue":
+              ...(canViewRevenues==='true' || canViewRevenues===true) && {
+                "Projected Revenue":
                 w.equipment?.uom === "hour"
                   ? w.equipment?.rate * 5
                   : w.equipment?.rate,
               "Actual Revenue": w.totalRevenue,
               "Vendor payment": w.totalExpenditure,
+              },
+              
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : w.equipment?.eqOwner,
@@ -2036,9 +2044,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     } catch (err) {
       res.send(err);
     }
-  } else {
-    res.send([]);
-  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -2384,21 +2389,18 @@ router.post("/", async (req, res) => {
       await dateDataToSave.save();
     }
 
-    let driverNotification = `${employee?.firstName + ' ' + employee?.lastName} Muhawe akazi kuri ${
-      req.body?.project?.prjDescription
-    } taliki ${moment(req.body?.workStartDate).format("DD-MMM-YYYY")} - ${
-      req.body?.dispatch?.shift
-    }, muzakoresha ${workToCreate?.equipment?.eqDescription} ${workToCreate?.equipment?.plateNumber}`;
+    let driverNotification = `${
+      employee?.firstName + " " + employee?.lastName
+    } Muhawe akazi kuri ${req.body?.project?.prjDescription} taliki ${moment(
+      req.body?.workStartDate
+    ).format("DD-MMM-YYYY")} - ${req.body?.dispatch?.shift}, muzakoresha ${
+      workToCreate?.equipment?.eqDescription
+    } ${workToCreate?.equipment?.plateNumber}`;
 
-    let driverToken = await getDeviceToken(driver)
+    let driverToken = await getDeviceToken(driver);
 
-    
-    if(driverToken !== 'none'){
-      sendPushNotification(
-        driverToken,
-        "New Dispatch!",
-        driverNotification
-      );
+    if (driverToken !== "none") {
+      sendPushNotification(driverToken, "New Dispatch!", driverNotification);
     }
 
     res.status(201).send(workCreated);
@@ -2745,9 +2747,11 @@ router.post("/getAnalytics", async (req, res) => {
               if (w.status !== "recalled") {
                 projectedRevenue =
                   projectedRevenue +
-                  parseInt((w.equipment?.uom === "hour"
-                  ? w.equipment?.rate * 5
-                  : w.equipment?.rate));
+                  parseInt(
+                    w.equipment?.uom === "hour"
+                      ? w.equipment?.rate * 5
+                      : w.equipment?.rate
+                  );
                 logs.push({
                   seq: 1,
                   id: w._id,
@@ -2777,9 +2781,11 @@ router.post("/getAnalytics", async (req, res) => {
               if (w.status !== "recalled") {
                 projectedRevenue =
                   projectedRevenue +
-                  parseInt((w.equipment?.uom === "hour"
-                  ? w.equipment?.rate * 5
-                  : w.equipment?.rate));
+                  parseInt(
+                    w.equipment?.uom === "hour"
+                      ? w.equipment?.rate * 5
+                      : w.equipment?.rate
+                  );
 
                 logs.push({
                   seq: 2,
@@ -2809,9 +2815,11 @@ router.post("/getAnalytics", async (req, res) => {
             if (w.status !== "recalled") {
               projectedRevenue =
                 projectedRevenue +
-                parseInt((w.equipment?.uom === "hour"
-                ? w.equipment?.rate * 5
-                : w.equipment?.rate));
+                parseInt(
+                  w.equipment?.uom === "hour"
+                    ? w.equipment?.rate * 5
+                    : w.equipment?.rate
+                );
               logs.push({
                 seq: 3,
                 id: w._id,
@@ -2896,11 +2904,11 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
-    console.log(totalRevenue,projectedRevenue,totalDays)
+    console.log(totalRevenue, projectedRevenue, totalDays);
     res.status(200).send({
-      totalRevenue: totalRevenue? _.round(totalRevenue, 0).toFixed(2) :"0.00",
-      projectedRevenue: projectedRevenue? projectedRevenue.toFixed(2):"0.00",
-      totalDays: totalDays? _.round(totalDays, 1).toFixed(1): "0.0",
+      totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
+      projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
+      totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
     });
   } catch (err) {
     let error = findError(err.code);
@@ -3251,7 +3259,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
-    (err);
+    err;
     res.send(err);
   }
 });
@@ -3310,7 +3318,7 @@ router.put("/rejectValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
-    (err);
+    err;
     res.send(err);
   }
 });
@@ -3472,7 +3480,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    (err);
+    err;
     res.send("Error occured!!");
   }
 });
@@ -4590,7 +4598,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
     });
     return list;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -4690,7 +4698,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     });
     return list;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -4792,7 +4800,7 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -4897,7 +4905,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -5002,7 +5010,6 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
 
     return __val;
   } catch (err) {
-    
     return err;
   }
 }
@@ -5109,7 +5116,7 @@ async function getNonValidatedListByProjectAndMonth(
 
     return __jobs;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -5198,7 +5205,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
 
     return __jobs;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -5290,7 +5297,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
 
     return __jobs;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
