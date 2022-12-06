@@ -132,7 +132,6 @@ router.get("/:date/:shift", async (req, res) => {
                 $ne: new Date(date),
               },
               assignedToSiteWork: false,
-              assignedShift: { $eq: shift },
               eqStatus: "dispatched",
             },
             {
