@@ -1536,7 +1536,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let l = listToSend.map((w, index) => {
         let work = null;
 
-        if (w.siteWork && w.status !== "recalled" && w.status !== "stopped") {
+        if (w.siteWork && w.status !== "stopped") {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
@@ -1875,108 +1875,108 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             }
           });
 
-          dateNotPosted.map((dNP) => {
-            if (
-              moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dNP)).isSameOrBefore(
-                moment(endDate)
-                  .add(23, "hours")
-                  .add(59, "minutes")
-                  .add(59, "seconds")
-              )
-            ) {
-              siteWorkList.push({
-                "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
-                "Posted On": "",
-                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-                "Site work?": w.siteWork,
-                "Project Description": w.project.prjDescription,
-                "Equipment Plate number": w.equipment.plateNumber,
-                "Equipment Type": w.equipment?.eqDescription,
-                "Unit of measurement": w.equipment?.uom,
-                "Duration (HRS)": 0,
-                "Duration (DAYS)": 0,
-                "Work done": w?.workDone
-                  ? w?.workDone?.jobDescription
-                  : "Others",
-                "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-                "Target trips": w.dispatch?.targetTrips
-                  ? w.dispatch?.targetTrips
-                  : 0,
-                "Trips done": 0,
-                "Driver's/Operator's Comment": dNP.comment
-                  ? dNP.comment +
-                    " - " +
-                    (dNP.moreComment ? dNP.moreComment : "")
-                  : " ",
-                Customer: w.project?.customer,
-                Status: "created",
-              });
-            }
-          });
+          // dateNotPosted.map((dNP) => {
+          //   if (
+          //     moment(Date.parse(dNP)).isSameOrAfter(moment(startDate)) &&
+          //     moment(Date.parse(dNP)).isSameOrBefore(
+          //       moment(endDate)
+          //         .add(23, "hours")
+          //         .add(59, "minutes")
+          //         .add(59, "seconds")
+          //     )
+          //   ) {
+          //     siteWorkList.push({
+          //       "Dispatch date": moment(Date.parse(dNP)).format("M/D/YYYY"),
+          //       "Posted On": "",
+          //       "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+          //       "Site work?": w.siteWork,
+          //       "Project Description": w.project.prjDescription,
+          //       "Equipment Plate number": w.equipment.plateNumber,
+          //       "Equipment Type": w.equipment?.eqDescription,
+          //       "Unit of measurement": w.equipment?.uom,
+          //       "Duration (HRS)": 0,
+          //       "Duration (DAYS)": 0,
+          //       "Work done": w?.workDone
+          //         ? w?.workDone?.jobDescription
+          //         : "Others",
+          //       "Other work description": w.dispatch?.otherJobType,
+          //       "Projected Revenue":
+          //         w.equipment?.uom === "hour"
+          //           ? w.equipment?.rate * 5
+          //           : w.equipment?.rate,
+          //       "Actual Revenue": 0,
+          //       "Vendor payment": 0,
+          //       "Driver Names": w.driver
+          //         ? w?.driver?.firstName + " " + w?.driver?.lastName
+          //         : w.equipment?.eqOwner,
+          //       "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+          //       "Target trips": w.dispatch?.targetTrips
+          //         ? w.dispatch?.targetTrips
+          //         : 0,
+          //       "Trips done": 0,
+          //       "Driver's/Operator's Comment": dNP.comment
+          //         ? dNP.comment +
+          //           " - " +
+          //           (dNP.moreComment ? dNP.moreComment : "")
+          //         : " ",
+          //       Customer: w.project?.customer,
+          //       Status: "created",
+          //     });
+          //   }
+          // });
 
           // console.log(siteWorkList);
 
-          datesPendingPosted.map((dPP) => {
-            if (
-              moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
-              moment(Date.parse(dPP)).isSameOrBefore(
-                moment(endDate)
-                  .add(23, "hours")
-                  .add(59, "minutes")
-                  .add(59, "seconds")
-              )
-            ) {
-              siteWorkList.push({
-                "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
-                "Posted On": "",
-                "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
-                "Site work?": w.siteWork,
-                "Project Description": w.project.prjDescription,
-                "Equipment Plate number": w.equipment.plateNumber,
-                "Equipment Type": w.equipment?.eqDescription,
-                "Unit of measurement": w.equipment?.uom,
-                "Duration (HRS)": 0,
-                "Duration (DAYS)": 0,
-                "Work done": w?.workDone
-                  ? w?.workDone?.jobDescription
-                  : "Others",
-                "Other work description": w.dispatch?.otherJobType,
-                "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
-                "Actual Revenue": 0,
-                "Vendor payment": 0,
-                "Driver Names": w.driver
-                  ? w?.driver?.firstName + " " + w?.driver?.lastName
-                  : w.equipment?.eqOwner,
-                "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
-                "Target trips": w.dispatch?.targetTrips
-                  ? w.dispatch?.targetTrips
-                  : 0,
-                "Trips done": 0,
-                "Driver's/Operator's Comment": dPP.comment
-                  ? dPP.comment +
-                    " - " +
-                    (dPP.moreComment ? dPP.moreComment : "")
-                  : " ",
-                Customer: w.project?.customer,
-                Status: "in progress",
-              });
-            }
-          });
-        } else if (w.siteWork === false && w.status !== "recalled") {
+          // datesPendingPosted.map((dPP) => {
+          //   if (
+          //     moment(Date.parse(dPP)).isSameOrAfter(moment(startDate)) &&
+          //     moment(Date.parse(dPP)).isSameOrBefore(
+          //       moment(endDate)
+          //         .add(23, "hours")
+          //         .add(59, "minutes")
+          //         .add(59, "seconds")
+          //     )
+          //   ) {
+          //     siteWorkList.push({
+          //       "Dispatch date": moment(Date.parse(dPP)).format("M/D/YYYY"),
+          //       "Posted On": "",
+          //       "Dispatch Shift": w.dispatch.shift === "nightShift" ? "N" : "D",
+          //       "Site work?": w.siteWork,
+          //       "Project Description": w.project.prjDescription,
+          //       "Equipment Plate number": w.equipment.plateNumber,
+          //       "Equipment Type": w.equipment?.eqDescription,
+          //       "Unit of measurement": w.equipment?.uom,
+          //       "Duration (HRS)": 0,
+          //       "Duration (DAYS)": 0,
+          //       "Work done": w?.workDone
+          //         ? w?.workDone?.jobDescription
+          //         : "Others",
+          //       "Other work description": w.dispatch?.otherJobType,
+          //       "Projected Revenue":
+          //         w.equipment?.uom === "hour"
+          //           ? w.equipment?.rate * 5
+          //           : w.equipment?.rate,
+          //       "Actual Revenue": 0,
+          //       "Vendor payment": 0,
+          //       "Driver Names": w.driver
+          //         ? w?.driver?.firstName + " " + w?.driver?.lastName
+          //         : w.equipment?.eqOwner,
+          //       "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
+          //       "Target trips": w.dispatch?.targetTrips
+          //         ? w.dispatch?.targetTrips
+          //         : 0,
+          //       "Trips done": 0,
+          //       "Driver's/Operator's Comment": dPP.comment
+          //         ? dPP.comment +
+          //           " - " +
+          //           (dPP.moreComment ? dPP.moreComment : "")
+          //         : " ",
+          //       Customer: w.project?.customer,
+          //       Status: "in progress",
+          //     });
+          //   }
+          // });
+        } else if (w.siteWork === false ) {
           if (
             moment(Date.parse(w.dispatch.date)).isSameOrAfter(
               moment(startDate)
