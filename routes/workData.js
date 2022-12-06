@@ -4043,6 +4043,7 @@ router.put("/reverse/:id", async (req, res) => {
 
     work.duration = 0;
     work.totalRevenue = 0;
+    work.totalExpenditure = 0;
     work.tripsDone = 0;
     work.status = "created";
 
