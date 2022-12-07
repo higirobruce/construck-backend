@@ -132,6 +132,7 @@ router.get("/:date/:shift", async (req, res) => {
                 $ne: new Date(date),
               },
               assignedToSiteWork: false,
+              assignedShift: { $eq: shift },
               eqStatus: "dispatched",
             },
             {
@@ -152,7 +153,7 @@ router.get("/:date/:shift", async (req, res) => {
               eqStatus: "dispatched",
             },
             {
-              assignedShift: { $ne: shift },
+              // assignedShift: { $ne: shift },
               assignedToSiteWork: true,
               assignedEndDate: {
                 $gte: new Date(date),
