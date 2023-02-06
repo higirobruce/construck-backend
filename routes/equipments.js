@@ -77,6 +77,7 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
       eqtype: type,
       $or: [
         { eqStatus: "standby" },
+        //Assigned to sitework
         {
           eqStatus: "dispatched",
           assignedShift: { $ne: shift },
@@ -91,6 +92,18 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
           eqStatus: "dispatched",
           assignedToSiteWork: true,
           assignedShift: { $ne: shift },
+        },
+        //Not assigned to sitework
+        {
+          eqStatus: "dispatched",
+          assignedToSiteWork: false,
+          assignedShift: { $ne: shift },
+          assignedDate: { $eq: date },
+        },
+        {
+          eqStatus: "dispatched",
+          assignedToSiteWork: false,
+          assignedDate: { $ne: date },
         },
       ],
     });
@@ -132,7 +145,7 @@ router.get("/:date/:shift", async (req, res) => {
                 $ne: new Date(date),
               },
               assignedToSiteWork: false,
-              assignedShift: { $eq: shift },
+              // assignedShift: { $eq: shift },
               eqStatus: "dispatched",
             },
             {
