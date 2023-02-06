@@ -36,6 +36,7 @@ const { sendPushNotification } = require("./utils/sendNotification");
 // "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
 var mongoDB = "";
+
 mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
