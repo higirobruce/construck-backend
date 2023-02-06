@@ -1200,7 +1200,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
           let dailyWorks = w.dailyWork;
 
           let datesPosted = dailyWorks
-            .filter((d) => d.pending === false)
+            .filter((d) => d.pending === false && d.date!=='Invalid date')
             .map((d) => {
               return {
                 _id: w._id,
@@ -1372,6 +1372,7 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
       res.status(200).send(orderedList.filter((d) => !isNull(d)));
     } catch (err) {
+      console.log(err)
       res.send(err);
     }
   } else {

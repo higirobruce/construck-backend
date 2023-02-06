@@ -18,7 +18,8 @@ Content-Type: application/json
 {
     "startDate": "2022-05-01",
     "endDate": "2022-07-07",
-    "status": "approved"
+    "status": "stopped",
+    "project":""
 }
 
 
@@ -193,8 +194,9 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:9000/employees/login
+POST https://construck-backend-live.herokuapp.com/employees/login
 Content-Type: application/json
+Authorization: Basic c2g0YjFrNDpAOVQ0VHI3MyU2MmwhaUhxZGhXdg==
 
 {
     "password":"password",
