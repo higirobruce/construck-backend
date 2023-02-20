@@ -14,7 +14,6 @@ const { default: mongoose } = require("mongoose");
 const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
-const { sendPushNotification } = require("../utils/sendNotification");
 const { getDeviceToken } = require("../controllers.js/employees");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
@@ -2401,7 +2400,7 @@ router.post("/", async (req, res) => {
     let driverToken = await getDeviceToken(driver);
 
     if (driverToken !== "none") {
-      sendPushNotification(driverToken, "New Dispatch!", driverNotification);
+      // sendPushNotification(driverToken, "New Dispatch!", driverNotification);
     }
 
     res.status(201).send(workCreated);
