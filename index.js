@@ -92,7 +92,6 @@ app.use("/jobtypes", auth, jobTypes);
 
 app.listen(PORT, () => {
   console.log(`Listening on Port ${PORT}`);
-
   cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
   });
