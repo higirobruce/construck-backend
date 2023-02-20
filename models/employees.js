@@ -48,6 +48,9 @@ const EmployeeSchema = mongoose.Schema({
     type: String,
   },
   assignedToSiteWork: { type: Boolean, default: false },
+  employmentStatus:{
+    type: String
+  }
 });
 
 module.exports = {
