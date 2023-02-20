@@ -26,16 +26,16 @@ const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 
 //Set up default mongoose connection
-var mongoDB =
-  "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
+// var mongoDB =
+//   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
 
 // var mongoDB =
   // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
 // "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
-// var mongoDB = "";
+var mongoDB = "";
 
-// mongoDB = process.env.CONS_MONGO_DB;
+mongoDB = process.env.CONS_MONGO_DB;
 
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 //Get the default connection
