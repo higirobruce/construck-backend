@@ -25,6 +25,8 @@ const sendEmail = require("./routes/sendEmailRoute");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 
+const _ = require('lodash')
+
 //Set up default mongoose connection
 // var mongoDB =
 //   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
@@ -74,7 +76,7 @@ app.get("/", (req, res) => {
 
 app.use("/assetAvailability", avblty);
 app.use("/downtimes", downtimes);
-app.use("/works", works);
+app.use("/works", works.router);
 app.use("/email", sendEmail.router);
 app.use("/employees", employees);
 app.use("/users", users);
@@ -88,7 +90,7 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);
   cron.schedule("0 8 * * *", () => {
     fun.getWorksToExpireToday().then((res) => {});
