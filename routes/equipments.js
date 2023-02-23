@@ -8,6 +8,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { eq } = require("lodash");
 const { default: mongoose } = require("mongoose");
+const { getListOfEquipmentOnDuty } = require("./workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -115,69 +116,31 @@ router.get("/type/:type/:date/:shift", async (req, res) => {
 
 router.get("/:date/:shift", async (req, res) => {
   let { date, shift } = req.params;
+  let { workStartDate, workEndDate, siteWork } = req.query;
+  if (siteWork !== "true") {
+    workStartDate = date;
+    workEndDate = date
+  }
 
   try {
-    const _eqs = await eqData.model.aggregate([
-      {
-        $addFields: {
-          assignedDateStr: {
-            $dateToString: {
-              format: "%Y-%m-%d",
-              date: "$assignedDate",
-            },
-          },
-          assignedEndDateStr: {
-            $dateToString: {
-              format: "%Y-%m-%d",
-              date: "$assignedEndDate",
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          $or: [
-            { eqStatus: "standby" },
+    let equipmentOnDuty = await getListOfEquipmentOnDuty(
+      new Date(workStartDate),
+      new Date(workEndDate),
+      shift,
+      siteWork
+    );
 
-            //dispatched to daily works
-            {
-              assignedEndDate: {
-                $ne: new Date(date),
-              },
-              assignedToSiteWork: false,
-              // assignedShift: { $eq: shift },
-              eqStatus: "dispatched",
-            },
-            {
-              assignedEndDateStr: {
-                $eq: date,
-              },
-              assignedShift: { $ne: shift },
-              assignedToSiteWork: false,
-              eqStatus: "dispatched",
-            },
+    let listEquipOnDuty = equipmentOnDuty?.map((e) => {
+      return e._id;
+    });
 
-            //disptached to siteWorks
-            {
-              assignedToSiteWork: true,
-              assignedEndDate: {
-                $lt: new Date(date),
-              },
-              eqStatus: "dispatched",
-            },
-            {
-              // assignedShift: { $ne: shift },
-              assignedToSiteWork: true,
-              assignedEndDate: {
-                $gte: new Date(date),
-              },
-              eqStatus: "dispatched",
-            },
-          ],
-        },
-      },
-    ]);
-    res.status(200).send(_eqs);
+    console.log(listEquipOnDuty.filter(l=>l==='COMPRESSOR 1'))
+
+    let availableEquipment = await eqData.model.find({
+      plateNumber: { $nin: listEquipOnDuty },
+    });
+
+    res.status(200).send(availableEquipment);
   } catch (err) {
     res.send(err);
   }
