@@ -6,6 +6,7 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
 router.get("/", async (req, res) => {
+  console.log('Request')
   try {
     let users = await userData.model.find().populate("company");
     res.status(200).send(users);
@@ -214,7 +215,7 @@ router.put("/:id", async (req, res) => {
 });
 
 router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "password";
+  let newPassword = "12345";
   let { id } = req.params;
 
   try {
