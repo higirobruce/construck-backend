@@ -3786,12 +3786,12 @@ router.put("/start/:id", async (req, res) => {
 });
 
 router.put("/stop/:id", async (req, res) => {
+
   let { id } = req.params;
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
-    req.body;
+  req.body;
   let duration = Math.abs(req.body.duration);
   if (duration > 12) duration = 12;
-
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
   let yyyy = postingDate?.split(".")[2];
@@ -3923,6 +3923,7 @@ router.put("/stop/:id", async (req, res) => {
         });
 
         dailyWorks[indexToUpdate] = dailyWork;
+        console.log(indexToUpdate)
 
         work.startIndex =
           endIndex || startIndex !== 0
@@ -3935,6 +3936,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
+        work.status='on going'
 
         await equipment.save();
         if (employee) await employee.save();
@@ -4112,7 +4114,9 @@ router.put("/stop/:id", async (req, res) => {
     } else {
       res.status(200).send(work);
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log(err)
+  }
 });
 
 router.put("/end/:id", async (req, res) => {
