@@ -134,8 +134,6 @@ router.get("/:date/:shift", async (req, res) => {
       return e._id;
     });
 
-    console.log(listEquipOnDuty.filter(l=>l==='COMPRESSOR 1'))
-
     let availableEquipment = await eqData.model.find({
       plateNumber: { $nin: listEquipOnDuty },
     });
@@ -522,6 +520,7 @@ router.put("/:id", async (req, res) => {
     rate,
     supplierRate,
     uom,
+    effectiveDate
   } = req.body;
 
   let equipment = await eqData.model.findByIdAndUpdate(
@@ -534,7 +533,7 @@ router.put("/:id", async (req, res) => {
       eqOwner,
       rate,
       supplierRate,
-      uom,
+      uom
     },
     { new: true }
   );
@@ -542,6 +541,7 @@ router.put("/:id", async (req, res) => {
   await workData.model.updateMany(
     {
       "equipment._id": new mongoose.Types.ObjectId(id),
+      "workStartDate":{$gte: effectiveDate}
     },
     {
       $set: {

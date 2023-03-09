@@ -1371,7 +1371,6 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
 
       res.status(200).send(orderedList.filter((d) => !isNull(d)));
     } catch (err) {
-      console.log(err);
       res.send(err);
     }
   } else {
@@ -1388,7 +1387,23 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   let { canViewRevenues } = req.params;
   let { startDate, endDate, searchText, project } = req.query;
 
-  let query = {};
+  let query = {
+    $or: [
+      {
+        siteWork: true,
+        workEndDate: {
+          $gte: new Date(startDate),
+        },
+      },
+      {
+        siteWork: false,
+        workStartDate: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+      },
+    ],
+  };
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
@@ -1398,17 +1413,14 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: moment(startDate),
+            $gte: new Date(startDate),
           },
         },
         {
           siteWork: false,
           workStartDate: {
-            $gte: moment(startDate),
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
           },
         },
       ],
@@ -1419,7 +1431,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: moment(startDate),
+            $gte: new Date(startDate),
           },
 
           "equipment.plateNumber": {
@@ -1430,11 +1442,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: moment(startDate),
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
           },
           "equipment.plateNumber": {
             $regex: searchText.toUpperCase(),
@@ -1448,7 +1457,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: moment(startDate),
+            $gte: new Date(startDate),
           },
 
           "project.prjDescription": {
@@ -1459,11 +1468,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: moment(startDate),
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
           },
           "project.prjDescription": {
             $regex: project,
@@ -1477,7 +1483,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: true,
           workEndDate: {
-            $gte: moment(startDate),
+            $gte: new Date(startDate),
           },
 
           "project.prjDescription": {
@@ -1491,11 +1497,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         {
           siteWork: false,
           workStartDate: {
-            $gte: moment(startDate),
-            $lte: moment(endDate)
-              .add(23, "hours")
-              .add(59, "minutes")
-              .add(59, "seconds"),
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
           },
           "project.prjDescription": {
             $regex: project,
@@ -1509,24 +1512,124 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   }
 
   try {
-    let workList = await workData.model
-      .find(query, {
-        "project.createdOn": false,
-        "equipment.__v": false,
-        "equipment.createdOn": false,
-        "dispatch.project": false,
-        "dispatch.equipments": false,
-        "driver.password": false,
-        "driver.email": false,
-        "driver.createdOn": false,
-        "driver.__v": false,
-        "driver._id": false,
-      })
-      .populate("driver")
-      .populate("appovedBy")
-      .populate("createdBy")
-      .populate("workDone")
-      .sort([["_id", "descending"]]);
+    let pipeline = [
+      {
+        $match: query
+      },
+      {
+        $unwind: {
+          path: "$dispatch.astDriver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          turnboy: {
+            $toObjectId: "$dispatch.astDriver",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "turnboy",
+          foreignField: "_id",
+          as: "turnboy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$turnboy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          astDriver: {
+            $addToSet: "$turnboy",
+          },
+          doc: {
+            $first: "$$ROOT",
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              "$doc",
+              {
+                turnBoy: "$astDriver",
+              },
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "driver",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $unwind: {
+          path: "$driver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "workDone",
+          foreignField: "_id",
+          as: "workDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$workDone",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "createdBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$createdBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
+    // let workList = await workData.model
+    //   .find(query, {
+    //     "project.createdOn": false,
+    //     "equipment.__v": false,
+    //     "equipment.createdOn": false,
+    //     "dispatch.project": false,
+    //     "dispatch.equipments": false,
+    //     "driver.password": false,
+    //     "driver.email": false,
+    //     "driver.createdOn": false,
+    //     "driver.__v": false,
+    //     "driver._id": false,
+    //   })
+    //   .populate("driver")
+    //   .populate("appovedBy")
+    //   .populate("createdBy")
+    //   .populate("workDone")
+    //   .populate('dispatch.astDriver')
+    //   .sort([["_id", "descending"]]);
+
+    let workList = await workData.model.aggregate(pipeline);
 
     let listToSend = workList;
 
@@ -1639,6 +1742,22 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : w.equipment?.eqOwner,
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+              "Turn boy 3":
+                w?.turnBoy?.length >= 3
+                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                  : "",
+              "Turn boy 4":
+                w?.turnBoy?.length >= 4
+                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                  : "",
               "Driver contacts": w.driver?.phone,
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -1688,6 +1807,22 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : w.equipment?.eqOwner,
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+              "Turn boy 3":
+                w?.turnBoy?.length >= 3
+                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                  : "",
+              "Turn boy 4":
+                w?.turnBoy?.length >= 4
+                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                  : "",
               "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -1739,6 +1874,22 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : w.equipment?.eqOwner,
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+              "Turn boy 3":
+                w?.turnBoy?.length >= 3
+                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                  : "",
+              "Turn boy 4":
+                w?.turnBoy?.length >= 4
+                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                  : "",
               "Driver contacts": w.driver?.phone ? w.driver?.phone : " ",
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -1856,6 +2007,22 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Driver Names": w.driver
                 ? w?.driver?.firstName + " " + w?.driver?.lastName
                 : w.equipment?.eqOwner,
+              "Turn boy 1":
+                w?.turnBoy?.length >= 1
+                  ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                  : "",
+              "Turn boy 2":
+                w?.turnBoy?.length >= 2
+                  ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                  : "",
+              "Turn boy 3":
+                w?.turnBoy?.length >= 3
+                  ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                  : "",
+              "Turn boy 4":
+                w?.turnBoy?.length >= 4
+                  ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                  : "",
               "Driver contacts": w.driver?.phone,
               "Target trips": w.dispatch?.targetTrips
                 ? w.dispatch?.targetTrips
@@ -2014,6 +2181,22 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Driver Names": w.driver
               ? w?.driver?.firstName + " " + w?.driver?.lastName
               : w.equipment?.eqOwner,
+            "Turn boy 1":
+              w?.turnBoy?.length >= 1
+                ? w?.turnBoy[0]?.firstName + " " + w?.turnBoy[0]?.lastName
+                : "",
+            "Turn boy 2":
+              w?.turnBoy?.length >= 2
+                ? w?.turnBoy[1]?.firstName + " " + w?.turnBoy[1]?.lastName
+                : "",
+            "Turn boy 3":
+              w?.turnBoy?.length >= 3
+                ? w?.turnBoy[2]?.firstName + " " + w?.turnBoy[2]?.lastName
+                : "",
+            "Turn boy 4":
+              w?.turnBoy?.length >= 4
+                ? w?.turnBoy[3]?.firstName + " " + w?.turnBoy[3]?.lastName
+                : "",
             "Driver contacts": w.driver?.phone,
             "Target trips": w.dispatch?.targetTrips,
             "Trips done": w?.tripsDone,
@@ -2023,6 +2206,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             Customer: w.project?.customer,
             Status: w.status,
           };
+
         }
       }
 
@@ -2897,7 +3081,6 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
-    console.log(totalRevenue, projectedRevenue, totalDays);
     res.status(200).send({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
@@ -5362,7 +5545,6 @@ function monthHelper(mon) {
 }
 
 async function updateCustomerRecord(oldCustomerName, newCustomerName) {
-  console.log("updating customer records");
   try {
     return await workData.model.updateMany(
       {
@@ -5374,7 +5556,6 @@ async function updateCustomerRecord(oldCustomerName, newCustomerName) {
 }
 
 async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
-  console.log(startDate, endDate);
   let pipeline_siteWork = [
     {
       $addFields: {

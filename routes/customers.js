@@ -152,7 +152,6 @@ async function updateCustomer(id, name, phone, email, tinNumber, res) {
 
     res.status(200).send(customer);
   } catch (err) {
-    console.log(err)
     res.send(err);
   }
 }

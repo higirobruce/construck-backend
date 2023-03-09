@@ -6,7 +6,6 @@ const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 
 router.get("/", async (req, res) => {
-  console.log('Request')
   try {
     let users = await userData.model.find().populate("company");
     res.status(200).send(users);
