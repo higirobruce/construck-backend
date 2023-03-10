@@ -335,7 +335,7 @@ router.put("/token/:id", async (req, res) => {
 });
 
 router.put("/resetPassword/:id", async (req, res) => {
-  let newPassword = "password";
+  let newPassword = "12345";
   let { id } = req.params;
 
   try {
