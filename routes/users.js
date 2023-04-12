@@ -35,7 +35,7 @@ router.post("/", async (req, res) => {
     userType,
     company,
     status,
-    assignedProject,
+    assignedProjects
   } = req.body;
 
   try {
@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
       userType,
       company,
       status,
-      assignedProject,
+      assignedProjects
     });
 
     let userCreated = await userToCreate.save();
@@ -70,6 +70,7 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { email, password } = req.body;
+  console.log(req.body)
   try {
     let user = await userData.model
       .findOne({ email: email })
@@ -193,7 +194,7 @@ router.put("/:id", async (req, res) => {
     phone,
     userType,
     company,
-    assignedProject,
+    assignedProjects,
   } = req.body;
 
   try {
@@ -204,7 +205,7 @@ router.put("/:id", async (req, res) => {
       phone,
       userType,
       company,
-      assignedProject,
+      assignedProjects,
     });
 
     res.status(200).send(user);

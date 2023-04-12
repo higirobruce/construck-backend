@@ -35,8 +35,8 @@ const UserSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "customers",
   },
-  assignedProject: {
-    type: Object,
+  assignedProjects: {
+    type: [],
   },
   status: {
     type: String,

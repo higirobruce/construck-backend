@@ -6,6 +6,7 @@ const userData = require("../models/users");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const { getDeviceToken } = require("../controllers.js/employees");
+const { fetchProjects } = require("./projects");
 
 router.get("/", async (req, res) => {
   try {
@@ -27,7 +28,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.get("/token/:id", async (req, res) => {
-  let {id} = req.params;
+  let { id } = req.params;
   let result = await getDeviceToken(id);
   if (result.error) {
   } else {
@@ -92,7 +93,8 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
-  let defaultPassword = "password";
+  let projects = await fetchProjects();
+  let defaultPassword = "12345";
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
@@ -139,7 +141,10 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: "na",
+              assignedProject: employee.assignedProjects
+                ? employee.assignedProjects[0]?.prjDescription
+                : "na",
+              assignedProjects: projects.map(ap=>ap?.prjDescription),
             },
             message: "Allowed",
             vendor: false,
@@ -170,7 +175,11 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: "na",
+              assignedProject: employee.assignedProjects
+                ? employee.assignedProjects[0]?.prjDescription
+                : "na",
+              // assignedProjects: employee.assignedProjects?.map(ap=>ap?.prjDescription),
+              assignedProjects: projects?.map(ap=>ap?.prjDescription),
             },
             message: "Allowed",
             vendor: false,
@@ -211,9 +220,11 @@ router.post("/login", async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             userId: user._id,
-            assignedProject: user.assignedProject?.prjDescription
-              ? user.assignedProject?.prjDescription
-              : "na",
+            assignedProject:
+              user.assignedProjects?.length > 0
+                ? user.assignedProjects[0]?.prjDescription
+                : "na",
+            assignedProjects: projects.map(ap=>ap?.prjDescription),
           },
           message: "Allowed",
           vendor: false,
@@ -374,6 +385,5 @@ router.put("/:id", async (req, res) => {
     res.send(err);
   }
 });
-
 
 module.exports = router;

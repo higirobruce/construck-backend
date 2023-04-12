@@ -16,23 +16,13 @@ router.get("/", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    let customers = await custData.model.find();
-    let projects = [];
-    customers.forEach((c) => {
-      let cProjects = c.projects;
-      if (cProjects && cProjects?.length > 0) {
-        cProjects.forEach((p) => {
-          let _p = { ...p._doc };
-          _p.customer = c?.name;
-          _p.customerId = c?._id;
-          projects.push(_p);
-        });
-      }
-    });
+    let projects = await fetchProjects();
     res.send(projects);
   } catch (err) {
     res.send(err);
   }
+
+  
 });
 
 router.get("/:id", async (req, res) => {
@@ -371,4 +361,24 @@ function monthHelper(mon) {
   }
 }
 
-module.exports = router;
+async function fetchProjects() {
+  let customers = await custData.model.find();
+  let projects = [];
+  customers.forEach((c) => {
+    let cProjects = c.projects;
+    if (cProjects && cProjects?.length > 0) {
+      cProjects.forEach((p) => {
+        let _p = { ...p._doc };
+        _p.customer = c?.name;
+        _p.customerId = c?._id;
+        projects.push(_p);
+      });
+    }
+  });
+  return projects;
+}
+
+module.exports = {
+  router,
+  fetchProjects
+};

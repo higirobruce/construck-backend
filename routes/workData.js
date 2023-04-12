@@ -4774,7 +4774,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
       },
     },
     {
-      $limit: 4,
+      $limit: 5,
     },
   ];
 
@@ -4874,13 +4874,13 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
       },
     },
     {
-      $limit: 4,
+      $limit: 5,
     },
   ];
 
   try {
     let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs.map(($) => {
+    let list = nonValidatedJobs.filter(($)=> $?._id.month ).map(($) => {
       return {
         monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
         totalRevenue: $?.totalRevenue.toLocaleString(),
