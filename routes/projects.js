@@ -372,10 +372,12 @@ async function fetchProjects() {
         _p.customer = c?.name;
         _p.customerId = c?._id;
         projects.push(_p);
-      });
+      })
+      // .sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
     }
-  });
-  return projects;
+  })
+  // 
+  return projects.sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
 }
 
 module.exports = {
