@@ -72,6 +72,7 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       {
         $match: {
           "project.prjDescription": prjDescription,
+          "dailyWork.status":"rejected"
         },
       },
       {
