@@ -20,6 +20,7 @@ const jobTypes = require("./routes/jobTypes");
 const reasons = require("./routes/reasons");
 const logs = require("./routes/logs");
 const employees = require("./routes/employees");
+const equipmentRequests = require("./routes/equipmentRequests");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const send = require("./utils/sendEmailNode");
@@ -89,6 +90,7 @@ app.use("/reasons", reasons);
 app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
+app.use("/requests", auth, equipmentRequests);
 
 app.listen(PORT, async () => {
   console.log(`Listening on Port ${PORT}`);

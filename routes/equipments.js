@@ -41,6 +41,27 @@ router.get("/", async (req, res) => {
   } catch (err) {}
 });
 
+router.get("/types", async (req, res) => {
+  try {
+    let pipeline = [
+      {
+        '$group': {
+          '_id': {
+            'id': '$eqDescription'
+          }, 
+          'count': {
+            '$count': {}
+          }
+        }
+      }
+    ]
+    const equipmentTypes = await eqData.model.aggregate(pipeline)
+    res.status(200).send(
+      equipmentTypes
+    );
+  } catch (err) {}
+});
+
 router.get("/v2", async (req, res) => {
   try {
     const equipments = await eqData.model.find().populate("vendor");

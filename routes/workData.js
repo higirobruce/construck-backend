@@ -3646,9 +3646,9 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    // let receipts = await getReceiverEmailList(["admin"]);
+    let receipts = await getReceiverEmailList(["admin"]);
 
-    let receipts = ["bhigiro@cvl.co.rw"];
+    // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
