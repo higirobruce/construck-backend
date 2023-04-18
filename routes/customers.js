@@ -5,6 +5,7 @@ const _ = require("lodash");
 const logData = require("../models/logs");
 const workData = require("../models/workData");
 const { updateCustomerRecord } = require("./workData");
+const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   await getAllCustomers(res);
@@ -33,10 +34,11 @@ router.put("/:id", async (req, res) => {
 
 router.put("/project/:id", async (req, res) => {
   let { id } = req.params;
-  let { customerId, prjDescription } = req.body;
+  let { customerId, prjDescription,projectAdmin } = req.body;
+
   let updatedProject = false;
 
-  await updateCustomerProject(customerId, id, prjDescription, res);
+  await updateCustomerProject(customerId, id, prjDescription,projectAdmin, res);
 });
 
 module.exports = router;
@@ -108,11 +110,11 @@ async function createProject(id, project, res) {
   }
 }
 
-async function updateCustomerProject(customerId, id, prjDescription, res) {
+async function updateCustomerProject(customerId, id, prjDescription,projectAdmin, res) {
   try {
     let customer = await custData.model.findOneAndUpdate(
       { _id: customerId, "projects._id": id },
-      { $set: { "projects.$.prjDescription": prjDescription } },
+      { $set: { "projects.$.prjDescription": prjDescription, "projects.$.projectAdmin": new mongoose.Types.ObjectId(projectAdmin)} },
       {
         new: true,
       }
@@ -122,11 +124,12 @@ async function updateCustomerProject(customerId, id, prjDescription, res) {
       {
         "project._id": id,
       },
-      { $set: { "project.prjDescription": prjDescription } }
+      { $set: { "project.prjDescription": prjDescription, "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin) } }
     );
 
     res.status(201).send({ customer });
   } catch (err) {
+    console.log(err)
     let error = findError(err.code);
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
