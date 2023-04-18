@@ -1608,6 +1608,20 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      {
+        $lookup: {
+          from: "users",
+          localField: "project.projectAdmin",
+          foreignField: "_id",
+          as: "projectAdmin",
+        }, 
+      },
+      {
+        $unwind: {
+          path: "$projectAdmin",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ];
     // let workList = await workData.model
     //   .find(query, {
@@ -1768,6 +1782,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
+              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
             });
           }
         });
@@ -1833,6 +1848,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "created",
+              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
             });
           }
         });
@@ -1900,6 +1916,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "in progress",
+              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
             });
           }
         });
@@ -2033,6 +2050,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
+              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
             });
           }
         });
@@ -2205,6 +2223,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
+            "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
           };
 
         }
