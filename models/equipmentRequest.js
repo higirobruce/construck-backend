@@ -5,18 +5,26 @@ const EquipmentRequestSchema = new mongoose.Schema({
   referenceNumber:{
     type: String
   },
-  project: Object,
-  location:{
-    type: String
-  },
+  project: String,
   equipmentType:{
-    type: String
+    type: mongoose.Types.ObjectId,
+    ref: 'equipmenttypes'
   },
   quantity:{
     type: Number
   },
-  dispatchDate:{
+  startDate:{
     type: Date
+  },
+  endDate:{
+    type: Date
+  },
+  shift: {
+    type: String
+  },
+  status: {
+    type: String,
+    default: 'pending'
   }
 });
 

@@ -12,7 +12,7 @@ const { getListOfEquipmentOnDuty } = require("./workData");
 
 router.get("/", async (req, res) => {
   try {
-    const equipments = await eqData.model.find().populate("vendor");
+    const equipments = await eqData.model.find().populate("vendor").populate('equipmentType');
     res.status(200).send({
       equipments,
       nrecords: equipments.length,
@@ -64,7 +64,7 @@ router.get("/types", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    const equipments = await eqData.model.find().populate("vendor");
+    const equipments = await eqData.model.find().populate("vendor").populate('equipmentType');
     res.status(200).send(equipments);
   } catch (err) {}
 });
@@ -72,7 +72,7 @@ router.get("/v2", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    const equipment = await eqData.model.findById(id).populate("vendor");
+    const equipment = await eqData.model.findById(id).populate("vendor").populate('equipmentType')
     res.status(200).send(equipment);
   } catch (err) {
     res.send(err);

@@ -57,6 +57,10 @@ const EquipmentSchema = new mongoose.Schema({
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
   },
+  equipmentType:{
+    type: mongoose.Types.ObjectId,
+    ref: 'equipmenttypes'
+  },
 });
 
 module.exports = {

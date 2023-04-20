@@ -19,6 +19,8 @@ const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
 
+const DURATION_LIMIT = 16;
+
 function isValidObjectId(id) {
   if (ObjectId.isValid(id)) {
     if (String(new ObjectId(id)) === id) return true;
@@ -3810,7 +3812,8 @@ router.put("/stop/:id", async (req, res) => {
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
   req.body;
   let duration = Math.abs(req.body.duration);
-  if (duration > 12) duration = 12;
+
+  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
   let yyyy = postingDate?.split(".")[2];

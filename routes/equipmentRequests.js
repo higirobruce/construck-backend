@@ -5,7 +5,7 @@ const _ = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    const requests = await requestData.model.find();
+    const requests = await requestData.model.find().populate('equipmentType');
     res.status(200).send(requests);
   } catch (err) {
     res.send(err);

@@ -94,7 +94,9 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
   let projects = await fetchProjects();
+  console.log(projects[0])
   let defaultPassword = "12345";
+
   try {
     let employee = await employeeData.model.findOne({ phone: phone });
     let vendor = await venData.model.findOne({ phone: phone });
@@ -144,7 +146,7 @@ router.post("/login", async (req, res) => {
               assignedProject: employee.assignedProjects
                 ? employee.assignedProjects[0]?.prjDescription
                 : "na",
-              assignedProjects: projects.map(ap=>ap?.prjDescription),
+              assignedProjects: projects,
             },
             message: "Allowed",
             vendor: false,
@@ -178,8 +180,8 @@ router.post("/login", async (req, res) => {
               assignedProject: employee.assignedProjects
                 ? employee.assignedProjects[0]?.prjDescription
                 : "na",
-              // assignedProjects: employee.assignedProjects?.map(ap=>ap?.prjDescription),
-              assignedProjects: projects?.map(ap=>ap?.prjDescription),
+              // assignedProjects: employee.assignedProjects,
+              assignedProjects: projects,
             },
             message: "Allowed",
             vendor: false,
@@ -224,7 +226,7 @@ router.post("/login", async (req, res) => {
               user.assignedProjects?.length > 0
                 ? user.assignedProjects[0]?.prjDescription
                 : "na",
-            assignedProjects: projects.map(ap=>ap?.prjDescription),
+            assignedProjects: projects,
           },
           message: "Allowed",
           vendor: false,

@@ -388,6 +388,8 @@ async function fetchProjects() {
         let _p = { ...p._doc };
         _p.customer = c?.name;
         _p.customerId = c?._id;
+        _p.id = p?._id;
+        _p.description = p?.prjDescription
         projects.push(_p);
       })
       // .sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
