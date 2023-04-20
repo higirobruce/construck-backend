@@ -4399,7 +4399,7 @@ router.put("/swamend/:id", async (req, res) => {
   } = req.body;
 
   let duration = Math.abs(req.body.duration);
-  if (duration > 12) duration = 12;
+  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
 
   let dd = postingDate?.split(".")[0];
   let mm = postingDate?.split(".")[1];
