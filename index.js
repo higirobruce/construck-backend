@@ -24,6 +24,7 @@ const equipmentTypes = require("./routes/equipmentTypes");
 const equipmentRequests = require("./routes/equipmentRequests");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
+const maintenance = require("./routes/maintenances");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 
@@ -34,7 +35,7 @@ const _ = require('lodash')
 //   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
 
 // var mongoDB =
-  // "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
+//   "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
 // "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
 var mongoDB = "";
@@ -92,6 +93,7 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
+app.use("/api",auth, maintenance);
 app.use("/equipmentTypes", auth, equipmentTypes);
 
 app.listen(PORT, async () => {
