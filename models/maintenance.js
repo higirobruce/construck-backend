@@ -87,6 +87,9 @@ const maintenanceSchema = new mongoose.Schema({
     },
     operatorNotApplicable: {
         type: Boolean
+    },
+    mileagesNotApplicable: {
+        type: Boolean
     }
 });
 

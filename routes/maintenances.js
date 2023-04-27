@@ -94,7 +94,8 @@ router.put('/maintenance/:id', async (req, res) => {
         transferParts,
         isViewed,
         reason,
-        operatorNotApplicable
+        operatorNotApplicable,
+        mileagesNotApplicable
     } = req.body.payload;
 
     const jobCard = await Maintenance.findByIdAndUpdate(req.params.id, {
@@ -122,7 +123,8 @@ router.put('/maintenance/:id', async (req, res) => {
         reason,
         jobCard_status: supervisorApproval == true ? 'closed' : 'opened',
         updated_At: Date.now(),
-        operatorNotApplicable
+        operatorNotApplicable,
+        mileagesNotApplicable
     }, {new: true});
 
     if(!jobCard)
