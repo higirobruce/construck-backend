@@ -106,8 +106,8 @@ router.put('/maintenance/:id', async (req, res) => {
         mileage: mileages,
         location,
         startRepair,
-        endRepair,
-        status,
+        endRepair: supervisorApproval == true && Date.now(),
+        status: supervisorApproval == true ? 'pass' : status,
         inspectionTools,
         mechanicalInspections,
         assignIssue,
@@ -124,7 +124,8 @@ router.put('/maintenance/:id', async (req, res) => {
         jobCard_status: supervisorApproval == true ? 'closed' : 'opened',
         updated_At: Date.now(),
         operatorNotApplicable,
-        mileagesNotApplicable
+        mileagesNotApplicable,
+
     }, {new: true});
 
     if(!jobCard)
