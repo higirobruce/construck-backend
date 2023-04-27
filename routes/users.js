@@ -70,7 +70,6 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { email, password } = req.body;
-  console.log(req.body)
   try {
     let user = await userData.model
       .findOne({ email: email })

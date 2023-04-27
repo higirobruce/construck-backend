@@ -94,7 +94,6 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
   let { phone, password } = req.body;
   let projects = await fetchProjects();
-  console.log(projects[0])
   let defaultPassword = "12345";
 
   try {

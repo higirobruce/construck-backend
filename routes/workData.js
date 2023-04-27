@@ -7,6 +7,7 @@ const assetAvblty = require("../models/assetAvailability");
 const userData = require("../models/users");
 const logData = require("../models/logs");
 const eqData = require("../models/equipments");
+const prjData = require("../models/projects");
 const moment = require("moment");
 const e = require("express");
 const { isNull, intersection } = require("lodash");
@@ -15,6 +16,7 @@ const send = require("../utils/sendEmailNode");
 const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
 const { getDeviceToken } = require("../controllers.js/employees");
+const { getProject } = require("./projects");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -3122,13 +3124,39 @@ router.post("/getAnalytics", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   let { id } = req.params;
+  let projectId = req.body?.project?._id
+  let customerName = req.body?.project?.customer
+  let equipmentOwner = req.body?.equipment?.eqOwner;
+
+  let updateObj = {};
+  if(equipmentOwner.toLowerCase() === 'construck'){
+    updateObj = req.body
+  } else {
+    delete req.body.driver
+    updateObj = req.body
+  }
+  
+  let project = await getProject(customerName, projectId)
+  let projectAdmin = project?.projectAdmin
   try {
     let updatedWork = await workData.model.findOneAndUpdate(
       { _id: id },
       req.body
     );
+
+    await workData.model.updateMany(
+      {
+        "project._id": projectId,
+      },
+      { $set: { "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin) } }
+    );
     res.send({ message: "done" });
-  } catch (err) {}
+  } catch (err) {
+    console.log(err)
+    res.send({
+      error: true,
+    })
+  }
 });
 
 router.put("/approve/:id", async (req, res) => {
@@ -3945,8 +3973,6 @@ router.put("/stop/:id", async (req, res) => {
         });
 
         dailyWorks[indexToUpdate] = dailyWork;
-        console.log(indexToUpdate)
-
         work.startIndex =
           endIndex || startIndex !== 0
             ? parseInt(endIndex)

@@ -4,6 +4,7 @@ const custData = require("../models/customers");
 const findError = require("../utils/errorCodes");
 const _ = require("lodash");
 const workData = require("../models/workData");
+const { default: mongoose } = require("mongoose");
 
 router.get("/", async (req, res) => {
   try {
@@ -206,6 +207,13 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get('/:customerName/:prjId', async (req, res)=>{
+  let {customerName, prjId} = req.params
+  let project = await getProject(customerName, prjId)
+  
+  res.send(project)
+})
+
 async function getReleasedPerMonth(prjDescription, month, year) {
   let pipeline = [
     {
@@ -399,7 +407,31 @@ async function fetchProjects() {
   return projects.sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
 }
 
+async function getProject(customerName, prjId){
+  let pipeline = [
+    {
+      '$match': {
+        'name': customerName,
+      }
+    }, {
+      '$unwind': {
+        'path': '$projects', 
+        'preserveNullAndEmptyArrays': true
+      }
+    }, {
+      '$match': {
+        'projects._id': new mongoose.Types.ObjectId(prjId)
+      }
+    }
+  ];
+
+  let project = await custData.model.aggregate(pipeline);
+  if(project.length>=1) return project[0].projects
+  else return {}
+}
+
 module.exports = {
   router,
-  fetchProjects
+  fetchProjects,
+  getProject
 };
