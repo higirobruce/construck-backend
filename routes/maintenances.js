@@ -10,7 +10,7 @@ router.get('/maintenance/repair', async(req, res) => {
 })
 
 router.get('/maintenance', async(req, res) => {
-    const jobCards = await Maintenance.find();
+    const jobCards = await Maintenance.find().sort('-entryDate');
     if(!jobCards) return res.status(404).json({message: 'No JobCards Available'});
 
     res.status(200).send(jobCards);
