@@ -106,7 +106,7 @@ router.put('/maintenance/:id', async (req, res) => {
         mileage: mileages,
         location,
         startRepair,
-        endRepair: supervisorApproval == true && Date.now(),
+        endRepair: supervisorApproval == true ? Date.now() : '',
         status: supervisorApproval == true ? 'pass' : status,
         inspectionTools,
         mechanicalInspections,
