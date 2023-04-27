@@ -2,30 +2,38 @@ const mongoose = require("mongoose");
 const prSchema = require("./projects");
 
 const EquipmentRequestSchema = new mongoose.Schema({
-  referenceNumber:{
-    type: String
+  referenceNumber: {
+    type: String,
   },
   project: String,
-  equipmentType:{
+  equipmentType: {
     type: mongoose.Types.ObjectId,
-    ref: 'equipmenttypes'
+    ref: "equipmenttypes",
   },
-  quantity:{
-    type: Number
+  quantity: {
+    type: Number,
   },
-  startDate:{
-    type: Date
+  approvedQuantity: {
+    type: Number,
   },
-  endDate:{
-    type: Date
+  startDate: {
+    type: Date,
+  },
+  endDate: {
+    type: Date,
   },
   shift: {
-    type: String
+    type: String,
   },
   status: {
     type: String,
-    default: 'pending'
-  }
+    default: "pending",
+  },
+  owner: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
 });
 
 module.exports = {

@@ -39,8 +39,6 @@ router.put("/:id", async (req, res) => {
   try {
     let vendor = await venData.model.findByIdAndUpdate(id, req.body);
 
-    console.log(req?.body)
-
     await workData.model.updateMany(
       {
         "equipment.eqOwner": vendor?.name,
