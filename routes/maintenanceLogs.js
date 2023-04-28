@@ -1,4 +1,4 @@
-const { MaintenanceLogs } = require('../model/maintenanceLog');
+const { MaintenanceLogs } = require('../models/maintenanceLog');
 const express = require('express');
 const router = express.Router();
 

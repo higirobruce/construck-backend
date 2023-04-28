@@ -94,8 +94,8 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
+app.use('/api',auth, maintenanceLogs);
 app.use("/api",auth, maintenance);
-app.use('/api',auth , maintenanceLogs);
 app.use("/equipmentTypes", auth, equipmentTypes);
 
 app.listen(PORT, async () => {
