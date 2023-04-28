@@ -1,22 +1,22 @@
-const { Maintenance } = require('../model/maintenance');
+const { MaintenanceLogs } = require('../model/maintenanceLog');
 const express = require('express');
 const router = express.Router();
 
 router.get('/maintenance/repair', async(req, res) => {
-    const jobCards = await Maintenance.find();
+    const jobCards = await MaintenanceLogs.find();
     if(!jobCards) return res.status(404).json({message: 'No JobCards Available'});
 
     res.status(200).send(jobCards);
 })
 
-router.get('/maintenance', async(req, res) => {
-    const jobCards = await Maintenance.find().sort({jobCard_Id: -1});
+router.get('/maintenance/logs', async(req, res) => {
+    const jobCards = await MaintenanceLogs.find().sort({jobCard_Id: -1});
     if(!jobCards) return res.status(404).json({message: 'No JobCards Available'});
 
     res.status(200).send(jobCards);
 })
 
-router.post('/maintenance', async (req, res) => {
+router.post('/maintenance/logs', async (req, res) => {
     const {
         entryDate,
         driver,
@@ -26,7 +26,7 @@ router.post('/maintenance', async (req, res) => {
         status
     } = req.body.payload;
 
-    const jobCards = await Maintenance.find();
+    const jobCards = await MaintenanceLogs.find();
     
     // Checking if it's still in the repair mode
     const stillInRepair = jobCards.find((item) => {
@@ -40,7 +40,7 @@ router.post('/maintenance', async (req, res) => {
     if(lowMileages) return res.status(400).json({message: 'Mileages input are low to the previous'})
 
     // Saving the Job Card
-    const jobCard = new Maintenance({
+    const jobCard = new MaintenanceLogs({
         jobCard_Id: 
             ((jobCards.length + 1) < 10 
             ? `000${jobCards.length + 1}` 
@@ -68,7 +68,7 @@ router.post('/maintenance', async (req, res) => {
     return res.status(200).send(jobCard);
 })
 
-router.put('/maintenance/:id', async (req, res) => {
+router.put('/maintenance/logs/:id', async (req, res) => {
 
     const {
         jobCard_id,
@@ -98,7 +98,7 @@ router.put('/maintenance/:id', async (req, res) => {
         mileagesNotApplicable
     } = req.body.payload;
 
-    const jobCard = await Maintenance.findByIdAndUpdate(req.params.id, {
+    const jobCard = await MaintenanceLogs.findOneAndUpdate({jobCard_Id: req.params.id}, {
         jobCard_Id: jobCard_id,
         entryDate,
         driver,

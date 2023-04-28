@@ -25,6 +25,7 @@ const equipmentRequests = require("./routes/equipmentRequests");
 const avblty = require("./routes/assetAvailability");
 const sendEmail = require("./routes/sendEmailRoute");
 const maintenance = require("./routes/maintenances");
+const maintenanceLogs = require("./routes/maintenanceLogs");
 const send = require("./utils/sendEmailNode");
 const fun = require("./utils/cron-functions");
 
@@ -94,6 +95,7 @@ app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
 app.use("/api",auth, maintenance);
+app.use('/api',auth , maintenanceLogs);
 app.use("/equipmentTypes", auth, equipmentTypes);
 
 app.listen(PORT, async () => {
