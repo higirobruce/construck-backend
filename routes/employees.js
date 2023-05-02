@@ -145,7 +145,7 @@ router.post("/login", async (req, res) => {
               assignedProject: employee.assignedProjects
                 ? employee.assignedProjects[0]?.prjDescription
                 : "na",
-              assignedProjects: projects,
+              assignedProjects: employee.assignedProjects,
             },
             message: "Allowed",
             vendor: false,
@@ -180,7 +180,7 @@ router.post("/login", async (req, res) => {
                 ? employee.assignedProjects[0]?.prjDescription
                 : "na",
               // assignedProjects: employee.assignedProjects,
-              assignedProjects: projects,
+              assignedProjects: employee.assignedProjects,
             },
             message: "Allowed",
             vendor: false,
@@ -214,7 +214,12 @@ router.post("/login", async (req, res) => {
     if (userType === "consUser") {
       allowed = await bcrypt.compare(password, user.password);
       if (user.status !== "inactive") {
-        // employee.message = "Allowed";
+        let _projects = user.assignedProjects?.map((p) => {
+          let _p = { ...p };
+          _p.id = p?._id;
+          _p.description = p?.prjDescription;
+          return _p;
+        });
         res.status(200).send({
           employee: {
             _id: user._id,
@@ -224,8 +229,10 @@ router.post("/login", async (req, res) => {
             assignedProject:
               user.assignedProjects?.length > 0
                 ? user.assignedProjects[0]?.prjDescription
-                : "na",
-            assignedProjects: projects,
+                : projects[0]['description'],
+            assignedProjects: user.userType.includes("customer") && _projects?.length>0
+              ? _projects
+              : projects,
           },
           message: "Allowed",
           vendor: false,
