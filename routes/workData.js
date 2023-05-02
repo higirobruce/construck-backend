@@ -1139,7 +1139,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
-          duration: w.duration +' '+ w.uom+'s',
+          duration: w.duration.toFixed(2) +' '+ w.uom+'s',
           tripsDone: w.tripsDone
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
