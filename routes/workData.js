@@ -926,11 +926,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.eqOwner": driverId,
-              status: { $ne: "stopped" },
+              // status: { $ne: "stopped" },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
-              status: { $ne: "stopped" },
+              // status: { $ne: "stopped" },
             },
           ],
         },
@@ -983,7 +983,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return d.date;
+            return { date: d.date, duration: d.duration, uom: d.uom };
           });
 
         let datesPendingPosted = dailyWorks
@@ -1028,7 +1028,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               ? w.dispatch.targetTrips
               : "N/A",
             workStartDate: w.workStartDate,
-            dispatchDate: new Date(dP).toISOString(),
+            dispatchDate: new Date(dP.date).toISOString(),
             shift: w.dispatch.shift === "nightShift" ? "N" : "D",
             startIndex: w.startIndex
               ? parseFloat(w.startIndex).toFixed(2)
@@ -1037,6 +1037,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
+            duration: dP.duration / (1000 * 60 * 60) +' '+ dP.uom+'s',
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1072,6 +1073,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
+            duration: 0+' hours'
           });
         });
 
@@ -1105,10 +1107,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
+            duration: 0+' hours',
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
-      } else {
+      } else if(!w.siteWork) {
         work = {
           workDone: w.workDone
             ? w.workDone
@@ -1136,6 +1139,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
+          duration: w.duration +' '+ w.uom+'s',
+          tripsDone: w.tripsDone
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
@@ -1518,7 +1523,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
   try {
     let pipeline = [
       {
-        $match: query
+        $match: query,
       },
       {
         $unwind: {
@@ -1618,7 +1623,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
           localField: "project.projectAdmin",
           foreignField: "_id",
           as: "projectAdmin",
-        }, 
+        },
       },
       {
         $unwind: {
@@ -1786,7 +1791,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
-              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
+              "Project Admin":
+                (w.projectAdmin?.firstName || "") +
+                " " +
+                (w.projectAdmin?.lastName || ""),
             });
           }
         });
@@ -1852,7 +1860,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "created",
-              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
+              "Project Admin":
+                (w.projectAdmin?.firstName || "") +
+                " " +
+                (w.projectAdmin?.lastName || ""),
             });
           }
         });
@@ -1920,7 +1931,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "in progress",
-              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
+              "Project Admin":
+                (w.projectAdmin?.firstName || "") +
+                " " +
+                (w.projectAdmin?.lastName || ""),
             });
           }
         });
@@ -2054,7 +2068,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 : " ",
               Customer: w.project?.customer,
               Status: "stopped",
-              "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
+              "Project Admin":
+                (w.projectAdmin?.firstName || "") +
+                " " +
+                (w.projectAdmin?.lastName || ""),
             });
           }
         });
@@ -2227,9 +2244,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               : "" + " - " + (w.moreComment ? w.moreComment : ""),
             Customer: w.project?.customer,
             Status: w.status,
-            "Project Admin": (w.projectAdmin?.firstName||'') +' '+ (w.projectAdmin?.lastName||'')
+            "Project Admin":
+              (w.projectAdmin?.firstName || "") +
+              " " +
+              (w.projectAdmin?.lastName || ""),
           };
-
         }
       }
 
@@ -3124,20 +3143,20 @@ router.post("/getAnalytics", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   let { id } = req.params;
-  let projectId = req.body?.project?._id
-  let customerName = req.body?.project?.customer
+  let projectId = req.body?.project?._id;
+  let customerName = req.body?.project?.customer;
   let equipmentOwner = req.body?.equipment?.eqOwner;
 
   let updateObj = {};
-  if(equipmentOwner.toLowerCase() === 'construck'){
-    updateObj = req.body
+  if (equipmentOwner.toLowerCase() === "construck") {
+    updateObj = req.body;
   } else {
-    delete req.body.driver
-    updateObj = req.body
+    delete req.body.driver;
+    updateObj = req.body;
   }
-  
-  let project = await getProject(customerName, projectId)
-  let projectAdmin = project?.projectAdmin
+
+  let project = await getProject(customerName, projectId);
+  let projectAdmin = project?.projectAdmin;
   try {
     let updatedWork = await workData.model.findOneAndUpdate(
       { _id: id },
@@ -3148,14 +3167,18 @@ router.put("/:id", async (req, res) => {
       {
         "project._id": projectId,
       },
-      { $set: { "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin) } }
+      {
+        $set: {
+          "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+        },
+      }
     );
     res.send({ message: "done" });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.send({
       error: true,
-    })
+    });
   }
 });
 
@@ -3835,10 +3858,9 @@ router.put("/start/:id", async (req, res) => {
 });
 
 router.put("/stop/:id", async (req, res) => {
-
   let { id } = req.params;
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
-  req.body;
+    req.body;
   let duration = Math.abs(req.body.duration);
 
   if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
@@ -3984,7 +4006,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
-        work.status='on going'
+        work.status = "on going";
 
         await equipment.save();
         if (employee) await employee.save();
@@ -4163,7 +4185,7 @@ router.put("/stop/:id", async (req, res) => {
       res.status(200).send(work);
     }
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 });
 
@@ -4928,13 +4950,15 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
 
   try {
     let nonValidatedJobs = await workData.model.aggregate(pipeline);
-    let list = nonValidatedJobs.filter(($)=> $?._id.month ).map(($) => {
-      return {
-        monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
-        totalRevenue: $?.totalRevenue.toLocaleString(),
-        id: $?._id,
-      };
-    });
+    let list = nonValidatedJobs
+      .filter(($) => $?._id.month)
+      .map(($) => {
+        return {
+          monthYear: monthHelper($?._id.month) + "-" + $?._id.year,
+          totalRevenue: $?.totalRevenue.toLocaleString(),
+          id: $?._id,
+        };
+      });
     return list;
   } catch (err) {
     err;
