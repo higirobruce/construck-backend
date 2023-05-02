@@ -95,7 +95,7 @@ const maintenanceLogsSchema = new mongoose.Schema({
         type: Date
     },
     receivedParts: {
-        type: String
+        type: Date
     }
 });
 

@@ -92,10 +92,10 @@ const maintenanceSchema = new mongoose.Schema({
         type: Boolean
     },
     requestParts: {
-        type: Date
+        type: (Date || String)
     },
     receivedParts: {
-        type: String
+        type: (Date || String)
     }
 });
 
