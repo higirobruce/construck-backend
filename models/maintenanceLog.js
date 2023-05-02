@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const maintenanceSchema = new mongoose.Schema({
+const maintenanceLogsSchema = new mongoose.Schema({
     jobCard_Id: {
         type: String
     },
@@ -93,7 +93,8 @@ const maintenanceSchema = new mongoose.Schema({
     }
 });
 
-const Maintenance = mongoose.model('Maintenance', maintenanceSchema);
+const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema);
 
-exports.Maintenance = Maintenance;
-exports.maintenanceSchema = maintenanceSchema;
+exports.MaintenanceLogs = MaintenanceLogs;
+exports.maintenanceLogsSchema = maintenanceLogsSchema;
+
