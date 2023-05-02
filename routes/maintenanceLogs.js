@@ -1,4 +1,4 @@
-const { MaintenanceLogs } = require('../models/maintenanceLog');
+const { MaintenanceLogs } = require('../model/maintenanceLog');
 const express = require('express');
 const router = express.Router();
 
@@ -69,7 +69,7 @@ router.post('/maintenance/logs', async (req, res) => {
 })
 
 router.put('/maintenance/logs/:id', async (req, res) => {
-
+    console.log('Req Params ', req.params);
     const {
         jobCard_id,
         entryDate,
@@ -95,7 +95,9 @@ router.put('/maintenance/logs/:id', async (req, res) => {
         isViewed,
         reason,
         operatorNotApplicable,
-        mileagesNotApplicable
+        mileagesNotApplicable,
+        requestParts,
+        receivedParts
     } = req.body.payload;
 
     const jobCard = await MaintenanceLogs.findOneAndUpdate({jobCard_Id: req.params.id}, {
@@ -107,7 +109,7 @@ router.put('/maintenance/logs/:id', async (req, res) => {
         location,
         startRepair,
         endRepair: supervisorApproval == true ? Date.now() : '',
-        status: supervisorApproval == true ? 'pass' : sourceItem == 'No Parts Required' ? 'repair' : status,
+        status: supervisorApproval == true ? 'pass' : (sourceItem == 'No Parts Required' && status == 'repair') ? 'repair' : status,
         inspectionTools,
         mechanicalInspections,
         assignIssue,
@@ -124,7 +126,9 @@ router.put('/maintenance/logs/:id', async (req, res) => {
         jobCard_status: supervisorApproval == true ? 'closed' : 'opened',
         updated_At: Date.now(),
         operatorNotApplicable,
-        mileagesNotApplicable
+        mileagesNotApplicable,
+        requestParts,
+        receivedParts
     }, {new: true});
 
     if(!jobCard)

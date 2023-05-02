@@ -90,6 +90,12 @@ const maintenanceLogsSchema = new mongoose.Schema({
     },
     mileagesNotApplicable: {
         type: Boolean
+    },
+    requestParts: {
+        type: Date
+    },
+    receivedParts: {
+        type: String
     }
 });
 
@@ -97,4 +103,3 @@ const MaintenanceLogs = mongoose.model('MaintenanceLogs', maintenanceLogsSchema)
 
 exports.MaintenanceLogs = MaintenanceLogs;
 exports.maintenanceLogsSchema = maintenanceLogsSchema;
-

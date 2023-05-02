@@ -90,6 +90,12 @@ const maintenanceSchema = new mongoose.Schema({
     },
     mileagesNotApplicable: {
         type: Boolean
+    },
+    requestParts: {
+        type: Date
+    },
+    receivedParts: {
+        type: String
     }
 });
 
