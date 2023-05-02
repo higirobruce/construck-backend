@@ -142,9 +142,7 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: employee.assignedProjects
-                ? employee.assignedProjects[0]?.prjDescription
-                : "na",
+              assignedProject: projects[0],
               assignedProjects: projects,
             },
             message: "Allowed",
@@ -176,10 +174,7 @@ router.post("/login", async (req, res) => {
               firstName: employee.firstName,
               lastName: employee.lastName,
               userId: employee._id,
-              assignedProject: employee.assignedProjects
-                ? employee.assignedProjects[0]?.prjDescription
-                : "na",
-              // assignedProjects: employee.assignedProjects,
+              assignedProject: projects[0],
               assignedProjects: projects,
             },
             message: "Allowed",
