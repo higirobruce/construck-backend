@@ -1,4 +1,4 @@
-const { Maintenance } = require('../model/maintenance');
+const { Maintenance } = require('../models/maintenance');
 const express = require('express');
 const router = express.Router();
 
