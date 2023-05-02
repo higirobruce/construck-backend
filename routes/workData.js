@@ -1111,7 +1111,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
-      } else {
+      } else if(!w.siteWork) {
         work = {
           workDone: w.workDone
             ? w.workDone
