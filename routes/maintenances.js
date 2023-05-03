@@ -97,7 +97,7 @@ router.put('/maintenance/:id', async (req, res) => {
         operatorNotApplicable,
         mileagesNotApplicable,
         requestParts,
-        receivedParts
+        receivedParts,
     } = req.body.payload;
 
     const jobCard = await Maintenance.findByIdAndUpdate(req.params.id, {
@@ -128,7 +128,7 @@ router.put('/maintenance/:id', async (req, res) => {
         operatorNotApplicable,
         mileagesNotApplicable,
         requestParts,
-        receivedParts
+        receivedParts,
     }, {new: true});
 
     if(!jobCard)
