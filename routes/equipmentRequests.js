@@ -5,7 +5,7 @@ const _ = require("lodash");
 
 router.get("/", async (req, res) => {
   try {
-    const requests = await requestData.model.find().populate("equipmentType");
+    const requests = await requestData.model.find().populate("equipmentType").populate('workToBeDone');
     res.status(200).send(requests);
   } catch (err) {
     res.send(err);
@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    const jobType = await requestData.model.findById(id).populate("equipmentType");
+    const jobType = await requestData.model.findById(id).populate("equipmentType").populate('workToBeDone');
     res.status(200).send(jobType);
   } catch (err) {
     res.send(err);
@@ -25,7 +25,7 @@ router.get("/:id", async (req, res) => {
 router.get("/byOwner/:id", async (req, res) => {
   let { id } = req.params;
   try {
-    const jobType = await requestData.model.find({owner:id}).populate("equipmentType");
+    const jobType = await requestData.model.find({owner:id}).populate("equipmentType").populate('workToBeDone');
     res.status(200).send(jobType);
   } catch (err) {
     res.send(err);
@@ -37,7 +37,6 @@ router.post("/", async (req, res) => {
     let requestToCreate = new requestData.model(req.body);
     let requestCreated = await requestToCreate.save();
 
-    console.log(requestCreated)
     res.status(201).send(requestCreated);
   } catch (err) {
     let error = findError(err.code);

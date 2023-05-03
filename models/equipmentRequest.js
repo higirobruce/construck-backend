@@ -10,6 +10,20 @@ const EquipmentRequestSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: "equipmenttypes",
   },
+  workToBeDone: {
+    type: mongoose.Types.ObjectId,
+    ref: "jobTypes",
+    required: true,
+  },
+  tripsToBeMade: {
+    type: Number,
+  },
+  tripFrom:{
+    type: String
+  },
+  tripTo:{
+    type: String
+  },
   quantity: {
     type: Number,
   },
