@@ -926,11 +926,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.eqOwner": driverId,
-              // status: { $ne: "stopped" },
+              status: { $ne: "stopped" },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
-              // status: { $ne: "stopped" },
+              status: { $ne: "stopped" },
             },
           ],
         },
@@ -960,7 +960,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         (w) =>
           w.siteWork === false ||
           (w.siteWork === true &&
-            (w.status === "in progress" || w.status === "on going")) ||
+            (w.status === "in progress" || w.status === "on going"))
+             ||
           (w.siteWork === true &&
             _.filter(w.dailyWork, (dW) => {
               return dW.date === moment().format("DD-MMM-YYYY");
@@ -980,20 +981,31 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
         let dailyWorks = w.dailyWork;
 
+        
+
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
             return { date: d.date, duration: d.duration, uom: d.uom };
           });
 
+          let datesPostedDatesOnly = dailyWorks
+          .filter((d) => d.pending === false)
+          .map((d) => {
+            return d.date
+          });
+
+          
+
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
-
           .map((d) => {
             return d.date;
           });
         let workStartDate = moment(w.workStartDate);
         let workDurationDays = w.workDurationDays;
+
+
 
         let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
         for (let i = 0; i < workDurationDays - 1; i++) {
@@ -1002,7 +1014,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
         let dateNotPosted = datesToPost.filter(
           (d) =>
-            !_.includes(datesPosted, d) &&
+            !_.includes(datesPostedDatesOnly, d) &&
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
