@@ -3778,12 +3778,13 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
+
     if (
       work.status === "created" ||
       (work.status === "on going" &&
         work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate),'day') &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate),'day'))
     ) {
       let eqId = work?.equipment?._id;
 
@@ -4778,6 +4779,8 @@ async function getValidatedRevenuesByProject(prjDescription) {
         "project.prjDescription": prjDescription,
         status: { $nin: ["recalled", "created"] },
       },
+
+      
     },
     {
       $unwind: {
