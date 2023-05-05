@@ -960,8 +960,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         (w) =>
           w.siteWork === false ||
           (w.siteWork === true &&
-            (w.status === "in progress" || w.status === "on going"))
-             ||
+            (w.status === "in progress" || w.status === "on going")) ||
           (w.siteWork === true &&
             _.filter(w.dailyWork, (dW) => {
               return dW.date === moment().format("DD-MMM-YYYY");
@@ -981,21 +980,17 @@ router.get("/v3/driver/:driverId", async (req, res) => {
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
         let dailyWorks = w.dailyWork;
 
-        
-
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
             return { date: d.date, duration: d.duration, uom: d.uom };
           });
 
-          let datesPostedDatesOnly = dailyWorks
+        let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return d.date
+            return d.date;
           });
-
-          
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
@@ -1004,8 +999,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           });
         let workStartDate = moment(w.workStartDate);
         let workDurationDays = w.workDurationDays;
-
-
 
         let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
         for (let i = 0; i < workDurationDays - 1; i++) {
@@ -1049,7 +1042,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: dP.duration / (1000 * 60 * 60) +' '+ dP.uom+'s',
+            duration: dP.duration / (1000 * 60 * 60) + " " + dP.uom + "s",
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1085,7 +1078,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: 0+' hours'
+            duration: 0 + " hours",
           });
         });
 
@@ -1119,11 +1112,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: 0+' hours',
+            duration: 0 + " hours",
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
-      } else if(!w.siteWork) {
+      } else if (!w.siteWork) {
         work = {
           workDone: w.workDone
             ? w.workDone
@@ -1151,8 +1144,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
-          duration: w.duration.toFixed(2) +' '+ w.uom+'s',
-          tripsDone: w.tripsDone
+          duration: w.duration.toFixed(2) + " " + w.uom + "s",
+          tripsDone: w.tripsDone,
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
@@ -3778,13 +3771,12 @@ router.put("/start/:id", async (req, res) => {
       .populate("appovedBy")
       .populate("workDone");
 
-
     if (
       work.status === "created" ||
       (work.status === "on going" &&
         work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate),'day') &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate),'day'))
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
     ) {
       let eqId = work?.equipment?._id;
 
@@ -3897,8 +3889,8 @@ router.put("/stop/:id", async (req, res) => {
     if (
       work.status === "in progress" ||
       (work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate)) &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate)))
+        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = equipment.eqStatus === "standby" ? true : false;
@@ -3913,6 +3905,7 @@ router.put("/stop/:id", async (req, res) => {
       if (work?.dailyWork?.length >= work.workDurationDays) {
         equipment.eqStatus = eqBusyWorks.length >= 1 ? "dispatched" : "standby";
         equipment.assignedToSiteWork = false;
+        workEnded = true;
       }
 
       let employee = await employeeData.model.findById(work?.driver);
@@ -3929,10 +3922,7 @@ router.put("/stop/:id", async (req, res) => {
         let currentDuration = Math.abs(work.duration);
         let currentTotalExpenditure = work.totalExpenditure;
 
-        // work.status =
-        //   workEnded || work?.dailyWork?.length >= work.workDurationDays
-        //     ? "stopped"
-        //     : "on going";
+        work.status = workEnded ? "stopped" : "on going";
 
         let _duration = Math.abs(work.endTime - work.startTime);
 
@@ -4019,7 +4009,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
-        work.status = "on going";
+        // work.status = "on going";
 
         await equipment.save();
         if (employee) await employee.save();
@@ -4779,8 +4769,6 @@ async function getValidatedRevenuesByProject(prjDescription) {
         "project.prjDescription": prjDescription,
         status: { $nin: ["recalled", "created"] },
       },
-
-      
     },
     {
       $unwind: {
@@ -4833,6 +4821,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
+
     {
       $group: {
         _id: {
@@ -4846,6 +4835,19 @@ async function getValidatedRevenuesByProject(prjDescription) {
         totalRevenue: {
           $sum: "$newTotalRevenue",
         },
+      },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
       },
     },
     {
@@ -4933,6 +4935,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
+
     {
       $group: {
         _id: {
@@ -4947,6 +4950,20 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
           $sum: "$newTotalRevenue",
         },
       },
+    },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
+      },
+      
     },
     {
       $sort: {
