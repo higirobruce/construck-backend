@@ -129,13 +129,11 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
               approvedRevenue: {
                 $gt: 0,
               },
-              workEndDate:{$gte:moment('2023-04-30')}
             },
             {
               rejectedRevenue: {
                 $gt: 0,
               },
-              workEndDate:{$gte:moment('2023-04-30')}
             },
           ],
         },
