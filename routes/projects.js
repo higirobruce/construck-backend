@@ -17,13 +17,13 @@ router.get("/", async (req, res) => {
 
 router.get("/v2", async (req, res) => {
   try {
-    let customers = await custData.model.find().populate({ 
-      path: 'projects',
+    let customers = await custData.model.find().populate({
+      path: "projects",
       populate: {
-        path: 'projectAdmin',
-        model: 'users'
-      } 
-   });
+        path: "projectAdmin",
+        model: "users",
+      },
+    });
     let projects = [];
     customers.forEach((c) => {
       let cProjects = c.projects;
@@ -89,7 +89,7 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       {
         $match: {
           "project.prjDescription": prjDescription,
-          "dailyWork.status":"rejected"
+          "dailyWork.status": "rejected",
         },
       },
       {
@@ -161,6 +161,9 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
           workStartDate: 1,
           "dispatch.date": 1,
           "equipment.uom": 1,
+          "dispatch.shift": 1,
+          "equipment.plateNumber": 1,
+          "equipment.eqDescription": 1,
         },
       },
     ];
@@ -207,12 +210,12 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get('/:customerName/:prjId', async (req, res)=>{
-  let {customerName, prjId} = req.params
-  let project = await getProject(customerName, prjId)
-  
-  res.send(project)
-})
+router.get("/:customerName/:prjId", async (req, res) => {
+  let { customerName, prjId } = req.params;
+  let project = await getProject(customerName, prjId);
+
+  res.send(project);
+});
 
 async function getReleasedPerMonth(prjDescription, month, year) {
   let pipeline = [
@@ -326,7 +329,7 @@ async function getReleasedPerMonth(prjDescription, month, year) {
     });
     return list;
   } catch (err) {
-    (err);
+    err;
     return err;
   }
 }
@@ -397,41 +400,45 @@ async function fetchProjects() {
         _p.customer = c?.name;
         _p.customerId = c?._id;
         _p.id = p?._id;
-        _p.description = p?.prjDescription
+        _p.description = p?.prjDescription;
         projects.push(_p);
-      })
+      });
       // .sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
     }
-  })
-  // 
-  return projects.sort((a,b)=> a?.prjDescription.localeCompare(b?.prjDescription));
+  });
+  //
+  return projects.sort((a, b) =>
+    a?.prjDescription.localeCompare(b?.prjDescription)
+  );
 }
 
-async function getProject(customerName, prjId){
+async function getProject(customerName, prjId) {
   let pipeline = [
     {
-      '$match': {
-        'name': customerName,
-      }
-    }, {
-      '$unwind': {
-        'path': '$projects', 
-        'preserveNullAndEmptyArrays': true
-      }
-    }, {
-      '$match': {
-        'projects._id': new mongoose.Types.ObjectId(prjId)
-      }
-    }
+      $match: {
+        name: customerName,
+      },
+    },
+    {
+      $unwind: {
+        path: "$projects",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: {
+        "projects._id": new mongoose.Types.ObjectId(prjId),
+      },
+    },
   ];
 
   let project = await custData.model.aggregate(pipeline);
-  if(project.length>=1) return project[0].projects
-  else return {}
+  if (project.length >= 1) return project[0].projects;
+  else return {};
 }
 
 module.exports = {
   router,
   fetchProjects,
-  getProject
+  getProject,
 };
