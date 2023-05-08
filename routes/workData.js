@@ -4837,19 +4837,19 @@ async function getValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "_id.month": { $gt: 4 },
-    //         "_id.year": { $gte: 2023 },
-    //       },
-    //       {
-    //         "_id.year": { $gt: 2023 },
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
+      },
+    },
     {
       $sort: {
         "_id.year": 1,
@@ -4882,6 +4882,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
+  console.log('heer')
   let pipeline = [
     {
       $match: {
@@ -4951,19 +4952,19 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "_id.month": { $gt: 4 },
-    //         "_id.year": { $gte: 2023 },
-    //       },
-    //       {
-    //         "_id.year": { $gt: 2023 },
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
+      },
+    },
     {
       $sort: {
         "_id.year": 1,
