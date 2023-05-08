@@ -139,6 +139,20 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "employees",
+          localField: "driver",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $unwind: {
+          path: "$driver",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
         $project: {
           "project.prjDescription": 1,
           "dailyWork.totalRevenue": 1,
@@ -164,6 +178,7 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
           "dispatch.shift": 1,
           "equipment.plateNumber": 1,
           "equipment.eqDescription": 1,
+          driver: 1,
         },
       },
     ];
