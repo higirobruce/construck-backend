@@ -36,7 +36,7 @@ router.post('/maintenance/logs', async (req, res) => {
 
     if(stillInRepair) return res.status(400).json({message: 'The equipment is still in repair or Issues with Mileages'})
 
-    const lowMileages = jobCards.find(item => (item.plate.value == carPlate.value && item.mileage > mileages))
+    const lowMileages = jobCards.find(item => (item.plate.value == carPlate.value) && item.mileage > mileages)
     if(lowMileages) return res.status(400).json({message: 'Mileages input are low to the previous'})
 
     // Saving the Job Card
