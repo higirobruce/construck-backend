@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const moment = require('moment')
 
 const maintenanceLogsSchema = new mongoose.Schema({
     jobCard_Id: {
@@ -6,7 +7,7 @@ const maintenanceLogsSchema = new mongoose.Schema({
     },
     entryDate: {
         type: Date,
-        default: Date.now()
+        default: moment()
     },
     driver: {
         type: Object
@@ -83,7 +84,7 @@ const maintenanceLogsSchema = new mongoose.Schema({
     },
     updated_At: {
         type: Date,
-        default: Date.now()
+        default: moment()
     },
     operatorNotApplicable: {
         type: Boolean
