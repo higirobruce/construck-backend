@@ -1,4 +1,5 @@
 const { Maintenance } = require('../models/maintenance');
+const moment = require('moment');
 const express = require('express');
 const router = express.Router();
 
@@ -108,7 +109,7 @@ router.put('/maintenance/:id', async (req, res) => {
         mileage: mileages,
         location,
         startRepair,
-        endRepair: supervisorApproval == true ? Date.now() : '',
+        endRepair: supervisorApproval == true ? moment() : '',
         status: supervisorApproval == true ? 'pass' : (sourceItem == 'No Parts Required' && status == 'repair') ? 'repair' : status,
         inspectionTools,
         mechanicalInspections,
@@ -124,7 +125,7 @@ router.put('/maintenance/:id', async (req, res) => {
         isViewed,
         reason,
         jobCard_status: supervisorApproval == true ? 'closed' : 'opened',
-        updated_At: Date.now(),
+        updated_At: moment(),
         operatorNotApplicable,
         mileagesNotApplicable,
         requestParts,
