@@ -4095,10 +4095,10 @@ router.put("/stop/:id", async (req, res) => {
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
-            work.duration = duration / HOURS_IN_A_DAY;
             let tripRatio = tripsDone / targetTrips;
-            if (tripsDone && targetTrips) {
-              if (tripRatio > 1) {
+            work.duration = tripRatio;
+            if (tripsDone && targetTrips && equipment?.eqDescription==='TIPPER TRUCK') {
+              if (tripRatio >= 1) {
                 revenue = rate;
                 expenditure = supplierRate;
                 // revenue = rate;
@@ -4107,7 +4107,7 @@ router.put("/stop/:id", async (req, res) => {
                 expenditure = supplierRate * tripRatio;
               }
             }
-            if (!targetTrips || targetTrips == "0") {
+            if ( !targetTrips || targetTrips == "0" || equipment?.eqDescription !=='TIPPER TRUCK') {
               {
                 let targetDuration = 5;
                 let durationRation =
@@ -4882,7 +4882,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
-  console.log('heer')
+  console.log("heer");
   let pipeline = [
     {
       $match: {
