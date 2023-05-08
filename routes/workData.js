@@ -4837,19 +4837,19 @@ async function getValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "_id.month": { $gt: 4 },
-            "_id.year": { $gte: 2023 },
-          },
-          {
-            "_id.year": { $gt: 2023 },
-          },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "_id.month": { $gt: 4 },
+    //         "_id.year": { $gte: 2023 },
+    //       },
+    //       {
+    //         "_id.year": { $gt: 2023 },
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $sort: {
         "_id.year": 1,
@@ -4896,15 +4896,15 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $match: {
-        $or: [
-          { "dailyWork.status": { $exists: false }, siteWork: true },
-          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-          { status: "stopped", siteWork: false },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       { "dailyWork.status": { $exists: false }, siteWork: true },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       { status: "stopped", siteWork: false },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
@@ -4951,20 +4951,19 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "_id.month": { $gt: 4 },
-            "_id.year": { $gte: 2023 },
-          },
-          {
-            "_id.year": { $gt: 2023 },
-          },
-        ],
-      },
-      
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "_id.month": { $gt: 4 },
+    //         "_id.year": { $gte: 2023 },
+    //       },
+    //       {
+    //         "_id.year": { $gt: 2023 },
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $sort: {
         "_id.year": 1,
@@ -4975,9 +4974,9 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         "_id.month": 1,
       },
     },
-    {
-      $limit: 5,
-    },
+    // {
+    //   $limit: 5,
+    // },
   ];
 
   try {
@@ -5071,7 +5070,9 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
     {
       $group: {
         _id: {
-          date: "$transactionDate",
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
+          },
         },
         totalRevenue: {
           $sum: "$newTotalRevenue",
@@ -5114,23 +5115,23 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "dailyWork.status": {
-              $exists: false,
-            },
-            siteWork: true,
-          },
-          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-          {
-            status: "stopped",
-            siteWork: false,
-          },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
@@ -5176,7 +5177,9 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
     {
       $group: {
         _id: {
-          date: "$transactionDate",
+          date: {
+            $dateToString: { format: "%Y-%m-%d", date: "$transactionDate" },
+          },
         },
         totalRevenue: {
           $sum: "$newTotalRevenue",
@@ -5327,23 +5330,23 @@ async function getNonValidatedListByProjectAndMonth(
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "dailyWork.status": {
-              $exists: false,
-            },
-            siteWork: true,
-          },
-          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-          {
-            status: "stopped",
-            siteWork: false,
-          },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
@@ -5519,23 +5522,23 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
         preserveNullAndEmptyArrays: true,
       },
     },
-    {
-      $match: {
-        $or: [
-          {
-            "dailyWork.status": {
-              $exists: false,
-            },
-            siteWork: true,
-          },
-          { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-          {
-            status: "stopped",
-            siteWork: false,
-          },
-        ],
-      },
-    },
+    // {
+    //   $match: {
+    //     $or: [
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
+    //     ],
+    //   },
+    // },
     {
       $addFields: {
         transactionDate: {
@@ -5575,6 +5578,11 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
     {
       $match: {
         transactionDate: new Date(transactionDate),
+      },
+    },
+    {
+      $sort: {
+        "equipment.eqDescription": 1,
       },
     },
   ];
