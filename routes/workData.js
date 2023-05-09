@@ -1043,7 +1043,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: dP.duration / (1000 * 60 * 60) + " " + dP.uom + "s",
-            dispatch: w.dispatch
+            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1080,7 +1080,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
-            dispatch: w.dispatch
+            dispatch: w.dispatch,
           });
         });
 
@@ -1115,7 +1115,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
-            dispatch: w.dispatch
+            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1149,7 +1149,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           ).toFixed(2),
           duration: w.duration.toFixed(2) + " " + w.uom + "s",
           tripsDone: w.tripsDone,
-          dispatch: w.dispatch
+          dispatch: w.dispatch,
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
@@ -3965,8 +3965,8 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment === "Should neve happen") //reason that does not exist
-          {
+          if (comment === "Should neve happen") {
+            //reason that does not exist
             dailyWork.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
@@ -4085,15 +4085,19 @@ router.put("/stop/:id", async (req, res) => {
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
             work.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+            revenue =
+              tripsRatio > 0
+                ? (tripsRatio * (rate * work.duration)) / 3600000
+                : (rate * work.duration) / 3600000;
             expenditure =
-              (tripsRatio * (supplierRate * work.duration)) / 3600000;
+              tripsRatio > 0
+                ? (tripsRatio * (supplierRate * work.duration)) / 3600000
+                : (supplierRate * work.duration) / 3600000;
           }
         }
 
         //if rate is per day
         if (uom === "day") {
-          
           // work.duration = duration;
           // revenue = rate * duration;
           if (comment == "Should never happen") {
@@ -4103,10 +4107,13 @@ router.put("/stop/:id", async (req, res) => {
           } else {
             let tripRatio = tripsDone / targetTrips;
             work.duration = tripRatio;
-            if (tripsDone && targetTrips && equipment?.eqDescription==='TIPPER TRUCK') {
-             
+            if (
+              tripsDone &&
+              targetTrips &&
+              equipment?.eqDescription === "TIPPER TRUCK"
+            ) {
               if (tripRatio >= 1) {
-                revenue = rate*tripRatio;
+                revenue = rate * tripRatio;
                 expenditure = supplierRate;
                 // revenue = rate;
               } else {
@@ -4114,9 +4121,12 @@ router.put("/stop/:id", async (req, res) => {
                 expenditure = supplierRate * tripRatio;
               }
             }
-            if ( !targetTrips || targetTrips == "0" || equipment?.eqDescription !=='TIPPER TRUCK') {
+            if (
+              !targetTrips ||
+              targetTrips == "0" ||
+              equipment?.eqDescription !== "TIPPER TRUCK"
+            ) {
               {
-
                 let targetDuration = 5;
                 let durationRation =
                   duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
