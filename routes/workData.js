@@ -4089,9 +4089,10 @@ router.put("/stop/:id", async (req, res) => {
 
         //if rate is per day
         if (uom === "day") {
+          
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment !== "Should never happen") {
+          if (comment == "Should never happen") {
             work.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
@@ -4099,6 +4100,7 @@ router.put("/stop/:id", async (req, res) => {
             let tripRatio = tripsDone / targetTrips;
             work.duration = tripRatio;
             if (tripsDone && targetTrips && equipment?.eqDescription==='TIPPER TRUCK') {
+             
               if (tripRatio >= 1) {
                 revenue = rate*tripRatio;
                 expenditure = supplierRate;
@@ -4110,6 +4112,7 @@ router.put("/stop/:id", async (req, res) => {
             }
             if ( !targetTrips || targetTrips == "0" || equipment?.eqDescription !=='TIPPER TRUCK') {
               {
+
                 let targetDuration = 5;
                 let durationRation =
                   duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
