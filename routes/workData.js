@@ -3922,7 +3922,7 @@ router.put("/stop/:id", async (req, res) => {
         let currentDuration = Math.abs(work.duration);
         let currentTotalExpenditure = work.totalExpenditure;
 
-        work.status = workEnded ? "stopped" : "on going";
+        // work.status = workEnded ? "stopped" : "on going";
 
         let _duration = Math.abs(work.endTime - work.startTime);
 
