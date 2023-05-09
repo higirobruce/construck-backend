@@ -3946,7 +3946,7 @@ router.put("/stop/:id", async (req, res) => {
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
           dailyWork.projectedRevenue = rate * 5;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should never happen") {
             dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
@@ -3961,7 +3961,8 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should neve happen") //reason that does not exist
+          {
             dailyWork.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
@@ -4074,7 +4075,7 @@ router.put("/stop/:id", async (req, res) => {
 
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should never happen") {
             work.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * work.duration) / 3600000;
             expenditure = (supplierRate * work.duration) / 3600000;
@@ -4090,7 +4091,7 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment !== "Should never happen") {
             work.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
