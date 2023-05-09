@@ -2270,6 +2270,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log(err)
     res.send(err);
   }
 });
@@ -3891,10 +3892,12 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
-      work.status === "in progress" ||
-      (work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
+      work.status === "in progress"
+      // (work.siteWork 
+      //   &&
+      //   moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
+      //   moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day")
+      //   )
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = equipment.eqStatus === "standby" ? true : false;
@@ -4014,7 +4017,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
-        // work.status = "on going";
+        work.status = "on going";
 
         await equipment.save();
         if (employee) await employee.save();
