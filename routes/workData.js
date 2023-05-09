@@ -1043,6 +1043,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: dP.duration / (1000 * 60 * 60) + " " + dP.uom + "s",
+            dispatch: w.dispatch
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1079,6 +1080,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
+            dispatch: w.dispatch
           });
         });
 
@@ -1113,6 +1115,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
+            dispatch: w.dispatch
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1146,6 +1149,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           ).toFixed(2),
           duration: w.duration.toFixed(2) + " " + w.uom + "s",
           tripsDone: w.tripsDone,
+          dispatch: w.dispatch
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
