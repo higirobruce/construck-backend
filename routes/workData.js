@@ -1541,6 +1541,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         },
       },
       {
+        $unwind: {
+          path: "$dispatch.astDriver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $addFields: {
           turnboy: {
             $toObjectId: "$dispatch.astDriver",
@@ -1582,6 +1588,95 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               },
             ],
           },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "driver",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $unwind: {
+          path: "$driver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "workDone",
+          foreignField: "_id",
+          as: "workDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$workDone",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "createdBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$createdBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "project.projectAdmin",
+          foreignField: "_id",
+          as: "projectAdmin",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectAdmin",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
+
+    let pipelineNoTurnBoys = [
+      {
+        $match: query,
+      },
+      {
+        $unwind: {
+          path: "$dispatch.astDriver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          turnboy: {
+            $toObjectId: "$dispatch.astDriver",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "turnboy",
+          foreignField: "_id",
+          as: "turnboy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$turnboy",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -2270,7 +2365,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.send(err);
   }
 });
@@ -3893,14 +3988,12 @@ router.put("/stop/:id", async (req, res) => {
     //You can only stop jobs in progress
     if (
       work.status === "in progress" ||
-      (work.siteWork 
-        &&
+      (work.siteWork &&
         moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day")
-        )
+        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      let workEnded = false
+      let workEnded = false;
 
       //get jobs being done by the same equipment
       let eqBusyWorks = await workData.model.find({
