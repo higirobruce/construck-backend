@@ -89,7 +89,6 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       {
         $match: {
           "project.prjDescription": prjDescription,
-          "dailyWork.status": "rejected",
         },
       },
       {
@@ -149,7 +148,68 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       {
         $unwind: {
           path: "$driver",
-          preserveNullAndEmptyArrays: false,
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          dailyWorkNew: "$dailyWork",
+        },
+      },
+      {
+        $unwind: {
+          path: "$dailyWork",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          transactionDate: {
+            $cond: {
+              if: {
+                $eq: ["$siteWork", false],
+              },
+              then: "$workStartDate",
+              else: {
+                $dateFromString: {
+                  dateString: "$dailyWork.date",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          month: {
+            $month: "$transactionDate",
+          },
+        },
+      },
+      {
+        $addFields: {
+          year: {
+            $year: "$transactionDate",
+          },
+        },
+      },
+      {
+        $match: {
+          $or: [
+            {
+              month: {
+                $gt: 4,
+              },
+              year: {
+                $gte: 2023,
+              },
+            },
+            {
+              year: {
+                $gt: 2023,
+              },
+            },
+          ],
         },
       },
       {
@@ -179,6 +239,7 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
           "equipment.plateNumber": 1,
           "equipment.eqDescription": 1,
           driver: 1,
+          dailyWorkNew: 1,
         },
       },
     ];
