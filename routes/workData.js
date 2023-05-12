@@ -926,11 +926,11 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           $or: [
             {
               "equipment.eqOwner": driverId,
-              status: { $ne: "stopped" },
+              status: { $ne: "released" },
             },
             {
               driver: isValidObjectId(driverId) ? driverId : "123456789011",
-              status: { $ne: "stopped" },
+              status: { $ne: "released" },
             },
           ],
         },
@@ -1043,6 +1043,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: dP.duration / (1000 * 60 * 60) + " " + dP.uom + "s",
+            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1079,6 +1080,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
+            dispatch: w.dispatch,
           });
         });
 
@@ -1113,6 +1115,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration: 0 + " hours",
+            dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
@@ -1146,6 +1149,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           ).toFixed(2),
           duration: w.duration.toFixed(2) + " " + w.uom + "s",
           tripsDone: w.tripsDone,
+          dispatch: w.dispatch,
           // millage: w.equipment.millage ? w.equipment.millage : 0,
         };
       }
@@ -1537,6 +1541,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         },
       },
       {
+        $unwind: {
+          path: "$dispatch.astDriver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
         $addFields: {
           turnboy: {
             $toObjectId: "$dispatch.astDriver",
@@ -1578,6 +1588,95 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               },
             ],
           },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "driver",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $unwind: {
+          path: "$driver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "jobtypes",
+          localField: "workDone",
+          foreignField: "_id",
+          as: "workDone",
+        },
+      },
+      {
+        $unwind: {
+          path: "$workDone",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "createdBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$createdBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "project.projectAdmin",
+          foreignField: "_id",
+          as: "projectAdmin",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectAdmin",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
+
+    let pipelineNoTurnBoys = [
+      {
+        $match: query,
+      },
+      {
+        $unwind: {
+          path: "$dispatch.astDriver",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          turnboy: {
+            $toObjectId: "$dispatch.astDriver",
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "turnboy",
+          foreignField: "_id",
+          as: "turnboy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$turnboy",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -2266,6 +2365,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
     res.status(200).send(orderedList.filter((w) => w !== null));
   } catch (err) {
+    console.log(err);
     res.send(err);
   }
 });
@@ -3893,7 +3993,7 @@ router.put("/stop/:id", async (req, res) => {
         moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
-      let workEnded = equipment.eqStatus === "standby" ? true : false;
+      let workEnded = false;
 
       //get jobs being done by the same equipment
       let eqBusyWorks = await workData.model.find({
@@ -3922,7 +4022,7 @@ router.put("/stop/:id", async (req, res) => {
         let currentDuration = Math.abs(work.duration);
         let currentTotalExpenditure = work.totalExpenditure;
 
-        work.status = workEnded ? "stopped" : "on going";
+        // work.status = workEnded ? "stopped" : "on going";
 
         let _duration = Math.abs(work.endTime - work.startTime);
 
@@ -3946,7 +4046,7 @@ router.put("/stop/:id", async (req, res) => {
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
           dailyWork.projectedRevenue = rate * 5;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should never happen") {
             dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * dailyWork.duration) / 3600000;
             expenditure = (supplierRate * dailyWork.duration) / 3600000;
@@ -3961,7 +4061,8 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should neve happen") {
+            //reason that does not exist
             dailyWork.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
@@ -4009,7 +4110,7 @@ router.put("/stop/:id", async (req, res) => {
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.equipment = equipment;
         work.moreComment = moreComment;
-        // work.status = "on going";
+        work.status = workEnded ? "stopped" : "on going";
 
         await equipment.save();
         if (employee) await employee.save();
@@ -4074,15 +4175,20 @@ router.put("/stop/:id", async (req, res) => {
 
         // if rate is per hour and we have target trips to be done
         if (uom === "hour") {
-          if (comment !== "Ibibazo bya panne") {
+          if (comment === "Should never happen") {
             work.duration = duration > 0 ? duration * 3600000 : 0;
             revenue = (rate * work.duration) / 3600000;
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
             work.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+            revenue =
+              tripsRatio > 0
+                ? (tripsRatio * (rate * work.duration)) / 3600000
+                : (rate * work.duration) / 3600000;
             expenditure =
-              (tripsRatio * (supplierRate * work.duration)) / 3600000;
+              tripsRatio > 0
+                ? (tripsRatio * (supplierRate * work.duration)) / 3600000
+                : (supplierRate * work.duration) / 3600000;
           }
         }
 
@@ -4090,16 +4196,20 @@ router.put("/stop/:id", async (req, res) => {
         if (uom === "day") {
           // work.duration = duration;
           // revenue = rate * duration;
-          if (comment !== "Ibibazo bya panne") {
+          if (comment == "Should never happen") {
             work.duration = duration / HOURS_IN_A_DAY;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
-            work.duration = duration / HOURS_IN_A_DAY;
             let tripRatio = tripsDone / targetTrips;
-            if (tripsDone && targetTrips) {
-              if (tripRatio > 1) {
-                revenue = rate;
+            work.duration = tripRatio;
+            if (
+              tripsDone &&
+              targetTrips &&
+              equipment?.eqDescription === "TIPPER TRUCK"
+            ) {
+              if (tripRatio >= 1) {
+                revenue = rate * tripRatio;
                 expenditure = supplierRate;
                 // revenue = rate;
               } else {
@@ -4107,7 +4217,11 @@ router.put("/stop/:id", async (req, res) => {
                 expenditure = supplierRate * tripRatio;
               }
             }
-            if (!targetTrips || targetTrips == "0") {
+            if (
+              !targetTrips ||
+              targetTrips == "0" ||
+              equipment?.eqDescription !== "TIPPER TRUCK"
+            ) {
               {
                 let targetDuration = 5;
                 let durationRation =
@@ -4837,19 +4951,19 @@ async function getValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "_id.month": { $gt: 4 },
-    //         "_id.year": { $gte: 2023 },
-    //       },
-    //       {
-    //         "_id.year": { $gt: 2023 },
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
+      },
+    },
     {
       $sort: {
         "_id.year": 1,
@@ -4882,6 +4996,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
+  console.log("heer");
   let pipeline = [
     {
       $match: {
@@ -4951,19 +5066,19 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-    // {
-    //   $match: {
-    //     $or: [
-    //       {
-    //         "_id.month": { $gt: 4 },
-    //         "_id.year": { $gte: 2023 },
-    //       },
-    //       {
-    //         "_id.year": { $gt: 2023 },
-    //       },
-    //     ],
-    //   },
-    // },
+    {
+      $match: {
+        $or: [
+          {
+            "_id.month": { $gt: 4 },
+            "_id.year": { $gte: 2023 },
+          },
+          {
+            "_id.year": { $gt: 2023 },
+          },
+        ],
+      },
+    },
     {
       $sort: {
         "_id.year": 1,
