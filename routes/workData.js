@@ -1899,6 +1899,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 (w.projectAdmin?.firstName || "") +
                 " " +
                 (w.projectAdmin?.lastName || ""),
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
             });
           }
         });
@@ -1968,6 +1970,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 (w.projectAdmin?.firstName || "") +
                 " " +
                 (w.projectAdmin?.lastName || ""),
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
             });
           }
         });
@@ -2039,6 +2043,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 (w.projectAdmin?.firstName || "") +
                 " " +
                 (w.projectAdmin?.lastName || ""),
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
             });
           }
         });
@@ -2176,6 +2182,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 (w.projectAdmin?.firstName || "") +
                 " " +
                 (w.projectAdmin?.lastName || ""),
+              "Start index": w?.startIndex || 0,
+              "End index": w?.endIndex || 0,
             });
           }
         });
@@ -2352,6 +2360,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               (w.projectAdmin?.firstName || "") +
               " " +
               (w.projectAdmin?.lastName || ""),
+            "Start index": w?.startIndex || 0,
+            "End index": w?.endIndex || 0,
           };
         }
       }
