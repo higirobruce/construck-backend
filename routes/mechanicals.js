@@ -35,4 +35,21 @@ router.post('/mechanicals', async (req, res) => {
     return res.status(200).send(mechanicals)
 });
 
+router.put('/mechanicals/:id', async (req, res) => {
+    const {
+        service
+    } = req.body.payload;
+
+    const mechanicals = await Mechanicals.findByIdAndUpdate(req.params.id, {
+        'SERVICE': service,
+    }, {new: true});
+
+    if(!mechanicals)
+        return res.status(404).send('The Mechanicals can not be found');
+
+    await mechanicals.save();
+
+    return res.status(200).send(mechanicals)
+})
+
 module.exports = router;
