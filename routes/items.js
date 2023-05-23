@@ -40,4 +40,27 @@ router.post('/items', async (req, res) => {
     return res.status(200).send(items)
 });
 
+router.put('/items/:id', async (req, res) => {
+    const {
+        id,
+        itemPart,
+        uom,
+        itemCategory
+    } = req.body.payload;
+
+    const items = await Items.findByIdAndUpdate(req.params.id, {
+        '#': id,
+        'ITEM & PART': itemPart,
+        'UOM': uom,
+        'ITEM CATEGORY': itemCategory
+    }, {new: true});
+
+    if(!items)
+        return res.status(404).send('The Items can not be found');
+
+    await items.save();
+
+    return res.status(200).send(items)
+})
+
 module.exports = router;
