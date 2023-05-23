@@ -14,7 +14,17 @@ router.get("/", async (req, res) => {
         '$addFields': {
           'downtime': {
             '$dateDiff': {
-              'startDate': '$entryDate', 
+              'startDate': {
+                '$cond': {
+                  'if': {
+                    '$lte': [
+                      '$entryDate', new Date('Mon, 01 May 2023 00:00:00 GMT')
+                    ]
+                  }, 
+                  'then': new Date('Mon, 01 May 2023 00:00:00 GMT'), 
+                  'else': '$entryDate'
+                }
+              }, 
               'endDate': {
                 '$cond': {
                   'if': {
