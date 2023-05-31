@@ -58,22 +58,132 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
   try {
     let aggr = [
       {
-        $match: {
-          "project.prjDescription": prjDescription,
-        },
-      },
-      {
-        $group: {
-          _id: "$project.prjDescription",
-          totalRevenue: {
-            $sum: "$approvedRevenue",
-          },
-        },
-      },
+        '$match': {
+          'project.prjDescription': prjDescription,
+          '$or': [
+            {
+              'approvedRevenue': {
+                '$gt': 0
+              }
+            }, {
+              'rejectedRevenue': {
+                '$gt': 0
+              }
+            }
+          ]
+        }
+      }, {
+        '$lookup': {
+          'from': 'employees', 
+          'localField': 'driver', 
+          'foreignField': '_id', 
+          'as': 'driver'
+        }
+      }, {
+        '$unwind': {
+          'path': '$driver', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$addFields': {
+          'dailyWorkNew': '$dailyWork'
+        }
+      }, {
+        '$unwind': {
+          'path': '$dailyWork', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$addFields': {
+          'transactionDate': {
+            '$cond': {
+              'if': {
+                '$eq': [
+                  '$siteWork', false
+                ]
+              }, 
+              'then': '$workStartDate', 
+              'else': {
+                '$dateFromString': {
+                  'dateString': '$dailyWork.date'
+                }
+              }
+            }
+          }
+        }
+      }, {
+        '$addFields': {
+          'month': {
+            '$month': '$transactionDate'
+          }
+        }
+      }, {
+        '$addFields': {
+          'year': {
+            '$year': '$transactionDate'
+          }
+        }
+      }, {
+        '$match': {
+          '$or': [
+            {
+              'month': {
+                '$gt': 4
+              }, 
+              'year': {
+                '$gte': 2023
+              }
+            }, {
+              'year': {
+                '$gt': 2023
+              }
+            }
+          ]
+        }
+      }, {
+        '$project': {
+          'project.prjDescription': 1, 
+          'dailyWork.totalRevenue': 1, 
+          'dailyWork.duration': 1, 
+          'dailyWork.totalExpenditure': 1, 
+          'dailyWork.rejectedReason': 1, 
+          'dailyWork.date': 1, 
+          'dailyWork.status': 1, 
+          'dailyWork.uom': 1, 
+          'status': 1, 
+          'approvedDuration': 1, 
+          'approvedExpenditure': 1, 
+          'approvedRevenue': 1, 
+          'reasonForRejection': 1, 
+          'rejectedDuration': 1, 
+          'rejectedEpenditure': 1, 
+          'rejectedReason': 1, 
+          'rejectedRevenue': 1, 
+          'siteWork': 1, 
+          'workStartDate': 1, 
+          'dispatch.date': 1, 
+          'equipment.uom': 1, 
+          'dispatch.shift': 1, 
+          'equipment.plateNumber': 1, 
+          'equipment.eqDescription': 1, 
+          'driver': 1, 
+          'dailyWorkNew': 1
+        }
+      }, {
+        '$group': {
+          '_id': '$dailyWork.status', 
+          'totalRevenue': {
+            '$sum': '$dailyWork.totalRevenue'
+          }
+        }
+      }, {
+        '$match': {
+          '_id': 'approved'
+        }
+      }
     ];
 
     let worksCursor = await workData.model.aggregate(aggr);
-    const result = await worksCursor;
 
     res.send(worksCursor);
   } catch (err) {
@@ -87,22 +197,133 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
   try {
     let aggr = [
       {
-        $match: {
-          "project.prjDescription": prjDescription,
-        },
-      },
-      {
-        $group: {
-          _id: "$project.prjDescription",
-          totalRevenue: {
-            $sum: "$rejectedRevenue",
-          },
-        },
-      },
+        '$match': {
+          'project.prjDescription': prjDescription,
+          '$or': [
+            {
+              'approvedRevenue': {
+                '$gt': 0
+              }
+            }, {
+              'rejectedRevenue': {
+                '$gt': 0
+              }
+            }
+          ]
+        }
+      }, {
+        '$lookup': {
+          'from': 'employees', 
+          'localField': 'driver', 
+          'foreignField': '_id', 
+          'as': 'driver'
+        }
+      }, {
+        '$unwind': {
+          'path': '$driver', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$addFields': {
+          'dailyWorkNew': '$dailyWork'
+        }
+      }, {
+        '$unwind': {
+          'path': '$dailyWork', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$addFields': {
+          'transactionDate': {
+            '$cond': {
+              'if': {
+                '$eq': [
+                  '$siteWork', false
+                ]
+              }, 
+              'then': '$workStartDate', 
+              'else': {
+                '$dateFromString': {
+                  'dateString': '$dailyWork.date'
+                }
+              }
+            }
+          }
+        }
+      }, {
+        '$addFields': {
+          'month': {
+            '$month': '$transactionDate'
+          }
+        }
+      }, {
+        '$addFields': {
+          'year': {
+            '$year': '$transactionDate'
+          }
+        }
+      }, {
+        '$match': {
+          '$or': [
+            {
+              'month': {
+                '$gt': 4
+              }, 
+              'year': {
+                '$gte': 2023
+              }
+            }, {
+              'year': {
+                '$gt': 2023
+              }
+            }
+          ]
+        }
+      }, {
+        '$project': {
+          'project.prjDescription': 1, 
+          'dailyWork.totalRevenue': 1, 
+          'dailyWork.duration': 1, 
+          'dailyWork.totalExpenditure': 1, 
+          'dailyWork.rejectedReason': 1, 
+          'dailyWork.date': 1, 
+          'dailyWork.status': 1, 
+          'dailyWork.uom': 1, 
+          'status': 1, 
+          'approvedDuration': 1, 
+          'approvedExpenditure': 1, 
+          'approvedRevenue': 1, 
+          'reasonForRejection': 1, 
+          'rejectedDuration': 1, 
+          'rejectedEpenditure': 1, 
+          'rejectedReason': 1, 
+          'rejectedRevenue': 1, 
+          'siteWork': 1, 
+          'workStartDate': 1, 
+          'dispatch.date': 1, 
+          'equipment.uom': 1, 
+          'dispatch.shift': 1, 
+          'equipment.plateNumber': 1, 
+          'equipment.eqDescription': 1, 
+          'driver': 1, 
+          'dailyWorkNew': 1
+        }
+      }, {
+        '$group': {
+          '_id': '$dailyWork.status', 
+          'totalRevenue': {
+            '$sum': '$dailyWork.totalRevenue'
+          }
+        }
+      }, {
+        '$match': {
+          '_id': 'rejected'
+        }
+      }
     ];
 
     let worksCursor = await workData.model.aggregate(aggr);
-    const result = await worksCursor;
+   
 
     res.send(worksCursor);
   } catch (err) {
@@ -112,13 +333,13 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
 
 router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
   let { prjDescription } = req.params;
-
+  
   try {
     /*
      * Requires the MongoDB Node.js Driver
      * https://mongodb.github.io/node-mongodb-native
      */
-
+    console.log(prjDescription)
     let pipeline = [
       {
         $match: {

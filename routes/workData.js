@@ -5006,7 +5006,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
-  console.log("heer");
+ 
   let pipeline = [
     {
       $match: {
