@@ -17,6 +17,7 @@ const { sendEmail } = require("./sendEmailRoute");
 const logs = require("../models/logs");
 const { getDeviceToken } = require("../controllers.js/employees");
 const { getProject } = require("./projects");
+const customers = require("../models/customers");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -1042,7 +1043,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: dP.duration / (1000 * 60 * 60) + " " + dP.uom + "s",
+            duration: _.round(dP.duration / (1000 * 60 * 60),2) + " " + dP.uom + "s",
             dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
@@ -2135,7 +2136,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? dP.duration / (60 * 60 * 1000)
+                  ? _.round(dP.duration / (60 * 60 * 1000))
                   : 0,
               "Duration (DAYS)": w.equipment?.uom === "day" ? dP.duration : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
@@ -2316,7 +2317,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Equipment Type": w.equipment?.eqDescription,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
-              w.equipment?.uom === "hour" ? w.duration / (60 * 60 * 1000) : 0,
+              w.equipment?.uom === "hour" ? _.round(w.duration / (60 * 60 * 1000)) : 0,
             "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
@@ -3558,8 +3559,9 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     res.send(work);
 
-    // let receipts = await getReceiverEmailList(["admin"]);
-    let receipts = ["bhigiro@cvl.co.rw"];
+    
+    let receipts = await getProjectAdminEmail(workRec.project.prjDescription)
+    // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
       await sendEmail(
@@ -3833,8 +3835,7 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    let receipts = await getReceiverEmailList(["admin"]);
-
+    let receipts = await getProjectAdminEmail(work.project.prjDescription)
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3854,7 +3855,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    err;
+    console.log(err)
     res.send("Error occured!!");
   }
 });
@@ -4884,6 +4885,55 @@ async function getReceiverEmailList(userType) {
       return $.email;
     });
   } catch (err) {}
+}
+
+async function getProjectAdminEmail(project) {
+  try {
+    let pipeline = [
+      {
+        '$unwind': {
+          'path': '$projects', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$match': {
+          'projects.prjDescription': project
+        }
+      }, {
+        '$lookup': {
+          'from': 'users', 
+          'localField': 'projects.projectAdmin', 
+          'foreignField': '_id', 
+          'as': 'projectAdmin'
+        }
+      }, {
+        '$unwind': {
+          'path': '$projectAdmin', 
+          'preserveNullAndEmptyArrays': false
+        }
+      }, {
+        '$addFields': {
+          'projectAdminEmail': '$projectAdmin.email'
+        }
+      }, {
+        '$project': {
+          '_id': 0, 
+          'projectAdminEmail': 1
+        }
+      }
+    ];
+
+    let emails = await customers.model.aggregate(pipeline)
+
+    let _emails = emails.map(e=>{
+      return e.projectAdminEmail
+    })
+
+    return _emails;
+
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 async function getValidatedRevenuesByProject(prjDescription) {

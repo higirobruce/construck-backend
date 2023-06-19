@@ -88,7 +88,7 @@ const WorkSchema = new mongoose.Schema({
   workDurationDays: { type: Number, default: 0 },
   dailyWork: [
     {
-      date: String,
+      date: Date,
       startIndex: Number,
       endIndex: Number,
       duration: Number,

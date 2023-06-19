@@ -344,6 +344,7 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
       {
         $match: {
           "project.prjDescription": prjDescription,
+          status:{$nin:['recalled']},
           $or: [
             {
               approvedRevenue: {
