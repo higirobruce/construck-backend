@@ -464,6 +464,15 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
           dailyWorkNew: 1,
         },
       },
+      {
+        $sort:
+          /**
+           * Provide any number of field/order pairs.
+           */
+          {
+            transactionDate: 1,
+          },
+      },
     ];
 
     let worksCursor = await workData.model.aggregate(pipeline);

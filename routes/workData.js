@@ -1183,6 +1183,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             $or: [
               { status: "stopped" },
               { status: "rejected" },
+              { status: 'approved'},
+              { status: 'rejected'},
               { status: "on going", "dailyWork.pending": false },
             ],
           },
@@ -1777,6 +1779,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               duration: d.duration,
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
+              status: d.status
             };
           });
 
@@ -1895,7 +1898,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
-              Status: "stopped",
+              Status: dP.status,
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
@@ -2049,7 +2052,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-      } else if (w.siteWork === true && w.status === "stopped") {
+      } else if (w.siteWork === true && (w.status === "stopped") ) {
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
