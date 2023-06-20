@@ -5059,12 +5059,13 @@ async function getValidatedRevenuesByProject(prjDescription) {
 }
 
 async function getNonValidatedRevenuesByProject(prjDescription) {
- 
   let pipeline = [
     {
       $match: {
-        "project.prjDescription": prjDescription,
-        status: { $nin: ["recalled", "created"] },
+        "project.prjDescription": "SEBEYA DAM",
+        status: {
+          $nin: ["recalled", "created"],
+        },
       },
     },
     {
@@ -5077,12 +5078,26 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     // {
     //   $match: {
     //     $or: [
-    //       { "dailyWork.status": { $exists: false }, siteWork: true },
-    //       { "dailyWork.status": { $exists: true, $eq: "" }, siteWork: true },
-    //       { status: "stopped", siteWork: false },
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: false,
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         "dailyWork.status": {
+    //           $exists: true,
+    //           $eq: "",
+    //         },
+    //         siteWork: true,
+    //       },
+    //       {
+    //         status: "stopped",
+    //         siteWork: false,
+    //       },
     //     ],
     //   },
-    // },
+    // }
     {
       $addFields: {
         transactionDate: {
@@ -5091,11 +5106,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date",
           },
         },
       },
@@ -5113,7 +5124,6 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
         },
       },
     },
-
     {
       $group: {
         _id: {
@@ -5133,11 +5143,17 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
       $match: {
         $or: [
           {
-            "_id.month": { $gt: 4 },
-            "_id.year": { $gte: 2023 },
+            "_id.month": {
+              $gt: 4,
+            },
+            "_id.year": {
+              $gte: 2023,
+            },
           },
           {
-            "_id.year": { $gt: 2023 },
+            "_id.year": {
+              $gt: 2023,
+            },
           },
         ],
       },
@@ -5154,7 +5170,7 @@ async function getNonValidatedRevenuesByProject(prjDescription) {
     },
     // {
     //   $limit: 5,
-    // },
+    // }
   ];
 
   try {
@@ -5211,11 +5227,7 @@ async function getDailyValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date",
           },
         },
       },
