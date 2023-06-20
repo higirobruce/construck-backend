@@ -1856,7 +1856,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? dP.duration / (60 * 60 * 1000)
+                  ? _.round(dP.duration / (60 * 60 * 1000),2)
                   : 0,
               "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
@@ -2139,9 +2139,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000))
+                  ? _.round(dP.duration / (60 * 60 * 1000),2)
                   : 0,
-              "Duration (DAYS)": w.equipment?.uom === "day" ? dP.duration : 0,
+              "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -2321,7 +2321,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
               w.equipment?.uom === "hour" ? _.round(w.duration / (60 * 60 * 1000), 2) : 0,
-            "Duration (DAYS)": w.equipment?.uom === "day" ? w.duration : 0,
+            "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(w.duration,2) : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
