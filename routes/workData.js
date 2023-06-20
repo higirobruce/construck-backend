@@ -919,7 +919,7 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
-  // console.log(isValidObjectId(driverId));
+  console.log(isValidObjectId(driverId));
   try {
     let workList = await workData.model
       .find(
@@ -990,27 +990,27 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return d.date;
+            return moment(d.date).startOf('day');
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
           .map((d) => {
-            return d.date;
+            return  moment(d.date).startOf('day');
           });
-        let workStartDate = moment(w.workStartDate);
+        let workStartDate = moment(w.workStartDate).startOf('day');
         let workDurationDays = w.workDurationDays;
 
-        let datesToPost = [workStartDate.format("DD-MMM-YYYY")];
+        let datesToPost = [workStartDate];
         for (let i = 0; i < workDurationDays - 1; i++) {
-          datesToPost.push(workStartDate.add(1, "days").format("DD-MMM-YYYY"));
+          datesToPost.push(workStartDate.startOf('day').add(1, "days"));
         }
 
         let dateNotPosted = datesToPost.filter(
           (d) =>
             !_.includes(datesPostedDatesOnly, d) &&
             !_.includes(datesPendingPosted, d) &&
-            moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
+            moment().diff(moment(d)) >= 0
         );
 
         datesPosted.map((dP) => {
