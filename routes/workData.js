@@ -1898,7 +1898,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
-              Status: dP.status,
+              Status: dP.status || 'stopped',
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
