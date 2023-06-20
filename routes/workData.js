@@ -2447,11 +2447,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
       },
@@ -4976,11 +4972,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5330,11 +5322,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5434,11 +5422,7 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
         newTotalRevenue: {
@@ -5545,11 +5529,7 @@ async function getNonValidatedListByProjectAndMonth(
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
         newTotalRevenue: {
@@ -5645,11 +5625,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5737,11 +5713,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: {
-              $dateFromString: {
-                dateString: "$dailyWork.date",
-              },
-            },
+            else: "$dailyWork.date"
           },
         },
       },
