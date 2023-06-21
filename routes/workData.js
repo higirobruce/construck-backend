@@ -984,7 +984,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return { date: d.date, duration: d.duration, uom: d.uom };
+            return { date: moment(d.date).startOf('day'), duration: d.duration, uom: d.uom };
           });
 
         let datesPostedDatesOnly = dailyWorks
@@ -1030,7 +1030,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         )
 
         var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
-        dateNotPosted.map(d=>{
+        uniqueDatesNotPosted.map(d=>{
           console.log(d.toLocaleString())
         })
 
