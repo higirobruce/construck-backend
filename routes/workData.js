@@ -990,27 +990,30 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return moment(d.date).startOf("day");
+            
+            return moment(d.date).startOf('day');
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
           .map((d) => {
-            return moment(d.date).startOf("day");
+            
+            return  moment(d.date).startOf('day');
           });
 
-        let workStartDate = moment(w.workStartDate).startOf("day");
+        let workStartDate = moment(w.workStartDate).startOf('day');
         let workDurationDays = w.workDurationDays;
 
-        let datesArray = [];
-        var endDate = workStartDate.clone().add(workDurationDays, "days");
-        if (endDate.isAfter(moment())) endDate = moment().startOf("day");
+        let datesArray = []
+        var endDate = workStartDate.clone().add(workDurationDays, 'days');
+        if(endDate.isAfter(moment())) endDate=moment().startOf('day')
 
-
+        
         while (workStartDate.isSameOrBefore(endDate)) {
-          datesArray.push(workStartDate.startOf("day").format("YYYY-MMM-DD"));
-          workStartDate.add(1, "day");
+          datesArray.push(workStartDate.startOf('day').format());
+          workStartDate.add(1, 'day');
         }
+
 
         // let datesToPost = [workStartDate];
         // for (let i = 0; i < workDurationDays - 1; i++) {
@@ -1018,16 +1021,20 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         //   datesToPost.push(workStartDate.add(1, "days"));
         // }
 
+        
+
         let dateNotPosted = datesArray.filter(
           (d) =>
-            !_.includes(datesPostedDatesOnly, moment(d, "YYYY-MMM-DD")) &&
-            !_.includes(datesPendingPosted, moment(d, "YYYY-MMM-DD"))
-        );
+            !_.includes(datesPostedDatesOnly, d) &&
+            !_.includes(datesPendingPosted, d) 
+        )
 
         var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
-        uniqueDatesNotPosted.map((d) => {
-          // console.log(d.toLocaleString())
-        });
+        dateNotPosted.map(d=>{
+          console.log(d.toLocaleString())
+        })
+
+        
 
         datesPosted.map((dP) => {
           siteWorkList.push({
@@ -1059,8 +1066,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration:
-              _.round(dP.duration / (1000 * 60 * 60), 2) + " " + dP.uom + "s",
+            duration: _.round(dP.duration / (1000 * 60 * 60),2) + " " + dP.uom + "s",
             dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
@@ -1137,6 +1143,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
+
       } else if (!w.siteWork) {
         work = {
           workDone: w.workDone
@@ -1181,7 +1188,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     res.status(200).send(orderedList.filter((d) => !isNull(d)));
   } catch (err) {
-    console.log(err);
+    console.log(err)
     res.send(err);
   }
 });
@@ -1201,8 +1208,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             $or: [
               { status: "stopped" },
               { status: "rejected" },
-              { status: "approved" },
-              { status: "rejected" },
+              { status: 'approved'},
+              { status: 'rejected'},
               { status: "on going", "dailyWork.pending": false },
             ],
           },
@@ -1797,7 +1804,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               duration: d.duration,
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
-              status: d.status,
+              status: d.status
             };
           });
 
@@ -1874,10 +1881,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
+                  ? _.round(dP.duration / (60 * 60 * 1000),2)
                   : 0,
-              "Duration (DAYS)":
-                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
+              "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -1917,7 +1923,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
-              Status: dP.status || "stopped",
+              Status: dP.status || 'stopped',
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
@@ -2071,7 +2077,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-      } else if (w.siteWork === true && w.status === "stopped") {
+      } else if (w.siteWork === true && (w.status === "stopped") ) {
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -2158,10 +2164,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
+                  ? _.round(dP.duration / (60 * 60 * 1000),2)
                   : 0,
-              "Duration (DAYS)":
-                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
+              "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -2340,11 +2345,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Equipment Type": w.equipment?.eqDescription,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
-              w.equipment?.uom === "hour"
-                ? _.round(w.duration / (60 * 60 * 1000), 2)
-                : 0,
-            "Duration (DAYS)":
-              w.equipment?.uom === "day" ? _.round(w.duration, 2) : 0,
+              w.equipment?.uom === "hour" ? _.round(w.duration / (60 * 60 * 1000), 2) : 0,
+            "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(w.duration,2) : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -2470,7 +2472,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
       },
@@ -3581,7 +3583,8 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     res.send(work);
 
-    let receipts = await getProjectAdminEmail(workRec.project.prjDescription);
+    
+    let receipts = await getProjectAdminEmail(workRec.project.prjDescription)
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3856,7 +3859,7 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    let receipts = await getProjectAdminEmail(work.project.prjDescription);
+    let receipts = await getProjectAdminEmail(work.project.prjDescription)
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3876,7 +3879,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err);
+    console.log(err)
     res.send("Error occured!!");
   }
 });
@@ -4912,52 +4915,48 @@ async function getProjectAdminEmail(project) {
   try {
     let pipeline = [
       {
-        $unwind: {
-          path: "$projects",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $match: {
-          "projects.prjDescription": project,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "projects.projectAdmin",
-          foreignField: "_id",
-          as: "projectAdmin",
-        },
-      },
-      {
-        $unwind: {
-          path: "$projectAdmin",
-          preserveNullAndEmptyArrays: false,
-        },
-      },
-      {
-        $addFields: {
-          projectAdminEmail: "$projectAdmin.email",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          projectAdminEmail: 1,
-        },
-      },
+        '$unwind': {
+          'path': '$projects', 
+          'preserveNullAndEmptyArrays': true
+        }
+      }, {
+        '$match': {
+          'projects.prjDescription': project
+        }
+      }, {
+        '$lookup': {
+          'from': 'users', 
+          'localField': 'projects.projectAdmin', 
+          'foreignField': '_id', 
+          'as': 'projectAdmin'
+        }
+      }, {
+        '$unwind': {
+          'path': '$projectAdmin', 
+          'preserveNullAndEmptyArrays': false
+        }
+      }, {
+        '$addFields': {
+          'projectAdminEmail': '$projectAdmin.email'
+        }
+      }, {
+        '$project': {
+          '_id': 0, 
+          'projectAdminEmail': 1
+        }
+      }
     ];
 
-    let emails = await customers.model.aggregate(pipeline);
+    let emails = await customers.model.aggregate(pipeline)
 
-    let _emails = emails.map((e) => {
-      return e.projectAdminEmail;
-    });
+    let _emails = emails.map(e=>{
+      return e.projectAdminEmail
+    })
 
     return _emails;
+
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
 }
 
@@ -4998,7 +4997,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5348,7 +5347,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5448,7 +5447,7 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
         newTotalRevenue: {
@@ -5555,7 +5554,7 @@ async function getNonValidatedListByProjectAndMonth(
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
         newTotalRevenue: {
@@ -5651,7 +5650,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
       },
@@ -5739,7 +5738,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date",
+            else: "$dailyWork.date"
           },
         },
       },
