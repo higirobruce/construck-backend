@@ -990,28 +990,49 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
+            
             return moment(d.date).startOf('day');
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
           .map((d) => {
+            
             return  moment(d.date).startOf('day');
           });
+
         let workStartDate = moment(w.workStartDate).startOf('day');
         let workDurationDays = w.workDurationDays;
 
-        let datesToPost = [workStartDate];
-        for (let i = 0; i < workDurationDays - 1; i++) {
-          datesToPost.push(workStartDate.startOf('day').add(1, "days"));
+        let datesArray = []
+        var endDate = workStartDate.clone().add(workDurationDays, 'days');
+        if(endDate.isAfter(moment())) endDate=moment().startOf('day')
+
+        
+        while (workStartDate.isSameOrBefore(endDate)) {
+          datesArray.push(workStartDate.startOf('day'));
+          workStartDate.add(1, 'day');
         }
 
-        let dateNotPosted = datesToPost.filter(
+
+        // let datesToPost = [workStartDate];
+        // for (let i = 0; i < workDurationDays - 1; i++) {
+        //   newDate = workStartDate.add(1, 'day');
+        //   datesToPost.push(workStartDate.add(1, "days"));
+        // }
+
+        
+
+        let dateNotPosted = datesArray.filter(
           (d) =>
             !_.includes(datesPostedDatesOnly, d) &&
-            !_.includes(datesPendingPosted, d) &&
-            moment().diff(moment(d)) >= 0
-        );
+            !_.includes(datesPendingPosted, d) 
+        )
+
+        var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
+        uniqueDatesNotPosted.map(d=>{
+          console.log(d.toLocaleString())
+        })
 
         datesPosted.map((dP) => {
           siteWorkList.push({
@@ -1049,7 +1070,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           });
         });
 
-        dateNotPosted.map((dNP) => {
+        uniqueDatesNotPosted.map((dNP) => {
           siteWorkList.push({
             workDone: w.workDone
               ? w.workDone
@@ -1120,6 +1141,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
+
       } else if (!w.siteWork) {
         work = {
           workDone: w.workDone
@@ -1164,6 +1186,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     res.status(200).send(orderedList.filter((d) => !isNull(d)));
   } catch (err) {
+    console.log(err)
     res.send(err);
   }
 });
