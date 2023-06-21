@@ -984,21 +984,21 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return { date: moment(d.date).startOf('day'), duration: d.duration, uom: d.uom };
+            return { date: moment(d.date).startOf('day').format(), duration: d.duration, uom: d.uom };
           });
 
         let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
             
-            return moment(d.date).startOf('day');
+            return moment(d.date).startOf('day').format();
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
           .map((d) => {
             
-            return  moment(d.date).startOf('day');
+            return  moment(d.date).startOf('day').format();
           });
 
         let workStartDate = moment(w.workStartDate).startOf('day');
