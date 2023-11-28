@@ -34,13 +34,14 @@ const fun = require("./utils/cron-functions");
 
 const _ = require('lodash')
 
-//Set up default mongoose connection
-// var mongoDB =
-//   "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
 
+//Set up default mongoose connection
 var mongoDB =
+  "mongodb://dbAdmin:Adm1n%402023@localhost:27017/construck?authSource=admin";
+
+// var mongoDB =
 //   "mongodb+srv://mongo-admin:2tij6e0anAgKU6tb@myfreecluster.kxvgw.mongodb.net/construck-playground?retryWrites=true&w=majority";
-"mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
+// "mongodb+srv://root:Beniyak1@cluster0.8ycbagi.mongodb.net/construck?retryWrites=true&w=majority";
 
 // var mongoDB = "";
 
@@ -97,8 +98,8 @@ app.use("/logs", auth, logs);
 app.use("/dispatches", auth, dispatches);
 app.use("/jobtypes", auth, jobTypes);
 app.use("/requests", auth, equipmentRequests);
-app.use('/api',auth, maintenanceLogs);
-app.use("/api",auth, maintenance);
+app.use('/api', maintenanceLogs);
+app.use("/api", maintenance);
 app.use('/api',auth, item);
 app.use('/api',auth, mechanics);
 app.use('/api',auth, mechanical);
