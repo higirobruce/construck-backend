@@ -919,7 +919,6 @@ router.get("/v3/:vendorName", async (req, res) => {
 
 router.get("/v3/driver/:driverId", async (req, res) => {
   let { driverId } = req.params;
-  console.log(isValidObjectId(driverId));
   try {
     let workList = await workData.model
       .find(
@@ -984,36 +983,36 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         let datesPosted = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            return { date: moment(d.date).startOf('day').format(), duration: d.duration, uom: d.uom };
+            return {
+              date: moment(d.date).startOf("day").format(),
+              duration: d.duration,
+              uom: d.uom,
+            };
           });
 
         let datesPostedDatesOnly = dailyWorks
           .filter((d) => d.pending === false)
           .map((d) => {
-            
-            return moment(d.date).startOf('day').format();
+            return moment(d.date).startOf("day").format();
           });
 
         let datesPendingPosted = dailyWorks
           .filter((d) => d.pending === true)
           .map((d) => {
-            
-            return  moment(d.date).startOf('day').format();
+            return moment(d.date).startOf("day").format();
           });
 
-        let workStartDate = moment(w.workStartDate).startOf('day');
+        let workStartDate = moment(w.workStartDate).startOf("day");
         let workDurationDays = w.workDurationDays;
 
-        let datesArray = []
-        var endDate = workStartDate.clone().add(workDurationDays, 'days');
-        if(endDate.isAfter(moment())) endDate=moment().startOf('day')
+        let datesArray = [];
+        var endDate = workStartDate.clone().add(workDurationDays, "days");
+        if (endDate.isAfter(moment())) endDate = moment().startOf("day");
 
-        
         while (workStartDate.isSameOrBefore(endDate)) {
-          datesArray.push(workStartDate.startOf('day').format());
-          workStartDate.add(1, 'day');
+          datesArray.push(workStartDate.startOf("day").format());
+          workStartDate.add(1, "day");
         }
-
 
         // let datesToPost = [workStartDate];
         // for (let i = 0; i < workDurationDays - 1; i++) {
@@ -1021,20 +1020,15 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         //   datesToPost.push(workStartDate.add(1, "days"));
         // }
 
-        
-
         let dateNotPosted = datesArray.filter(
           (d) =>
             !_.includes(datesPostedDatesOnly, d) &&
-            !_.includes(datesPendingPosted, d) 
-        )
+            !_.includes(datesPendingPosted, d)
+        );
 
         var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
-        uniqueDatesNotPosted.map(d=>{
-          console.log(d.toLocaleString())
-        })
-
-        
+        uniqueDatesNotPosted.map((d) => {
+        });
 
         datesPosted.map((dP) => {
           siteWorkList.push({
@@ -1066,7 +1060,8 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             millage: parseFloat(
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
-            duration: _.round(dP.duration / (1000 * 60 * 60),2) + " " + dP.uom + "s",
+            duration:
+              _.round(dP.duration / (1000 * 60 * 60), 2) + " " + dP.uom + "s",
             dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
@@ -1143,7 +1138,6 @@ router.get("/v3/driver/:driverId", async (req, res) => {
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
         });
-
       } else if (!w.siteWork) {
         work = {
           workDone: w.workDone
@@ -1188,7 +1182,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
 
     res.status(200).send(orderedList.filter((d) => !isNull(d)));
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.send(err);
   }
 });
@@ -1208,8 +1202,8 @@ router.get("/v3/toreverse/:plateNumber", async (req, res) => {
             $or: [
               { status: "stopped" },
               { status: "rejected" },
-              { status: 'approved'},
-              { status: 'rejected'},
+              { status: "approved" },
+              { status: "rejected" },
               { status: "on going", "dailyWork.pending": false },
             ],
           },
@@ -1804,7 +1798,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               duration: d.duration,
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
-              status: d.status
+              status: d.status,
             };
           });
 
@@ -1881,9 +1875,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000),2)
+                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
                   : 0,
-              "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
+              "Duration (DAYS)":
+                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -1923,7 +1918,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 ? dP.comment + " - " + (dP.moreComment ? dP.moreComment : "")
                 : " ",
               Customer: w.project?.customer,
-              Status: dP.status || 'stopped',
+              Status: dP.status || "stopped",
               "Project Admin":
                 (w.projectAdmin?.firstName || "") +
                 " " +
@@ -2077,7 +2072,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-      } else if (w.siteWork === true && (w.status === "stopped") ) {
+      } else if (w.siteWork === true && w.status === "stopped") {
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -2164,9 +2159,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Unit of measurement": w.equipment?.uom,
               "Duration (HRS)":
                 w.equipment?.uom === "hour"
-                  ? _.round(dP.duration / (60 * 60 * 1000),2)
+                  ? _.round(dP.duration / (60 * 60 * 1000), 2)
                   : 0,
-              "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(dP.duration,2) : 0,
+              "Duration (DAYS)":
+                w.equipment?.uom === "day" ? _.round(dP.duration, 2) : 0,
               "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -2345,8 +2341,11 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             "Equipment Type": w.equipment?.eqDescription,
             "Unit of measurement": w.equipment?.uom,
             "Duration (HRS)":
-              w.equipment?.uom === "hour" ? _.round(w.duration / (60 * 60 * 1000), 2) : 0,
-            "Duration (DAYS)": w.equipment?.uom === "day" ? _.round(w.duration,2) : 0,
+              w.equipment?.uom === "hour"
+                ? _.round(w.duration / (60 * 60 * 1000), 2)
+                : 0,
+            "Duration (DAYS)":
+              w.equipment?.uom === "day" ? _.round(w.duration, 2) : 0,
             "Work done": w?.workDone ? w?.workDone?.jobDescription : "Others",
             "Other work description": w.dispatch?.otherJobType,
             ...((canViewRevenues === "true" || canViewRevenues === true) && {
@@ -2472,7 +2471,7 @@ router.get("/monthlyRevenuePerProject/:projectName", async (req, res) => {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
       },
@@ -2861,6 +2860,7 @@ router.post("/mobileData", async (req, res) => {
 router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
+
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2909,27 +2909,41 @@ router.post("/getAnalytics", async (req, res) => {
 
       let list = [];
 
-      if (customer) {
-        list = workList.filter((w) => {
-          let nameLowerCase = w?.project?.customer?.toLowerCase();
-          return nameLowerCase.includes(customer?.toLowerCase());
+      if (customer.length >= 1) {
+        customer.map((c) => {
+          let l = workList.filter((w) => {
+            let nameLowerCase = w?.project?.customer?.toLowerCase();
+            return nameLowerCase.includes(c?.toLowerCase());
+          });
+
+          list.push(...l);
         });
       } else {
         list = workList;
       }
 
-      if (project) {
-        list = list.filter((w) => {
-          let descLowerCase = w?.project?.prjDescription?.toLowerCase();
-          return descLowerCase.includes(project.toLowerCase());
+      if (project.length >= 1) {
+        let pList = [];
+        project.map((p) => {
+          let l = list.filter((w) => {
+            let descLowerCase = w?.project?.prjDescription;
+            return descLowerCase.includes(p);
+          });
+          pList.push(...l);
         });
+        list = pList;
       }
 
-      if (equipment) {
-        list = list.filter((w) => {
-          let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
-          return plateLowerCase.includes(equipment.toLowerCase());
+      if (equipment.length >= 1) {
+        let eList = [];
+        equipment.map((e) => {
+          let l = list.filter((w) => {
+            let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
+            return plateLowerCase.includes(e.toLowerCase());
+          });
+          eList.push(...l);
         });
+        list = eList;
       }
 
       if (owner) {
@@ -3212,26 +3226,35 @@ router.post("/getAnalytics", async (req, res) => {
 
     let listDays = [];
 
-    if (customer) {
-      listDays = workListByDay.filter((w) => {
-        let nameLowerCase = w?.project?.customer?.toLowerCase();
-        return nameLowerCase.includes(customer?.toLowerCase());
+    if (customer >= 1) {
+      customer.map((c) => {
+        let l = workListByDay.filter((w) => {
+          let nameLowerCase = w?.project?.customer?.toLowerCase();
+          return nameLowerCase.includes(c?.toLowerCase());
+        });
+        listDays.push(...l);
       });
     } else {
       listDays = workListByDay;
     }
 
-    if (project) {
-      listDays = listDays.filter((w) => {
-        let descLowerCase = w?.project?.prjDescription?.toLowerCase();
-        return descLowerCase.includes(project.toLowerCase());
+    if (project.length >= 1) {
+      project.map((p) => {
+        let l = listDays.filter((w) => {
+          let descLowerCase = w?.project?.prjDescription?.toLowerCase();
+          return descLowerCase.includes(p.toLowerCase());
+        });
+        listDays.push(...l);
       });
     }
 
-    if (equipment) {
-      listDays = listDays.filter((w) => {
-        let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
-        return plateLowerCase.includes(equipment.toLowerCase());
+    if (equipment.length >= 1) {
+      equipment.map((e) => {
+        let l = listDays.filter((w) => {
+          let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
+          return plateLowerCase.includes(e.toLowerCase());
+        });
+        listDays.push(...l);
       });
     }
 
@@ -3583,8 +3606,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
 
     res.send(work);
 
-    
-    let receipts = await getProjectAdminEmail(workRec.project.prjDescription)
+    let receipts = await getProjectAdminEmail(workRec.project.prjDescription);
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3859,7 +3881,7 @@ router.put("/reject/:id", async (req, res) => {
     let logTobeSaved = new logData.model(log);
     await logTobeSaved.save();
 
-    let receipts = await getProjectAdminEmail(work.project.prjDescription)
+    let receipts = await getProjectAdminEmail(work.project.prjDescription);
     // let receipts = ["bhigiro@cvl.co.rw"];
 
     if (receipts.length > 0) {
@@ -3879,7 +3901,7 @@ router.put("/reject/:id", async (req, res) => {
     }
     res.status(201).send(savedRecord);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.send("Error occured!!");
   }
 });
@@ -4915,48 +4937,52 @@ async function getProjectAdminEmail(project) {
   try {
     let pipeline = [
       {
-        '$unwind': {
-          'path': '$projects', 
-          'preserveNullAndEmptyArrays': true
-        }
-      }, {
-        '$match': {
-          'projects.prjDescription': project
-        }
-      }, {
-        '$lookup': {
-          'from': 'users', 
-          'localField': 'projects.projectAdmin', 
-          'foreignField': '_id', 
-          'as': 'projectAdmin'
-        }
-      }, {
-        '$unwind': {
-          'path': '$projectAdmin', 
-          'preserveNullAndEmptyArrays': false
-        }
-      }, {
-        '$addFields': {
-          'projectAdminEmail': '$projectAdmin.email'
-        }
-      }, {
-        '$project': {
-          '_id': 0, 
-          'projectAdminEmail': 1
-        }
-      }
+        $unwind: {
+          path: "$projects",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          "projects.prjDescription": project,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "projects.projectAdmin",
+          foreignField: "_id",
+          as: "projectAdmin",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectAdmin",
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $addFields: {
+          projectAdminEmail: "$projectAdmin.email",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          projectAdminEmail: 1,
+        },
+      },
     ];
 
-    let emails = await customers.model.aggregate(pipeline)
+    let emails = await customers.model.aggregate(pipeline);
 
-    let _emails = emails.map(e=>{
-      return e.projectAdminEmail
-    })
+    let _emails = emails.map((e) => {
+      return e.projectAdminEmail;
+    });
 
     return _emails;
-
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 }
 
@@ -4997,7 +5023,7 @@ async function getValidatedRevenuesByProject(prjDescription) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
       },
@@ -5347,7 +5373,7 @@ async function getDailyNonValidatedRevenues(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
       },
@@ -5447,7 +5473,7 @@ async function getValidatedListByProjectAndMonth(prjDescription, month, year) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
         newTotalRevenue: {
@@ -5554,7 +5580,7 @@ async function getNonValidatedListByProjectAndMonth(
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
         newTotalRevenue: {
@@ -5650,7 +5676,7 @@ async function getValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
       },
@@ -5738,7 +5764,7 @@ async function getNonValidatedListByDay(prjDescription, transactionDate) {
               $eq: ["$siteWork", false],
             },
             then: "$workStartDate",
-            else: "$dailyWork.date"
+            else: "$dailyWork.date",
           },
         },
       },

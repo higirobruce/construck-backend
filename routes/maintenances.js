@@ -16,7 +16,6 @@ router.get('/maintenance', async(req, res) => {
 
     res.status(200).send(jobCards);
 })
-
 router.post('/maintenance', async (req, res) => {
     const {
         entryDate,
