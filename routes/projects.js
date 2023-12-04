@@ -161,6 +161,7 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
           "dailyWork.date": 1,
           "dailyWork.status": 1,
           "dailyWork.uom": 1,
+          totalRevenue: 1,
           status: 1,
           approvedDuration: 1,
           approvedExpenditure: 1,
@@ -183,16 +184,83 @@ router.get("/approvedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $group: {
-          _id: "$dailyWork.status",
-          totalRevenue: {
+          _id: {
+            dailyWork: "$dailyWork.status",
+            singleDispathch: "$status",
+            siteWork: "$siteWork",
+          },
+          totalRevenueSw: {
             $sum: "$dailyWork.totalRevenue",
+          },
+          totalRevenueSd: {
+            $sum: "$totalRevenue",
           },
         },
       },
       {
+        $addFields:
+          /**
+           * newField: The new field name.
+           * expression: The new field expression.
+           */
+          {
+            totalRevenue: {
+              $cond: {
+                if: {
+                  $eq: ["$_id.siteWork", false],
+                },
+                then: "$totalRevenueSd",
+                else: "$totalRevenueSw",
+              },
+            },
+          },
+      },
+      // {
+      //   $addFields:
+      //     /**
+      //      * newField: The new field name.
+      //      * expression: The new field expression.
+      //      */
+      //     {
+      //       totalRevenue: {
+      //         $add: [
+      //           "$totalRevenueSw",
+      //           "$totalRevenueSd",
+      //         ],
+      //       },
+      //     },
+      // }
+      {
         $match: {
-          _id: "approved",
+          $or: [
+            {
+              "_id.dailyWork": "approved",
+            },
+            {
+              "_id.singleDispathch": "approved",
+            },
+          ],
         },
+      },
+      {
+        $project:
+          /**
+           * specifications: The fields to
+           *   include or exclude.
+           */
+          {
+            totalRevenue: 1,
+          },
+      },
+      {
+        $addFields:
+          /**
+           * newField: The new field name.
+           * expression: The new field expression.
+           */
+          {
+            _id: "approved",
+          },
       },
     ];
 
@@ -262,7 +330,9 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
               then: "$workStartDate",
               else: {
                 $dateFromString: {
-                  dateString: { $toString: "$dailyWork.date" },
+                  dateString: {
+                    $toString: "$dailyWork.date",
+                  },
                 },
               },
             },
@@ -312,6 +382,7 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
           "dailyWork.date": 1,
           "dailyWork.status": 1,
           "dailyWork.uom": 1,
+          totalRevenue: 1,
           status: 1,
           approvedDuration: 1,
           approvedExpenditure: 1,
@@ -334,22 +405,89 @@ router.get("/rejectedRevenue/:prjDescription", async (req, res) => {
       },
       {
         $group: {
-          _id: "$dailyWork.status",
-          totalRevenue: {
+          _id: {
+            dailyWork: "$dailyWork.status",
+            singleDispathch: "$status",
+            siteWork: "$siteWork",
+          },
+          totalRevenueSw: {
             $sum: "$dailyWork.totalRevenue",
+          },
+          totalRevenueSd: {
+            $sum: "$totalRevenue",
           },
         },
       },
       {
+        $addFields:
+          /**
+           * newField: The new field name.
+           * expression: The new field expression.
+           */
+          {
+            totalRevenue: {
+              $cond: {
+                if: {
+                  $eq: ["$_id.siteWork", false],
+                },
+                then: "$totalRevenueSd",
+                else: "$totalRevenueSw",
+              },
+            },
+          },
+      },
+      // {
+      //   $addFields:
+      //     /**
+      //      * newField: The new field name.
+      //      * expression: The new field expression.
+      //      */
+      //     {
+      //       totalRevenue: {
+      //         $add: [
+      //           "$totalRevenueSw",
+      //           "$totalRevenueSd",
+      //         ],
+      //       },
+      //     },
+      // }
+      {
         $match: {
-          _id: "rejected",
+          $or: [
+            {
+              "_id.dailyWork": "rejected",
+            },
+            {
+              "_id.singleDispathch": "rejected",
+            },
+          ],
         },
+      },
+      {
+        $project:
+          /**
+           * specifications: The fields to
+           *   include or exclude.
+           */
+          {
+            totalRevenue: 1,
+          },
+      },
+      {
+        $addFields:
+          /**
+           * newField: The new field name.
+           * expression: The new field expression.
+           */
+          {
+            _id: "rejected",
+          },
       },
     ];
 
     let worksCursor = await workData.model.aggregate(aggr);
 
-    console.log(worksCursor)
+    console.log(worksCursor);
     res.send(worksCursor);
   } catch (err) {
     res.send(err);
@@ -483,7 +621,7 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
           rejectedReason: 1,
           rejectedRevenue: 1,
           siteWork: 1,
-          workStartDate:1,
+          workStartDate: 1,
           "dispatch.date": 1,
           "equipment.uom": 1,
           "dispatch.shift": 1,
@@ -524,7 +662,7 @@ router.get("/worksToBeValidated/:prjDescription", async (req, res) => {
             newRoot: "$doc",
           },
       },
-    ]
+    ];
 
     let worksCursor = await workData.model.aggregate(pipeline);
 

@@ -555,6 +555,8 @@ router.put("/:id", async (req, res) => {
     let oldRate = oldEquipment.rate;
     let oldSupplierRate = oldEquipment.supplierRate;
 
+    console.log(id, rate, effectiveDate, oldRate);
+
     let equipment = await eqData.model.findByIdAndUpdate(
       id,
       {
@@ -570,9 +572,19 @@ router.put("/:id", async (req, res) => {
       { new: true }
     );
 
+    let toUpdate = await workData.model.find({
+      "equipment._id": id,
+      $or: [
+        { workStartDate: { $gte: effectiveDate } },
+        { "dailyWork.date": { $gte: effectiveDate } },
+      ],
+    });
+
+    console.log("Update:", toUpdate);
+
     await workData.model.updateMany(
       {
-        "equipment._id": new mongoose.Types.ObjectId(id),
+        "equipment._id": id,
         $or: [
           { workStartDate: { $gte: effectiveDate } },
           { "dailyWork.date": { $gte: effectiveDate } },
@@ -594,7 +606,7 @@ router.put("/:id", async (req, res) => {
 
     await workData.model.updateMany(
       {
-        "equipment._id": new mongoose.Types.ObjectId(id),
+        "equipment._id": id,
         $or: [
           { workStartDate: { $gte: effectiveDate } },
           { "dailyWork.date": { $gte: effectiveDate } },
@@ -609,35 +621,40 @@ router.put("/:id", async (req, res) => {
 
     await workData.model.updateMany(
       {
-        "equipment._id": new mongoose.Types.ObjectId(id),
+        "equipment._id": id,
         $or: [
           { workStartDate: { $gte: effectiveDate } },
           { "dailyWork.date": { $gte: effectiveDate } },
         ],
       },
-      
+
       {
-        $mul: {
-          "dailyWork.$[element].totalRevenue": rate / oldRate,
+        $set: {
+          $toDouble: {
+            'dailyWork.$[].totalRevenue': { $multiply: ['$dailyWork.$[].rate', '$dailyWork.$[].duration'] }
+          }
         },
+        // $mul: {
+        //   "dailyWork.$[element].totalRevenue": rate / oldRate,
+        // },
       },
       { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
     );
 
     await workData.model.updateMany(
       {
-        "equipment._id": new mongoose.Types.ObjectId(id),
+        "equipment._id": id,
         $or: [
           { workStartDate: { $gte: effectiveDate } },
           { "dailyWork.date": { $gte: effectiveDate } },
         ],
       },
       {
-        $set:{
+        $set: {
           "dailyWork.$[element].rate": parseInt(rate),
-        }
+        },
       },
-      
+
       { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
     );
 
