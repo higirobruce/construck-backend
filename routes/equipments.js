@@ -311,6 +311,7 @@ router.put("/dispose/:id", async (req, res) => {
 
 router.put("/sendToWorkshop/:id", async (req, res) => {
   let { id } = req.params;
+  console.log();
   try {
     let equipment = await eqData.model.findById(id);
     equipment.eqStatus = "workshop";
@@ -550,6 +551,7 @@ router.put("/:id", async (req, res) => {
       supplierRate,
       uom,
       effectiveDate,
+      millage
     } = req.body;
     let oldEquipment = await eqData.model.findById(id);
     let oldRate = oldEquipment.rate;
@@ -559,16 +561,7 @@ router.put("/:id", async (req, res) => {
 
     let equipment = await eqData.model.findByIdAndUpdate(
       id,
-      {
-        plateNumber,
-        eqDescription,
-        assetClass,
-        eqtype,
-        eqOwner,
-        rate,
-        supplierRate,
-        uom,
-      },
+      req.body,
       { new: true }
     );
 
@@ -631,8 +624,10 @@ router.put("/:id", async (req, res) => {
       {
         $set: {
           $toDouble: {
-            'dailyWork.$[].totalRevenue': { $multiply: ['$dailyWork.$[].rate', '$dailyWork.$[].duration'] }
-          }
+            "dailyWork.$[].totalRevenue": {
+              $multiply: ["$dailyWork.$[].rate", "$dailyWork.$[].duration"],
+            },
+          },
         },
         // $mul: {
         //   "dailyWork.$[element].totalRevenue": rate / oldRate,

@@ -3310,6 +3310,8 @@ router.put("/:id", async (req, res) => {
   let customerName = req.body?.project?.customer;
   let equipmentOwner = req.body?.equipment?.eqOwner;
 
+  console.log(req.body)
+
   let updateObj = {};
   if (equipmentOwner.toLowerCase() === "construck") {
     updateObj = req.body;
@@ -3369,6 +3371,7 @@ router.put("/approve/:id", async (req, res) => {
     work.approvedRevenue = work.totalRevenue;
     work.approvedDuration = work.duration;
     work.approvedExpenditure = work.totalExpenditure;
+    work.rejectedReason = '';
 
     let savedRecord = await work.save();
 
@@ -3424,6 +3427,8 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       {
         $set: {
           "dailyWork.$.status": "approved",
+          "dailyWork.$.rejectedReason":"",
+          rejectedReason:'',
           approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
           approvedDuration: _approvedDuration + parseFloat(approvedDuration),
           approvedExpenditure:
