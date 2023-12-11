@@ -43,7 +43,7 @@ router.get("/maintenance", async (req, res) => {
   const closedDataCount = await Maintenance.find({
     status: { $eq: "pass" },
   }).count({});
-  
+
   const jobCards =
     status !== "all"
       ? await Maintenance.find({ status: qStatus })
@@ -84,14 +84,14 @@ router.post("/maintenance", async (req, res) => {
       message: "The equipment is still in repair or Issues with Mileages",
     });
 
-  const lowMileages = jobCards.find(
-    (item) =>
-      item.plate.value == carPlate.value && item.mileage > mileages && item
-  );
-  if (mileages && mileages.length > 0 && lowMileages)
-    return res
-      .status(400)
-      .json({ message: "Mileages input are low to the previous" });
+//   const lowMileages = jobCards.find(
+//     (item) =>
+//       item.plate.value == carPlate.value && item.mileage > mileages && item
+//   );
+//   if (mileages && mileages.length > 0 && lowMileages)
+//     return res
+//       .status(400)
+//       .json({ message: "Mileages input are low to the previous" });
 
   // Saving the Job Card
   const jobCard = new Maintenance({
