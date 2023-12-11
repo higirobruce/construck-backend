@@ -13,15 +13,23 @@ router.get("/maintenance/repair", async (req, res) => {
 });
 
 router.get("/maintenance", async (req, res) => {
-  let { limit, page, status } = req.query;
+  let { limit, page, status, search } = req.query;
+
+  console.log(status);
+  let query = {};
+  if(search){
+    status='open'
+  }
+
+  query = {
+    ...(status === "open" && { status: { $nin: ["pass"] } }),
+    ...(status !== "open" && { status: { $eq: status } }),
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+  };
 
   let qStatus = status == "open" ? { $nin: ["pass"] } : { $eq: status };
 
-  console.log(status);
-  const dataCount =
-    status !== "all"
-      ? await Maintenance.find({ status: qStatus }).count({})
-      : await Maintenance.find().count({});
+  const dataCount = await Maintenance.find(query).count({});
   const openDataCount = await Maintenance.find({
     status: { $ne: "pass" },
   }).count({});
@@ -46,11 +54,11 @@ router.get("/maintenance", async (req, res) => {
 
   const jobCards =
     status !== "all"
-      ? await Maintenance.find({ status: qStatus })
+      ? await Maintenance.find(query)
           .sort({ jobCard_Id: -1 })
           .limit(limit)
           .skip(parseInt(page - 1) * limit)
-      : await Maintenance.find().sort({ jobCard_Id: -1 });
+      : await Maintenance.find(query).sort({ jobCard_Id: -1 });
   if (!jobCards)
     return res.status(404).json({ message: "No JobCards Available" });
 
@@ -84,14 +92,14 @@ router.post("/maintenance", async (req, res) => {
       message: "The equipment is still in repair or Issues with Mileages",
     });
 
-//   const lowMileages = jobCards.find(
-//     (item) =>
-//       item.plate.value == carPlate.value && item.mileage > mileages && item
-//   );
-//   if (mileages && mileages.length > 0 && lowMileages)
-//     return res
-//       .status(400)
-//       .json({ message: "Mileages input are low to the previous" });
+  //   const lowMileages = jobCards.find(
+  //     (item) =>
+  //       item.plate.value == carPlate.value && item.mileage > mileages && item
+  //   );
+  //   if (mileages && mileages.length > 0 && lowMileages)
+  //     return res
+  //       .status(400)
+  //       .json({ message: "Mileages input are low to the previous" });
 
   // Saving the Job Card
   const jobCard = new Maintenance({
