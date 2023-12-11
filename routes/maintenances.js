@@ -13,19 +13,59 @@ router.get("/maintenance/repair", async (req, res) => {
 });
 
 router.get("/maintenance", async (req, res) => {
-  let { limit, page } = req.query;
-  const dataCount = await Maintenance.find().count({})
-  const jobCards = await Maintenance.find()
-    .sort({ jobCard_Id: -1 })
-    .limit(limit)
-    .skip(parseInt(page - 1) * limit);
+  let { limit, page, status } = req.query;
+
+  let qStatus = status == "open" ? { $nin: ["pass"] } : { $eq: status };
+
+  console.log(status);
+  const dataCount =
+    status !== "all"
+      ? await Maintenance.find({ status: qStatus }).count({})
+      : await Maintenance.find().count({});
+  const openDataCount = await Maintenance.find({
+    status: { $ne: "pass" },
+  }).count({});
+  const requisitionDataCount = await Maintenance.find({
+    status: { $eq: "requisition" },
+  }).count({});
+  const entryDataCount = await Maintenance.find({
+    status: { $eq: "entry" },
+  }).count({});
+  const diagnosisDataCount = await Maintenance.find({
+    status: { $eq: "diagnosis" },
+  }).count({});
+  const repairDataCount = await Maintenance.find({
+    status: { $eq: "repair" },
+  }).count({});
+  const testingDataCount = await Maintenance.find({
+    status: { $eq: "testing" },
+  }).count({});
+  const closedDataCount = await Maintenance.find({
+    status: { $eq: "pass" },
+  }).count({});
+  
+  const jobCards =
+    status !== "all"
+      ? await Maintenance.find({ status: qStatus })
+          .sort({ jobCard_Id: -1 })
+          .limit(limit)
+          .skip(parseInt(page - 1) * limit)
+      : await Maintenance.find().sort({ jobCard_Id: -1 });
   if (!jobCards)
     return res.status(404).json({ message: "No JobCards Available" });
 
   res.status(200).send({
     jobCards,
-    dataCount
+    dataCount,
+    openDataCount,
+    entryDataCount,
+    diagnosisDataCount,
+    repairDataCount,
+    testingDataCount,
+    closedDataCount,
+    requisitionDataCount,
   });
+  // res.status(200).send(jobCards)
 });
 router.post("/maintenance", async (req, res) => {
   const { entryDate, driver, carPlate, mileages, location, status } =
