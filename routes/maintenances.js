@@ -23,7 +23,7 @@ router.get("/maintenance", async (req, res) => {
 
   query = {
     ...(status === "open" && { status: { $nin: ["pass"] } }),
-    ...(status !== "open" && { status: { $eq: status } }),
+    ...(status !== "open" && status!=='all' && { status: { $eq: status } }),
     ...(search && { "plate.text": { $regex: search, $options: "i" } }),
   };
 
