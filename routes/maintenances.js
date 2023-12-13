@@ -15,40 +15,60 @@ router.get("/maintenance/repair", async (req, res) => {
 router.get("/maintenance", async (req, res) => {
   let { limit, page, status, search } = req.query;
   let query = {};
-  console.log("search...", search)
-  
-
   query = {
     ...(status === "open" && !search && { status: { $nin: ["pass"] } }),
-    ...(status !== "open" && status!=='all' && { status: { $eq: status } }),
+    ...(status !== "open" && status !== "all" && { status: { $eq: status } }),
     // ...(status == "all" && { status: { $eq: status } }),
     ...(search && { "plate.text": { $regex: search, $options: "i" } }),
   };
 
   let qStatus = status == "open" ? { $nin: ["pass"] } : { $eq: status };
 
-  const dataCount = await Maintenance.find(query).count({});
-  const openDataCount = await Maintenance.find({
+  let openDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $ne: "pass" },
-  }).count({});
-  const requisitionDataCount = await Maintenance.find({
+  };
+
+  let requisitionDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "requisition" },
-  }).count({});
-  const entryDataCount = await Maintenance.find({
+  };
+
+  let entryDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "entry" },
-  }).count({});
-  const diagnosisDataCount = await Maintenance.find({
+  };
+
+  let diagnosisDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "diagnosis" },
-  }).count({});
-  const repairDataCount = await Maintenance.find({
+  };
+  let repairDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "repair" },
-  }).count({});
-  const testingDataCount = await Maintenance.find({
+  };
+
+  let testingDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "testing" },
-  }).count({});
-  const closedDataCount = await Maintenance.find({
+  };
+  let closedDataQuery = {
+    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
     status: { $eq: "pass" },
-  }).count({});
+  };
+
+  const dataCount = await Maintenance.find(query).count({});
+  const openDataCount = await Maintenance.find(openDataQuery).count({});
+  const requisitionDataCount = await Maintenance.find(
+    requisitionDataQuery
+  ).count({});
+  const entryDataCount = await Maintenance.find(entryDataQuery).count({});
+  const diagnosisDataCount = await Maintenance.find(diagnosisDataQuery).count(
+    {}
+  );
+  const repairDataCount = await Maintenance.find(repairDataQuery).count({});
+  const testingDataCount = await Maintenance.find(testingDataQuery).count({});
+  const closedDataCount = await Maintenance.find(closedDataQuery).count({});
 
   const jobCards =
     status !== "all"
