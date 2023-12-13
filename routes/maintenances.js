@@ -14,17 +14,14 @@ router.get("/maintenance/repair", async (req, res) => {
 
 router.get("/maintenance", async (req, res) => {
   let { limit, page, status, search } = req.query;
-
-  console.log(status);
   let query = {};
-//   if(search){
-//     status='open'
-   
-//   }
+  console.log("search...", search)
+  
 
   query = {
-    ...(status === "open" && { status: { $nin: ["pass"] } }),
+    ...(status === "open" && !search && { status: { $nin: ["pass"] } }),
     ...(status !== "open" && status!=='all' && { status: { $eq: status } }),
+    // ...(status == "all" && { status: { $eq: status } }),
     ...(search && { "plate.text": { $regex: search, $options: "i" } }),
   };
 
