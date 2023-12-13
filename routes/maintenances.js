@@ -17,9 +17,9 @@ router.get("/maintenance", async (req, res) => {
 
   console.log(status);
   let query = {};
-  if(search){
-    status='open'
-  }
+//   if(search=='all'){
+//     status='all'
+//   }
 
   query = {
     ...(status === "open" && { status: { $nin: ["pass"] } }),
