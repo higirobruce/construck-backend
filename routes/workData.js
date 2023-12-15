@@ -1027,8 +1027,7 @@ router.get("/v3/driver/:driverId", async (req, res) => {
         );
 
         var uniqueDatesNotPosted = Array.from(new Set(dateNotPosted));
-        uniqueDatesNotPosted.map((d) => {
-        });
+        uniqueDatesNotPosted.map((d) => {});
 
         datesPosted.map((dP) => {
           siteWorkList.push({
@@ -1166,7 +1165,10 @@ router.get("/v3/driver/:driverId", async (req, res) => {
           millage: parseFloat(
             w.equipment.millage ? w.equipment.millage : 0
           ).toFixed(2),
-          duration: w.duration.toFixed(2) + " " + w.uom + "s",
+          duration:
+            w?.uom === "hour"
+              ? _.round(w.duration / (1000 * 60 * 60), 2) + " " + w.uom + "s"
+              : w.duration.toFixed(2) + " " + w.uom + "s",
           tripsDone: w.tripsDone,
           dispatch: w.dispatch,
           // millage: w.equipment.millage ? w.equipment.millage : 0,
@@ -3310,7 +3312,7 @@ router.put("/:id", async (req, res) => {
   let customerName = req.body?.project?.customer;
   let equipmentOwner = req.body?.equipment?.eqOwner;
 
-  console.log(req.body)
+  console.log(req.body);
 
   let updateObj = {};
   if (equipmentOwner.toLowerCase() === "construck") {
@@ -3371,7 +3373,7 @@ router.put("/approve/:id", async (req, res) => {
     work.approvedRevenue = work.totalRevenue;
     work.approvedDuration = work.duration;
     work.approvedExpenditure = work.totalExpenditure;
-    work.rejectedReason = '';
+    work.rejectedReason = "";
 
     let savedRecord = await work.save();
 
@@ -3427,8 +3429,8 @@ router.put("/approveDailyWork/:id", async (req, res) => {
       {
         $set: {
           "dailyWork.$.status": "approved",
-          "dailyWork.$.rejectedReason":"",
-          rejectedReason:'',
+          "dailyWork.$.rejectedReason": "",
+          rejectedReason: "",
           approvedRevenue: _approvedRevenue + parseFloat(approvedRevenue),
           approvedDuration: _approvedDuration + parseFloat(approvedDuration),
           approvedExpenditure:
@@ -4026,6 +4028,7 @@ router.put("/start/:id", async (req, res) => {
 
 router.put("/stop/:id", async (req, res) => {
   let { id } = req.params;
+
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
   let duration = Math.abs(req.body.duration);
@@ -6236,6 +6239,8 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
 
   return workData.model.aggregate(pipeline_siteWork);
 }
+
+async function stopWork(id) {}
 
 module.exports = {
   router,
