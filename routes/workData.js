@@ -1060,7 +1060,12 @@ router.get("/v3/driver/:driverId", async (req, res) => {
               w.equipment.millage ? w.equipment.millage : 0
             ).toFixed(2),
             duration:
-              _.round(dP.duration / (1000 * 60 * 60), 2) + " " + dP.uom + "s",
+              dP.uom == "hour"
+                ? _.round(dP.duration / (1000 * 60 * 60), 2) +
+                  " " +
+                  dP.uom +
+                  "s"
+                : dP.duration + " " + dP.uom + "s",
             dispatch: w.dispatch,
             // millage: w.equipment.millage ? w.equipment.millage : 0,
           });
