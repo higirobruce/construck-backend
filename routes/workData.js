@@ -6383,7 +6383,7 @@ async function stopWork(
         work.moreComment = moreComment;
         work.equipment = equipment;
 
-        savedRecord = await work.save();
+        
 
         //log saving
         let log = {
@@ -6403,6 +6403,8 @@ async function stopWork(
         let logTobeSaved = new logData.model(log);
         await logTobeSaved.save();
       });
+
+      savedRecord = await work.save();
 
       return savedRecord;
       // let dailyWork = {};
