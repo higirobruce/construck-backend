@@ -4036,6 +4036,7 @@ router.put("/stop/:id", async (req, res) => {
 
   let { endIndex, tripsDone, comment, moreComment, postingDate, stoppedBy } =
     req.body;
+
   let duration = Math.abs(req.body.duration);
 
   if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
@@ -4374,6 +4375,10 @@ router.put("/stop/:id", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+router.put("/update-stopped-work/:id", async (req, res) => {
+  await stopWork(req, res);
 });
 
 router.put("/end/:id", async (req, res) => {
@@ -6245,10 +6250,287 @@ async function getListOfEquipmentOnDuty(startDate, endDate, shift, siteWork) {
   return workData.model.aggregate(pipeline_siteWork);
 }
 
-async function stopWork(id) {}
+async function stopWork(
+  id,
+  endIndex,
+  tripsDone,
+  comment,
+  moreComment,
+  postingDate,
+  stoppedBy,
+  duration
+) {
+  duration = Math.abs(duration);
+
+  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
+  // let dd = postingDate?.split(".")[0];
+  // let mm = postingDate?.split(".")[1];
+  // let yyyy = postingDate?.split(".")[2];
+  // if (dd?.length < 2) dd = "0" + dd;
+  // if (mm?.length < 2) mm = "0" + mm;
+  // if (dd && mm && yyyy) postingDate = `${yyyy}-${mm}-${dd}`;
+  try {
+    let work = await workData.model
+      .findById(id)
+      .populate("project")
+      .populate("equipment")
+      .populate("driver")
+      .populate("appovedBy")
+      .populate("dispatch")
+      .populate("workDone");
+
+    //You can only stop jobs in progress
+
+    let equipment = await eqData.model.findById(work?.equipment?._id);
+    let workEnded = false;
+
+    //get jobs being done by the same equipment
+    let eqBusyWorks = await workData.model.find({
+      "equipment.plateNumber": equipment._id,
+      _id: { $ne: work._id },
+      status: { $in: ["in progress", "on going", "created"] },
+    });
+
+    if (work.siteWork) {
+      let dailyWorks = [...work.dailyWork];
+      let indexToUpdate = -1;
+      let initDuration = 0;
+      let savedRecord;
+
+      dailyWorks.find((d, index) => {
+        d.day == moment().diff(moment(work.workStartDate), "days");
+        indexToUpdate = index;
+      });
+
+      let worksAfterEffectiveDate = dailyWorks?.filter((d) =>
+        moment(d?.date).isSameOrAfter(moment(postingDate))
+      );
+
+      worksAfterEffectiveDate.map(async (dailyWork) => {
+        let currentTotalRevenue = work.totalRevenue;
+        let currentDuration = Math.abs(work.duration);
+        let currentTotalExpenditure = work.totalExpenditure;
+
+        // work.status = workEnded ? "stopped" : "on going";
+
+        let _duration = Math.abs(work.endTime - work.startTime);
+
+        let startIndex = work.startIndex ? work.startIndex : 0;
+        dailyWork.endIndex = endIndex
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
+        dailyWork.startIndex = parseInt(startIndex);
+
+        let uom = equipment?.uom;
+        let rate = equipment?.rate;
+        let supplierRate = equipment?.supplierRate;
+        let revenue = 0;
+        let expenditure = 0;
+
+        // if rate is per hour and we have target trips to be done
+        if (uom === "hour") {
+          dailyWork.projectedRevenue = rate * 5;
+          if (comment === "Should never happen") {
+            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
+            revenue = (rate * dailyWork.duration) / 3600000;
+            expenditure = (supplierRate * dailyWork.duration) / 3600000;
+          } else {
+            dailyWork.duration = duration > 0 ? duration * 3600000 : 0;
+            revenue = (rate * dailyWork.duration) / 3600000;
+            expenditure = (supplierRate * dailyWork.duration) / 3600000;
+          }
+        }
+
+        //if rate is per day
+        if (uom === "day") {
+          // work.duration = duration;
+          // revenue = rate * duration;
+          if (comment === "Should neve happen") {
+            //reason that does not exist
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate * (duration >= 1 ? 1 : 0);
+            expenditure = supplierRate * (duration >= 1 ? 1 : 0);
+          } else {
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
+
+            let targetDuration = 5;
+            let durationRation =
+              duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            revenue = rate * (duration >= 1 ? 1 : 0);
+            expenditure = supplierRate;
+          }
+        }
+
+        dailyWork.rate = rate;
+        dailyWork.uom = uom;
+        dailyWork.totalRevenue = revenue ? revenue : 0;
+        dailyWork.totalExpenditure = expenditure ? expenditure : 0;
+
+        dailyWork.comment = comment;
+        dailyWork.moreComment = moreComment;
+        // dailyWork.pending = false;
+
+        dailyWorks[indexToUpdate] = dailyWork;
+        work.startIndex =
+          endIndex || startIndex !== 0
+            ? parseInt(endIndex)
+            : parseInt(startIndex);
+        work.dailyWork = dailyWorks;
+        work.duration = dailyWork.duration + currentDuration;
+        work.totalRevenue = currentTotalRevenue + revenue;
+        work.totalExpenditure = currentTotalExpenditure + expenditure;
+        work.moreComment = moreComment;
+        work.equipment = equipment;
+
+        savedRecord = await work.save();
+
+        //log saving
+        let log = {
+          action: "DISPATCH STOPPED",
+          doneBy: stoppedBy,
+          request: {
+            endIndex,
+            tripsDone,
+            comment,
+            moreComment,
+            postingDate,
+            stoppedBy,
+            duration,
+          },
+          payload: work,
+        };
+        let logTobeSaved = new logData.model(log);
+        await logTobeSaved.save();
+      });
+
+      return savedRecord;
+      // let dailyWork = {};
+    } else {
+      let startIndex = work.startIndex ? work.startIndex : 0;
+      let equipment = await eqData.model.findById(work?.equipment?._id);
+
+      work.endTime = Date.now();
+      let _duration = Math.abs(work.endTime - work.startTime);
+
+      work.endIndex =
+        endIndex || startIndex !== 0
+          ? parseInt(endIndex)
+          : parseInt(startIndex);
+      work.startIndex = parseInt(startIndex);
+      work.tripsDone = parseInt(tripsDone);
+      let uom = equipment?.uom;
+
+      let rate = equipment?.rate;
+      let supplierRate = equipment?.supplierRate;
+      let targetTrips = parseInt(work?.dispatch?.targetTrips); //TODO
+
+      let tripsRatio = tripsDone / (targetTrips ? targetTrips : 1);
+      let revenue = 0;
+      let expenditure = 0;
+
+      // if rate is per hour and we have target trips to be done
+      if (uom === "hour") {
+        if (comment === "Should never happen") {
+          work.duration = duration > 0 ? duration * 3600000 : 0;
+          revenue = (rate * work.duration) / 3600000;
+          expenditure = (supplierRate * work.duration) / 3600000;
+        } else {
+          work.duration = duration > 0 ? duration * 3600000 : 0;
+          revenue =
+            tripsRatio > 0
+              ? (tripsRatio * (rate * work.duration)) / 3600000
+              : (rate * work.duration) / 3600000;
+          expenditure =
+            tripsRatio > 0
+              ? (tripsRatio * (supplierRate * work.duration)) / 3600000
+              : (supplierRate * work.duration) / 3600000;
+        }
+      }
+
+      //if rate is per day
+      if (uom === "day") {
+        // work.duration = duration;
+        // revenue = rate * duration;
+        if (comment == "Should never happen") {
+          work.duration = duration / HOURS_IN_A_DAY;
+          revenue = rate * (duration >= 1 ? 1 : 0);
+          expenditure = supplierRate * (duration >= 1 ? 1 : 0);
+        } else {
+          let tripRatio = tripsDone / targetTrips;
+          work.duration = tripRatio;
+          if (
+            tripsDone &&
+            targetTrips &&
+            equipment?.eqDescription === "TIPPER TRUCK"
+          ) {
+            if (tripRatio >= 1) {
+              revenue = rate * tripRatio;
+              expenditure = supplierRate;
+              // revenue = rate;
+            } else {
+              revenue = rate * tripRatio;
+              expenditure = supplierRate * tripRatio;
+            }
+          }
+          if (
+            !targetTrips ||
+            targetTrips == "0" ||
+            equipment?.eqDescription !== "TIPPER TRUCK"
+          ) {
+            {
+              let targetDuration = 5;
+              let durationRation =
+                duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
+              work.duration = duration / HOURS_IN_A_DAY;
+              revenue = rate;
+              expenditure = supplierRate;
+            }
+          }
+        }
+      }
+
+      work.rate = rate;
+      work.uom = uom;
+      work.totalRevenue = revenue ? revenue : 0;
+      work.totalExpenditure = expenditure ? expenditure : 0;
+      work.comment = comment;
+      work.moreComment = moreComment;
+      work.equipment = equipment;
+
+      let savedRecord = await work.save();
+
+      // await equipment.save();
+
+      //log saving
+      let log = {
+        action: "DISPATCH STOPPED",
+        doneBy: stoppedBy,
+        request: {
+          endIndex,
+          tripsDone,
+          comment,
+          moreComment,
+          postingDate,
+          stoppedBy,
+          duration,
+        },
+        payload: work,
+      };
+      let logTobeSaved = new logData.model(log);
+      await logTobeSaved.save();
+
+      console.log("Updatessss");
+      return savedRecord;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 module.exports = {
   router,
   updateCustomerRecord,
   getListOfEquipmentOnDuty,
+  stopWork,
 };

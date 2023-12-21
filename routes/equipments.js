@@ -8,7 +8,7 @@ const _ = require("lodash");
 const moment = require("moment");
 const { eq } = require("lodash");
 const { default: mongoose } = require("mongoose");
-const { getListOfEquipmentOnDuty } = require("./workData");
+const { getListOfEquipmentOnDuty, stopWork } = require("./workData");
 
 router.get("/", async (req, res) => {
   try {
@@ -551,107 +551,116 @@ router.put("/:id", async (req, res) => {
       supplierRate,
       uom,
       effectiveDate,
-      millage
+      millage,
     } = req.body;
     let oldEquipment = await eqData.model.findById(id);
     let oldRate = oldEquipment.rate;
     let oldSupplierRate = oldEquipment.supplierRate;
 
-    console.log(id, rate, effectiveDate, oldRate);
-
-    let equipment = await eqData.model.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true }
-    );
+    let equipment = await eqData.model.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     let toUpdate = await workData.model.find({
-      "equipment._id": id,
+      "equipment._id": new mongoose.Types.ObjectId(id),
       $or: [
         { workStartDate: { $gte: effectiveDate } },
         { "dailyWork.date": { $gte: effectiveDate } },
       ],
     });
 
-    console.log("Update:", toUpdate);
+    // console.log("Update:", toUpdate);
 
-    await workData.model.updateMany(
-      {
-        "equipment._id": id,
-        $or: [
-          { workStartDate: { $gte: effectiveDate } },
-          { "dailyWork.date": { $gte: effectiveDate } },
-        ],
-      },
-      {
-        $set: {
-          "equipment.plateNumber": plateNumber,
-          "equipment.eqDescription": eqDescription,
-          "equipment.assetClass": assetClass,
-          "equipment.eqtype": eqtype,
-          "equipment.eqOwner": eqOwner,
-          "equipment.rate": parseInt(rate),
-          "equipment.supplierRate": supplierRate,
-          "equipment.uom": uom,
-        },
-      }
-    );
+    toUpdate?.forEach(async (work) => {
+      await stopWork(
+        work?._id,
+        work?.endIndex,
+        work?.tripsDone,
+        work?.comment,
+        work?.moreComment,
+        work?.workStartDate,
+        work?.createdBy,
+        work?.duration
+      );
+    });
 
-    await workData.model.updateMany(
-      {
-        "equipment._id": id,
-        $or: [
-          { workStartDate: { $gte: effectiveDate } },
-          { "dailyWork.date": { $gte: effectiveDate } },
-        ],
-      },
-      {
-        $mul: {
-          totalRevenue: rate / oldRate,
-        },
-      }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "equipment._id": id,
+    //     $or: [
+    //       { workStartDate: { $gte: effectiveDate } },
+    //       { "dailyWork.date": { $gte: effectiveDate } },
+    //     ],
+    //   },
+    //   {
+    //     $set: {
+    //       "equipment.plateNumber": plateNumber,
+    //       "equipment.eqDescription": eqDescription,
+    //       "equipment.assetClass": assetClass,
+    //       "equipment.eqtype": eqtype,
+    //       "equipment.eqOwner": eqOwner,
+    //       "equipment.rate": parseInt(rate),
+    //       "equipment.supplierRate": supplierRate,
+    //       "equipment.uom": uom,
+    //     },
+    //   }
+    // );
 
-    await workData.model.updateMany(
-      {
-        "equipment._id": id,
-        $or: [
-          { workStartDate: { $gte: effectiveDate } },
-          { "dailyWork.date": { $gte: effectiveDate } },
-        ],
-      },
+    // await workData.model.updateMany(
+    //   {
+    //     "equipment._id": id,
+    //     $or: [
+    //       { workStartDate: { $gte: effectiveDate } },
+    //       { "dailyWork.date": { $gte: effectiveDate } },
+    //     ],
+    //   },
+    //   {
+    //     $mul: {
+    //       totalRevenue: rate / oldRate,
+    //     },
+    //   }
+    // );
 
-      {
-        $set: {
-          $toDouble: {
-            "dailyWork.$[].totalRevenue": {
-              $multiply: ["$dailyWork.$[].rate", "$dailyWork.$[].duration"],
-            },
-          },
-        },
-        // $mul: {
-        //   "dailyWork.$[element].totalRevenue": rate / oldRate,
-        // },
-      },
-      { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "equipment._id": id,
+    //     $or: [
+    //       { workStartDate: { $gte: effectiveDate } },
+    //       { "dailyWork.date": { $gte: effectiveDate } },
+    //     ],
+    //   },
 
-    await workData.model.updateMany(
-      {
-        "equipment._id": id,
-        $or: [
-          { workStartDate: { $gte: effectiveDate } },
-          { "dailyWork.date": { $gte: effectiveDate } },
-        ],
-      },
-      {
-        $set: {
-          "dailyWork.$[element].rate": parseInt(rate),
-        },
-      },
+    //   {
+    //     $set: {
+    //       $toDouble: {
+    //         "dailyWork.$[].totalRevenue": {
+    //           $multiply: ["$dailyWork.$[].rate", "$dailyWork.$[].duration"],
+    //         },
+    //       },
+    //     },
+    //     // $mul: {
+    //     //   "dailyWork.$[element].totalRevenue": rate / oldRate,
+    //     // },
+    //   },
+    //   { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
+    // );
 
-      { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "equipment._id": id,
+    //     $or: [
+    //       { workStartDate: { $gte: effectiveDate } },
+    //       { "dailyWork.date": { $gte: effectiveDate } },
+    //     ],
+    //   },
+    //   {
+    //     $set: {
+    //       "dailyWork.$[element].rate": parseInt(rate),
+    //     },
+    //   },
+
+    //   { arrayFilters: [{ "element.date": { $gte: effectiveDate } }] }
+    // );
 
     res.status(200).send(equipment);
   } catch (err) {
