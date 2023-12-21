@@ -578,7 +578,7 @@ router.put("/:id", async (req, res) => {
         work?.tripsDone,
         work?.comment,
         work?.moreComment,
-        work?.workStartDate,
+        effectiveDate,
         work?.createdBy,
         work?.duration
       );

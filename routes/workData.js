@@ -1806,6 +1806,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
               status: d.status,
+              rate: d.rate,
             };
           });
 
@@ -1890,9 +1891,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
+                  w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
                 "Actual Revenue": dP.actualRevenue,
                 "Vendor payment": dP.expenditure,
               }),
@@ -2090,6 +2089,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               duration: d.duration,
               actualRevenue: d.totalRevenue,
               expenditure: d.totalExpenditure,
+              rate: d.rate,
             };
           });
 
@@ -2174,9 +2174,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               "Other work description": w.dispatch?.otherJobType,
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
-                  w.equipment?.uom === "hour"
-                    ? w.equipment?.rate * 5
-                    : w.equipment?.rate,
+                  w.equipment?.uom === "hour" ? dP.rate * 5 : dP.rate,
                 "Actual Revenue": dP.actualRevenue,
                 "Vendor payment": dP.expenditure,
               }),
@@ -6260,9 +6258,6 @@ async function stopWork(
   stoppedBy,
   duration
 ) {
-  duration = Math.abs(duration);
-
-  if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
   // let dd = postingDate?.split(".")[0];
   // let mm = postingDate?.split(".")[1];
   // let yyyy = postingDate?.split(".")[2];
@@ -6278,6 +6273,10 @@ async function stopWork(
       .populate("appovedBy")
       .populate("dispatch")
       .populate("workDone");
+
+    duration = _.round(duration, 2);
+
+    if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
 
     //You can only stop jobs in progress
 
@@ -6297,20 +6296,15 @@ async function stopWork(
       let initDuration = 0;
       let savedRecord;
 
-      dailyWorks.find((d, index) => {
-        d.day == moment().diff(moment(work.workStartDate), "days");
-        indexToUpdate = index;
-      });
-
       let worksAfterEffectiveDate = dailyWorks?.filter((d) =>
         moment(d?.date).isSameOrAfter(moment(postingDate))
       );
 
       worksAfterEffectiveDate.map(async (dailyWork) => {
         let currentTotalRevenue = work.totalRevenue;
-        let currentDuration = Math.abs(work.duration);
+        let currentDuration = work.duration;
         let currentTotalExpenditure = work.totalExpenditure;
-
+        duration = dailyWork?.duration;
         // work.status = workEnded ? "stopped" : "on going";
 
         let _duration = Math.abs(work.endTime - work.startTime);
@@ -6347,16 +6341,16 @@ async function stopWork(
           // revenue = rate * duration;
           if (comment === "Should neve happen") {
             //reason that does not exist
-            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            dailyWork.duration = duration;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate * (duration >= 1 ? 1 : 0);
           } else {
-            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            dailyWork.duration = duration;
 
             let targetDuration = 5;
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
-            dailyWork.duration = duration / HOURS_IN_A_DAY;
+            dailyWork.duration = duration;
             revenue = rate * (duration >= 1 ? 1 : 0);
             expenditure = supplierRate;
           }
@@ -6371,6 +6365,12 @@ async function stopWork(
         dailyWork.moreComment = moreComment;
         // dailyWork.pending = false;
 
+        indexToUpdate = dailyWorks.find((d, i) => {
+          if (moment(d.date).isSameOrAfter(moment(postingDate))) {
+            return i;
+          }
+        });
+
         dailyWorks[indexToUpdate] = dailyWork;
         work.startIndex =
           endIndex || startIndex !== 0
@@ -6382,8 +6382,6 @@ async function stopWork(
         work.totalExpenditure = currentTotalExpenditure + expenditure;
         work.moreComment = moreComment;
         work.equipment = equipment;
-
-        
 
         //log saving
         let log = {
@@ -6522,7 +6520,6 @@ async function stopWork(
       let logTobeSaved = new logData.model(log);
       await logTobeSaved.save();
 
-      console.log("Updatessss");
       return savedRecord;
     }
   } catch (err) {
