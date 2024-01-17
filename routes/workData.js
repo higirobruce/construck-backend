@@ -3314,6 +3314,7 @@ router.put("/:id", async (req, res) => {
   let projectId = req.body?.project?._id;
   let customerName = req.body?.project?.customer;
   let equipmentOwner = req.body?.equipment?.eqOwner;
+  let driver = req.body?.driver;
 
   console.log(req.body);
 
@@ -3343,6 +3344,31 @@ router.put("/:id", async (req, res) => {
         },
       }
     );
+
+    // employee.assignedToSiteWork = req.body?.siteWork;
+    //   employee.assignedDate = moment(req.body?.dispatch?.date);
+    //   employee.assignedShift = req.body?.dispatch?.shift;
+
+    await employeeData.model.findOneAndUpdate(
+      { _id: updatedWork?.driver },
+      {
+        status: "active",
+        assignedToSiteWork: null,
+        assignedDate: null,
+        assignedShift: null,
+      }
+    );
+
+    await employeeData.model.findOneAndUpdate(
+      { _id: driver },
+      {
+        status: "dispatched",
+        assignedToSiteWork: req.body?.siteWork,
+        assignedDate: moment(req.body?.dispatch?.date),
+        assignedShift: req.body?.dispatch?.shift,
+      }
+    );
+
     res.send({ message: "done" });
   } catch (err) {
     console.log(err);
