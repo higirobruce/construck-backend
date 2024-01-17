@@ -562,14 +562,21 @@ router.put("/:id", async (req, res) => {
     });
 
     let toUpdate = await workData.model.find({
-      "equipment._id": new mongoose.Types.ObjectId(id),
+      $or: [
+        {
+          "equipment._id": new mongoose.Types.ObjectId(id),
+        },
+        {
+          "equipment._id": id,
+        },
+      ],
       $or: [
         { workStartDate: { $gte: moment(effectiveDate) } },
         { "dailyWork.date": { $gte: moment(effectiveDate) } },
       ],
     });
 
-    console.log("Update:", toUpdate.length,effectiveDate) ;
+    console.log("Update:", toUpdate.length, effectiveDate);
 
     toUpdate?.forEach(async (work) => {
       await stopWork(
