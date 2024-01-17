@@ -6316,7 +6316,10 @@ async function stopWork(
       status: { $in: ["in progress", "on going", "created"] },
     });
 
+    console.log(work.siteWork);
+
     if (work.siteWork) {
+      console.log("hjere");
       let dailyWorks = [...work.dailyWork];
       let indexToUpdate = -1;
       let initDuration = 0;
@@ -6396,6 +6399,8 @@ async function stopWork(
             return i;
           }
         });
+
+        console.log(indexToUpdate);
 
         dailyWorks[indexToUpdate] = dailyWork;
         work.startIndex =
@@ -6522,6 +6527,7 @@ async function stopWork(
       work.totalExpenditure = expenditure ? expenditure : 0;
       work.comment = comment;
       work.moreComment = moreComment;
+      equipment._id = new ObjectId(equipment?._id);
       work.equipment = equipment;
 
       let savedRecord = await work.save();
