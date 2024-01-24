@@ -1892,7 +1892,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP?.rate * 5 : dP?.rate,
-                "Actual Revenue": dP.actualRevenue,
+                "Actual Revenue":
+                  w.equipment?.uom === "hour"
+                    ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
+                    : dP.duration * dP.rate,
                 "Vendor payment": dP.expenditure,
               }),
 
@@ -2175,7 +2178,10 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
               ...((canViewRevenues === "true" || canViewRevenues === true) && {
                 "Projected Revenue":
                   w.equipment?.uom === "hour" ? dP.rate * 5 : dP.rate,
-                "Actual Revenue": dP.actualRevenue,
+                "Actual Revenue":
+                  w.equipment?.uom === "hour"
+                    ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
+                    : dP.duration * dP.rate,
                 "Vendor payment": dP.expenditure,
               }),
 
@@ -3524,7 +3530,7 @@ router.put("/validateDailyWork/:id", async (req, res) => {
   //log saving
   let log = {
     action: "DISPATCH VALIDATED",
-    doneBy: req.body.validatedBy,
+    doneBy: approvedBy,
     request: req.body,
     payload: workRec,
   };
@@ -3571,7 +3577,7 @@ router.put("/validateWork/:id", async (req, res) => {
   //log saving
   let log = {
     action: "DISPATCH VALIDATED",
-    doneBy: req.body.validatedBy,
+    doneBy: approvedBy,
     request: req.body,
     payload: workRec,
   };
@@ -3633,7 +3639,7 @@ router.put("/rejectDailyWork/:id", async (req, res) => {
     //log saving
     let log = {
       action: "DISPATCH REJECTED",
-      doneBy: req.body.rejectedBy,
+      doneBy: rejectedBy,
       request: req.body,
       payload: workRec,
     };
@@ -3669,7 +3675,6 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
   let { month, year } = req.query;
   let { projectName } = req.params;
   try {
-    let monthDigit = month;
     if (month < 10) month = "0" + month;
     const startOfMonth = moment()
       .startOf("month")
@@ -3680,6 +3685,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
         `${year}-${month}-${moment(`${year}-${month}-01`).daysInMonth(month)}`
       );
 
+    console.log(startOfMonth, endOfMonth);
     let q1 = await workData.model.updateMany(
       {
         siteWork: false,
@@ -3708,7 +3714,10 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
       {
         arrayFilters: [
           {
-            "elemX.date": new RegExp(`${monthHelper(month)}-${year}`),
+            $or: [
+              { "elemX.date": { $gte: startOfMonth } },
+              { "elemX.date": { $lte: endOfMonth } },
+            ],
             "elemX.status": "validated",
           },
         ],
@@ -3717,6 +3726,7 @@ router.put("/releaseValidated/:projectName", async (req, res) => {
 
     res.send({ q2 });
   } catch (err) {
+    console.log(err);
     err;
     res.send(err);
   }
@@ -6302,19 +6312,17 @@ async function stopWork(
 
     duration = _.round(duration, 2);
 
-    if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
-
     //You can only stop jobs in progress
 
     let equipment = await eqData.model.findById(work?.equipment?._id);
     let workEnded = false;
 
-    //get jobs being done by the same equipment
-    let eqBusyWorks = await workData.model.find({
-      "equipment.plateNumber": equipment._id,
-      _id: { $ne: work._id },
-      status: { $in: ["in progress", "on going", "created"] },
-    });
+    duration =
+      equipment?.uom == "hour"
+        ? duration / 3600000
+        : duration;
+
+    if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
 
     console.log(work.siteWork);
 
@@ -6333,8 +6341,12 @@ async function stopWork(
         let currentTotalRevenue = work.totalRevenue;
         let currentDuration = work.duration;
         let currentTotalExpenditure = work.totalExpenditure;
-        duration = dailyWork?.duration;
+        duration =
+          equipment?.uom == "hour"
+            ? dailyWork?.duration / 3600000
+            : dailyWork?.duration;
         // work.status = workEnded ? "stopped" : "on going";
+        if (duration > DURATION_LIMIT) duration = DURATION_LIMIT;
 
         let _duration = Math.abs(work.endTime - work.startTime);
 

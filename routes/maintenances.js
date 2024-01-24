@@ -13,7 +13,9 @@ router.get("/maintenance/repair", async (req, res) => {
 });
 
 router.get("/maintenance", async (req, res) => {
-  let { limit, page, status, search } = req.query;
+  let { limit, page, status, search, download } = req.query;
+  if (search?.length == 0) search = null;
+
   let query = {};
   query = {
     ...(status === "open" && !search && { status: { $nin: ["pass"] } }),
@@ -71,7 +73,7 @@ router.get("/maintenance", async (req, res) => {
   const closedDataCount = await Maintenance.find(closedDataQuery).count({});
 
   const jobCards =
-    status !== "all"
+    status !== "all" && download !== "1"
       ? await Maintenance.find(query)
           .sort({ jobCard_Id: -1 })
           .limit(limit)

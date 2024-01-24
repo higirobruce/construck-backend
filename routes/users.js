@@ -77,6 +77,8 @@ router.post("/login", async (req, res) => {
 
     let vendor = await venData.model.findOne({ phone: email });
 
+    console.log(vendor)
+
     if (user?.length === 0 || !user) {
       if (vendor?.length === 0 || !vendor) {
         res.status(404).send({
