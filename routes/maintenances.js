@@ -13,8 +13,10 @@ router.get("/maintenance/repair", async (req, res) => {
 });
 
 router.get("/maintenance", async (req, res) => {
-  let { limit, page, status, search, download } = req.query;
+  let { limit, page, status, search, download, startDate, endDate } = req.query;
   if (search?.length == 0) search = null;
+  if (startDate == "null") startDate = null;
+  if (endDate == "null") endDate = null;
 
   let query = {};
   query = {
@@ -22,6 +24,9 @@ router.get("/maintenance", async (req, res) => {
     ...(status !== "open" && status !== "all" && { status: { $eq: status } }),
     // ...(status == "all" && { status: { $eq: status } }),
     ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
 
   let qStatus = status == "open" ? { $nin: ["pass"] } : { $eq: status };
