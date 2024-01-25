@@ -1,106 +1,110 @@
 const mongoose = require("mongoose");
-const moment = require('moment');
+const moment = require("moment");
 
-const maintenanceSchema = new mongoose.Schema({
+const maintenanceSchema = new mongoose.Schema(
+  {
     jobCard_Id: {
-        type: String
+      type: String,
     },
     entryDate: {
-        type: Date,
-        default: moment()
+      type: Date,
+      default: moment(),
     },
     driver: {
-        type: Object
+      type: Object,
     },
     plate: {
-        type: Object
+      type: Object,
     },
     mileage: {
-        type: String
+      type: String,
     },
     location: {
-        type: Object
+      type: Object,
     },
     startRepair: {
-        type: Date
+      type: Date,
     },
     endRepair: {
-        type: Date
+      type: Date,
     },
     inspectionTools: {
-        type: [String],
-
+      type: [String],
     },
     mechanicalInspections: {
-        type: [String]
+      type: [String],
     },
     assignIssue: {
-        type: [Object]
+      type: [Object],
     },
     operator: {
-        type: String
+      type: String,
     },
     status: {
-        type: String,
-        default: 'entry'
+      type: String,
+      default: "entry",
     },
     transferData: {
-        type: [Object]
+      type: [Object],
     },
     inventoryData: {
-        type: [[Object]]
+      type: [[Object]],
     },
     inventoryItems: {
-        type: [Object]
+      type: [Object],
     },
     teamApproval: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     supervisorApproval: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     sourceItem: {
-        type: String
+      type: String,
     },
     operatorApproval: {
-        type: [String]
+      type: [String],
     },
     transferParts: {
-        type: [String]
+      type: [String],
     },
     isViewed: {
-        type: String,
-        default: 'not viewed'
+      type: String,
+      default: "not viewed",
     },
     reason: {
-        type: String,
-        default: ''
+      type: String,
+      default: "",
     },
     jobCard_status: {
-        type: String,
-        default: 'opened'
+      type: String,
+      default: "opened",
     },
     updated_At: {
-        type: Date,
-        default: moment()
+      type: Date,
+      default: moment(),
     },
     operatorNotApplicable: {
-        type: Boolean
+      type: Boolean,
     },
     mileagesNotApplicable: {
-        type: Boolean
+      type: Boolean,
     },
     requestParts: {
-        type: (Date || String)
+      type: Date || String,
     },
     receivedParts: {
-        type: (Date || String)
-    }
-});
+      type: Date || String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Maintenance = mongoose.model('Maintenance', maintenanceSchema);
+const Maintenance = mongoose.model("Maintenance", maintenanceSchema);
 
 exports.Maintenance = Maintenance;
 exports.maintenanceSchema = maintenanceSchema;

@@ -105,9 +105,11 @@ router.get("/filtered", async (req, res) => {
         doneBy: {
           $ifNull: ["$doneByUser", "$doneByEmployee"],
         },
+        createdOn: {
+          $ifNull: ["$createdAt", "$createdOn"],
+        },
       },
     },
-
     {
       $project:
         /**
@@ -119,6 +121,8 @@ router.get("/filtered", async (req, res) => {
           doneBy: 1,
           createdOn: 1,
           equipment: 1,
+          "payload.project": 1,
+          "payload.dispatch": 1,
         },
     },
     {
@@ -128,6 +132,45 @@ router.get("/filtered", async (req, res) => {
          */
         {
           createdOn: 1,
+        },
+    },
+    {
+      $group:
+        /**
+         * _id: The id of the group.
+         * fieldN: The first field name.
+         */
+        {
+          _id: {
+            id: "$_id",
+            action: "$action",
+            createdOn: "$createdOn",
+            doneBy: "$doneBy",
+            equipment: "$equipment",
+            payload: "$payload",
+          },
+          log: {
+            $addToSet: "$$ROOT",
+          },
+        },
+    },
+    {
+      $project:
+        /**
+         * specifications: The fields to
+         *   include or exclude.
+         */
+        {
+          log: 0,
+        },
+    },
+    {
+      $sort:
+        /**
+         * Provide any number of field/order pairs.
+         */
+        {
+          "_id.createdOn": 1,
         },
     }
   );
