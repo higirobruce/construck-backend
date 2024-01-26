@@ -51,6 +51,9 @@ router.get("/maintenance", async (req, res) => {
         },
       ],
     }),
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
     status: { $ne: "pass" },
   };
 
@@ -66,6 +69,9 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     status: { $eq: "requisition" },
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
 
   let entryDataQuery = {
@@ -80,6 +86,9 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     status: { $eq: "entry" },
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
 
   let diagnosisDataQuery = {
@@ -107,6 +116,9 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     status: { $eq: "repair" },
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
 
   let testingDataQuery = {
@@ -121,6 +133,9 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     status: { $eq: "testing" },
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
   let closedDataQuery = {
     ...(search && {
@@ -134,6 +149,9 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     status: { $eq: "pass" },
+    ...(startDate && {
+      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+    }),
   };
 
   const dataCount = await Maintenance.find(query).count({});
