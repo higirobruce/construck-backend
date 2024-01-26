@@ -23,7 +23,16 @@ router.get("/maintenance", async (req, res) => {
     ...(status === "open" && !search && { status: { $nin: ["pass"] } }),
     ...(status !== "open" && status !== "all" && { status: { $eq: status } }),
     // ...(status == "all" && { status: { $eq: status } }),
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     ...(startDate && {
       entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
     }),
@@ -32,35 +41,98 @@ router.get("/maintenance", async (req, res) => {
   let qStatus = status == "open" ? { $nin: ["pass"] } : { $eq: status };
 
   let openDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $ne: "pass" },
   };
 
   let requisitionDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "requisition" },
   };
 
   let entryDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "entry" },
   };
 
   let diagnosisDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "diagnosis" },
   };
   let repairDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "repair" },
   };
 
   let testingDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "testing" },
   };
   let closedDataQuery = {
-    ...(search && { "plate.text": { $regex: search, $options: "i" } }),
+    ...(search && {
+      $or: [
+        {
+          "plate.text": { $regex: search, $options: "i" },
+        },
+        {
+          "plate.eqDescription": { $regex: search, $options: "i" },
+        },
+      ],
+    }),
     status: { $eq: "pass" },
   };
 
