@@ -34,7 +34,7 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
 
@@ -52,7 +52,7 @@ router.get("/maintenance", async (req, res) => {
       ],
     }),
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
     status: { $ne: "pass" },
   };
@@ -70,7 +70,7 @@ router.get("/maintenance", async (req, res) => {
     }),
     status: { $eq: "requisition" },
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
 
@@ -87,7 +87,7 @@ router.get("/maintenance", async (req, res) => {
     }),
     status: { $eq: "entry" },
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
 
@@ -117,7 +117,7 @@ router.get("/maintenance", async (req, res) => {
     }),
     status: { $eq: "repair" },
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
 
@@ -134,7 +134,7 @@ router.get("/maintenance", async (req, res) => {
     }),
     status: { $eq: "testing" },
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
   let closedDataQuery = {
@@ -150,7 +150,7 @@ router.get("/maintenance", async (req, res) => {
     }),
     status: { $eq: "pass" },
     ...(startDate && {
-      entryDate: { $gte: moment(startDate), $lte: moment(endDate) },
+      entryDate: { $gte: moment(startDate).startOf('day'), $lte: moment(endDate).endOf('day') },
     }),
   };
 
