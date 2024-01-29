@@ -197,7 +197,7 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = JSON.parse(userProjects);
+  let projects = userType!=='vendor' ? JSON.parse(userProjects):[];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
