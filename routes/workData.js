@@ -189,7 +189,7 @@ router.get("/filtered/:page", async (req, res) => {
     userType,
     companyName,
     userProject,
-    userProjects
+    userProjects,
   } = req.query;
   let { page } = req.params;
   let perPage = 15;
@@ -197,7 +197,7 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = userType!=='vendor' ? JSON.parse(userProjects):[];
+  let projects = userType !== "vendor" ? JSON.parse(userProjects) : [];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
@@ -455,7 +455,6 @@ router.get("/filtered/:page", async (req, res) => {
       break;
 
     case "customer-project-manager":
-     
       if (!searchByPlateNumber && !searchByProject) {
         query = {
           $or: [
@@ -465,7 +464,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $gte: moment(startDate),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
             {
               siteWork: false,
@@ -477,7 +476,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -494,7 +493,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -510,7 +509,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -527,7 +526,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -543,7 +542,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -563,7 +562,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -582,7 +581,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-               "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -590,7 +589,6 @@ router.get("/filtered/:page", async (req, res) => {
       break;
 
     case "customer-site-manager":
-     
       if (!searchByPlateNumber && !searchByProject) {
         query = {
           $or: [
@@ -600,7 +598,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $gte: moment(startDate),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
             {
               siteWork: false,
@@ -612,7 +610,7 @@ router.get("/filtered/:page", async (req, res) => {
                   .add(59, "seconds"),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -629,7 +627,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -645,7 +643,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -662,7 +660,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -678,7 +676,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: project,
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -698,7 +696,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
 
             {
@@ -717,7 +715,7 @@ router.get("/filtered/:page", async (req, res) => {
                 $regex: searchText.toUpperCase(),
               },
 
-              "project.prjDescription": {$in: prjs},
+              "project.prjDescription": { $in: prjs },
             },
           ],
         };
@@ -1933,7 +1931,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : dP.duration * dP.rate,
-                "Vendor payment": dP.expenditure,
+                // "Vendor payment": dP.expenditure,
+                "Vendor payment2":
+                  w.equipment?.uom === "hour"
+                    ? _.round(dP.duration / (60 * 60 * 1000), 2) *
+                      w?.equipment?.supplierRate
+                    : dP.duration * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -2219,7 +2222,12 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : dP.duration * dP.rate,
-                "Vendor payment": dP.expenditure,
+                // "Vendor payment": dP.expenditure,
+                "Vendor payment2":
+                  w.equipment?.uom === "hour"
+                    ? _.round(dP.duration / (60 * 60 * 1000), 2) *
+                      w?.equipment?.supplierRate
+                    : dP.duration * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
