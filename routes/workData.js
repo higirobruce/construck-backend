@@ -1930,13 +1930,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : dP.duration * dP.rate,
+                    : (dP.duration >= 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment2":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : dP.duration * w?.equipment?.supplierRate,
+                    : (dP.duration >= 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -2221,13 +2221,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : dP.duration * dP.rate,
+                    : (dP.duration>=0 ? 1: 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment2":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : dP.duration * w?.equipment?.supplierRate,
+                    : (dP.duration>=0 ? 1: 0)* w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
