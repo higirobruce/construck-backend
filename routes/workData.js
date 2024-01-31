@@ -1932,7 +1932,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : (dP.duration >= 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
-                "Vendor payment2":
+                "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
@@ -2223,7 +2223,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
                     : (dP.duration>=0 ? 1: 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
-                "Vendor payment2":
+                "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
