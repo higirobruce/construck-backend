@@ -316,17 +316,6 @@ router.put("/sendToWorkshop/:id", async (req, res) => {
     equipment.eqStatus = "workshop";
     let savedRecord = await equipment.save();
 
-    await workData.model.updateMany(
-      {
-        $or: [
-          { "equipment?._id": new Types.ObjectId(equipment?._id) },
-          { "equipment?._id": equipment?._id },
-        ],
-        status: { $in: ["created", "on going", "in progress"] },
-      },
-      { $set: { status: "stopped" } }
-    );
-
     //We can start tracking how long the equipment has been in workshop
     await downTimeData
       .model({
