@@ -2917,6 +2917,7 @@ router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
 
+  console.log(req.body)
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2965,7 +2966,7 @@ router.post("/getAnalytics", async (req, res) => {
 
       let list = [];
 
-      if (customer.length >= 1) {
+      if (customer?.length >= 1) {
         customer.map((c) => {
           let l = workList.filter((w) => {
             let nameLowerCase = w?.project?.customer?.toLowerCase();
@@ -2978,7 +2979,7 @@ router.post("/getAnalytics", async (req, res) => {
         list = workList;
       }
 
-      if (project.length >= 1) {
+      if (project?.length >= 1) {
         let pList = [];
         project.map((p) => {
           let l = list.filter((w) => {
@@ -2990,7 +2991,7 @@ router.post("/getAnalytics", async (req, res) => {
         list = pList;
       }
 
-      if (equipment.length >= 1) {
+      if (equipment?.length >= 1) {
         let eList = [];
         equipment.map((e) => {
           let l = list.filter((w) => {
@@ -3294,7 +3295,7 @@ router.post("/getAnalytics", async (req, res) => {
       listDays = workListByDay;
     }
 
-    if (project.length >= 1) {
+    if (project?.length >= 1) {
       project.map((p) => {
         let l = listDays.filter((w) => {
           let descLowerCase = w?.project?.prjDescription?.toLowerCase();
@@ -3304,7 +3305,7 @@ router.post("/getAnalytics", async (req, res) => {
       });
     }
 
-    if (equipment.length >= 1) {
+    if (equipment?.length >= 1) {
       equipment.map((e) => {
         let l = listDays.filter((w) => {
           let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
@@ -3342,6 +3343,11 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
+    console.log({
+      totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
+      projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
+      totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
+    });
     res.status(200).send({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
@@ -3353,6 +3359,10 @@ router.post("/getAnalytics", async (req, res) => {
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
     });
+    console.log({
+      err,
+      key,
+    })
     res.send({
       error,
       key,
@@ -4223,8 +4233,9 @@ router.put("/stop/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (duration >= 1 ? duration / HOURS_IN_A_DAY : 0);
-            expenditure = supplierRate * (duration >= 1 ? duration / HOURS_IN_A_DAY : 0);
+            revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            expenditure =
+              supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
           }
         }
 
