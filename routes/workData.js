@@ -2917,7 +2917,7 @@ router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
 
-  console.log(req.body)
+  console.log(req.body);
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -3362,7 +3362,7 @@ router.post("/getAnalytics", async (req, res) => {
     console.log({
       err,
       key,
-    })
+    });
     res.send({
       error,
       key,
@@ -4388,8 +4388,9 @@ router.put("/stop/:id", async (req, res) => {
                 let durationRation =
                   duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
                 work.duration = duration / HOURS_IN_A_DAY;
-                revenue = rate * durationRation;
-                expenditure = supplierRate * durationRation;
+                revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+                expenditure =
+                  supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
               }
             }
           }
