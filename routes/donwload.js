@@ -2,23 +2,46 @@ const router = require("express").Router();
 const workData = require("../models/workData");
 const _ = require("lodash");
 const moment = require("moment");
+const { default: mongoose } = require("mongoose");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 router.get("/dailyworks/all", async (req, res) => {
   //download/dailyworks/all
-  const works = await workData.model.updateMany(
-    { "_id": { "$in": ["your_document_id1", "your_document_id2"] } },
-    {
-      siteWork: true,
-      //   "dailyWork.duration": 0,
-      dailyWork: {
-        $elemMatch: {
-          duration: 0,
-        },
-      },
-    },
-    res.send(works)
+  const works = await workData.model.find(
+    { _id: { $in: [new mongoose.Types.ObjectId("659e9193bd4ebf87a86c3d0a")] } }
+    // {
+    //   siteWork: true,
+    //   //   "dailyWork.duration": 0,
+    //   dailyWork: {
+    //     $elemMatch: {
+    //       duration: 0,
+    //     },
+    //   },
+    // },
     // { $set: { totalRevenue: 0 } }
   );
+  //   const current = works;
+  console.log("current", works[0]);
+  works.map(async (work) => {
+    const d = work.dailyWork.map((d) => {
+      let totalRevenue = 0;
+      let totalExpenditure = 0;
+      if (d.duration === 0) {
+        totalRevenue = 0;
+        totalExpenditure = 0;
+      }
+      d.totalRevenue = totalRevenue;
+      d.totalExpenditure = totalExpenditure;
+      return d;
+    });
+    console.log("new", d);
+    // return res.send({
+    //   d,
+    // });
+    await d.save();
+  });
+  return;
+  //   return res.send(works);
 });
 
 router.get("/dispatches", async (req, res) => {
