@@ -197,7 +197,7 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = userType !== "vendor" ? JSON.parse(userProjects) : [];
+  let projects = userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
@@ -1821,6 +1821,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
     //   .sort([["_id", "descending"]]);
 
     let workList = await workData.model.aggregate(pipeline);
+    console.log("##", pipeline);
+    console.log("##", workList.length);
 
     let listToSend = workList;
 
@@ -1930,13 +1932,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : (dP.duration >= 0 ? 1 : 0) * dP.rate,
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : (dP.duration >= 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -1977,6 +1979,8 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
+
+        
 
         dateNotPosted.map((dNP) => {
           if (
@@ -2221,13 +2225,13 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
                 "Actual Revenue":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) * dP.rate
-                    : (dP.duration >= 0 ? 1 : 0) * dP.rate,
+                    : (dP.duration > 0 ? 1 : 0) * dP.rate,
                 // "Vendor payment": dP.expenditure,
                 "Vendor payment":
                   w.equipment?.uom === "hour"
                     ? _.round(dP.duration / (60 * 60 * 1000), 2) *
                       w?.equipment?.supplierRate
-                    : (dP.duration >= 0 ? 1 : 0) * w?.equipment?.supplierRate,
+                    : (dP.duration > 0 ? 1 : 0) * w?.equipment?.supplierRate,
               }),
 
               "Driver Names": w.driver
@@ -2452,7 +2456,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
 
       return work;
     });
-
     let finalList = l.concat(siteWorkList);
 
     let orderedList = _.orderBy(finalList, "Dispatch date", "desc");
@@ -2917,6 +2920,7 @@ router.post("/getAnalytics", async (req, res) => {
   let { startDate, endDate, status, customer, project, equipment, owner } =
     req.body;
 
+  console.log(req.body);
   let total = 0;
   let totalRevenue = 0;
   let projectedRevenue = 0;
@@ -2965,7 +2969,7 @@ router.post("/getAnalytics", async (req, res) => {
 
       let list = [];
 
-      if (customer.length >= 1) {
+      if (customer?.length >= 1) {
         customer.map((c) => {
           let l = workList.filter((w) => {
             let nameLowerCase = w?.project?.customer?.toLowerCase();
@@ -2978,7 +2982,7 @@ router.post("/getAnalytics", async (req, res) => {
         list = workList;
       }
 
-      if (project.length >= 1) {
+      if (project?.length >= 1) {
         let pList = [];
         project.map((p) => {
           let l = list.filter((w) => {
@@ -2990,7 +2994,7 @@ router.post("/getAnalytics", async (req, res) => {
         list = pList;
       }
 
-      if (equipment.length >= 1) {
+      if (equipment?.length >= 1) {
         let eList = [];
         equipment.map((e) => {
           let l = list.filter((w) => {
@@ -3294,7 +3298,7 @@ router.post("/getAnalytics", async (req, res) => {
       listDays = workListByDay;
     }
 
-    if (project.length >= 1) {
+    if (project?.length >= 1) {
       project.map((p) => {
         let l = listDays.filter((w) => {
           let descLowerCase = w?.project?.prjDescription?.toLowerCase();
@@ -3304,7 +3308,7 @@ router.post("/getAnalytics", async (req, res) => {
       });
     }
 
-    if (equipment.length >= 1) {
+    if (equipment?.length >= 1) {
       equipment.map((e) => {
         let l = listDays.filter((w) => {
           let plateLowerCase = w?.equipment?.plateNumber?.toLowerCase();
@@ -3342,6 +3346,11 @@ router.post("/getAnalytics", async (req, res) => {
     // } else {
     //   listDispaches = dispatches;
     // }
+    console.log({
+      totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
+      projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
+      totalDays: totalDays ? _.round(totalDays, 1).toFixed(1) : "0.0",
+    });
     res.status(200).send({
       totalRevenue: totalRevenue ? _.round(totalRevenue, 0).toFixed(2) : "0.00",
       projectedRevenue: projectedRevenue ? projectedRevenue.toFixed(2) : "0.00",
@@ -3352,6 +3361,10 @@ router.post("/getAnalytics", async (req, res) => {
     let keyPattern = err.keyPattern;
     let key = _.findKey(keyPattern, function (key) {
       return key === 1;
+    });
+    console.log({
+      err,
+      key,
     });
     res.send({
       error,
@@ -3376,25 +3389,24 @@ router.put("/:id", async (req, res) => {
     delete req.body.driver;
     updateObj = req.body;
   }
-
-  let project = await getProject(customerName, projectId);
-  let projectAdmin = project?.projectAdmin;
+  delete updateObj.driver;
   try {
-    let updatedWork = await workData.model.findOneAndUpdate(
-      { _id: id },
-      req.body
+    let currentWork = await workData.model.updateOne(
+      { _id: new mongoose.Types.ObjectId(id) },
+      updateObj
     );
+    // currentWork.driver = new mongoose.Types.ObjectId(currentWork.driver)
 
-    await workData.model.updateMany(
-      {
-        "project._id": projectId,
-      },
-      {
-        $set: {
-          "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
-        },
-      }
-    );
+    // await workData.model.updateMany(
+    //   {
+    //     "project._id": projectId,
+    //   },
+    //   {
+    //     $set: {
+    //       "project.projectAdmin": new mongoose.Types.ObjectId(projectAdmin),
+    //     },
+    //   }
+    // );
 
     // employee.assignedToSiteWork = req.body?.siteWork;
     //   employee.assignedDate = moment(req.body?.dispatch?.date);
@@ -3423,7 +3435,7 @@ router.put("/:id", async (req, res) => {
     res.send({ message: "done" });
   } catch (err) {
     console.log(err);
-    res.send({
+    return res.send({
       error: true,
     });
   }
@@ -4137,10 +4149,10 @@ router.put("/stop/:id", async (req, res) => {
 
     //You can only stop jobs in progress
     if (
-      work.status === "in progress" ||
-      (work.siteWork &&
-        moment(postingDate).isSameOrAfter(moment(work.workStartDate), "day") &&
-        moment(postingDate).isSameOrBefore(moment(work.workEndDate), "day"))
+      work?.status === "in progress" ||
+      (work?.siteWork &&
+        moment(postingDate).isSameOrAfter(moment(work?.workStartDate), "day") &&
+        moment(postingDate).isSameOrBefore(moment(work?.workEndDate), "day"))
     ) {
       let equipment = await eqData.model.findById(work?.equipment?._id);
       let workEnded = false;
@@ -4223,8 +4235,9 @@ router.put("/stop/:id", async (req, res) => {
             let durationRation =
               duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
             dailyWork.duration = duration / HOURS_IN_A_DAY;
-            revenue = rate * (duration >= 1 ? duration / HOURS_IN_A_DAY : 0);
-            expenditure = supplierRate * (duration >= 1 ? duration / HOURS_IN_A_DAY : 0);
+            revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+            expenditure =
+              supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
           }
         }
 
@@ -4331,10 +4344,7 @@ router.put("/stop/:id", async (req, res) => {
             expenditure = (supplierRate * work.duration) / 3600000;
           } else {
             work.duration = duration > 0 ? duration * 3600000 : 0;
-            revenue =
-              tripsRatio > 0
-                ? (tripsRatio * (rate * work.duration)) / 3600000
-                : (rate * work.duration) / 3600000;
+            revenue = (rate * work.duration) / 3600000;
             expenditure =
               tripsRatio > 0
                 ? (tripsRatio * (supplierRate * work.duration)) / 3600000
@@ -4377,8 +4387,9 @@ router.put("/stop/:id", async (req, res) => {
                 let durationRation =
                   duration >= 5 ? 1 : _.round(duration / targetDuration, 2);
                 work.duration = duration / HOURS_IN_A_DAY;
-                revenue = rate * durationRation;
-                expenditure = supplierRate * durationRation;
+                revenue = rate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
+                expenditure =
+                  supplierRate * (duration > 0 ? duration / HOURS_IN_A_DAY : 0);
               }
             }
           }
@@ -4449,6 +4460,7 @@ router.put("/stop/:id", async (req, res) => {
         res.status(201).send(savedRecord);
       }
     } else {
+      return;
       res.status(200).send(work);
     }
   } catch (err) {
@@ -6369,7 +6381,6 @@ async function stopWork(
     console.log(work.siteWork);
 
     if (work.siteWork) {
-      console.log("hjere");
       let dailyWorks = [...work.dailyWork];
       let indexToUpdate = -1;
       let initDuration = 0;
