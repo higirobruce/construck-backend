@@ -35,8 +35,8 @@ const UserSchema = mongoose.Schema({
     transform: (v) => (v === "" ? null : v),
     ref: "customers",
   },
-  assignedProject: {
-    type: Object,
+  assignedProjects: {
+    type: [],
   },
   status: {
     type: String,
@@ -46,7 +46,10 @@ const UserSchema = mongoose.Schema({
     type: mongoose.SchemaTypes.Date,
     default: Date.now(),
   },
-});
+},
+
+{timestamps: true}
+);
 
 module.exports = {
   model: mongoose.model("users", UserSchema),
