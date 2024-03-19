@@ -21,6 +21,7 @@ const customers = require("../models/customers");
 const MS_IN_A_DAY = 86400000;
 const HOURS_IN_A_DAY = 8;
 const ObjectId = require("mongoose").Types.ObjectId;
+const works = require("../controllers/works");
 
 const DURATION_LIMIT = 16;
 
@@ -197,7 +198,8 @@ router.get("/filtered/:page", async (req, res) => {
   let searchByPlateNumber = searchText && searchText.length >= 1;
   let searchByProject = project && project.length >= 1;
 
-  let projects = userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
+  let projects =
+    userType !== "vendor" ? userProjects && JSON.parse(userProjects) : [];
   let prjs = projects?.map((p) => {
     return p?.prjDescription;
   });
@@ -863,8 +865,6 @@ router.get("/filtered/:page", async (req, res) => {
       .limit(perPage)
       .skip(parseInt(page - 1) * perPage)
       .sort([["_id", "descending"]]);
-
-    // res.status(200).send(workList.filter((w) => !isNull(w.driver)));
 
     res.status(200).send({ workList, dataCount });
   } catch (err) {
@@ -1800,29 +1800,9 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
         },
       },
     ];
-    // let workList = await workData.model
-    //   .find(query, {
-    //     "project.createdOn": false,
-    //     "equipment.__v": false,
-    //     "equipment.createdOn": false,
-    //     "dispatch.project": false,
-    //     "dispatch.equipments": false,
-    //     "driver.password": false,
-    //     "driver.email": false,
-    //     "driver.createdOn": false,
-    //     "driver.__v": false,
-    //     "driver._id": false,
-    //   })
-    //   .populate("driver")
-    //   .populate("appovedBy")
-    //   .populate("createdBy")
-    //   .populate("workDone")
-    //   .populate('dispatch.astDriver')
-    //   .sort([["_id", "descending"]]);
+    
 
     let workList = await workData.model.aggregate(pipeline);
-    console.log("##", pipeline);
-    console.log("##", workList.length);
 
     let listToSend = workList;
 
@@ -1832,6 +1812,7 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
       let work = null;
 
       if (w.siteWork && w.status !== "stopped" && w.status !== "recalled") {
+        console.log('not stopped, and not recalled')
         let dailyWorks = w.dailyWork;
 
         let datesPosted = dailyWorks
@@ -1873,31 +1854,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
-        // {
-        //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
-        //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
-        //     'Site work': w.siteWork ? 'YES' : 'NO',
-        //     'Project Description': w.project.prjDescription,
-        //     'Equipment-PlateNumber': w.equipment?.plateNumber,
-        //     'Equipment Type': w.equipment?.eqDescription,
-        //     'Duration (HRS)':
-        //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
-        //     'Duration (DAYS)':
-        //       w.equipment?.uom === 'day'
-        //         ? Math.round(w.duration * 100) / 100
-        //         : 0,
-        //     'Work done': w?.workDone?.jobDescription,
-        //     'Other work description': w.dispatch?.otherJobType,
-        // 'Driver Names': w.driver
-        //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
-        //   : w.equipment?.eqOwner,
-        //     'Driver contacts': w.driver?.phone,
-        //     'Target trips': w.dispatch?.targetTrips,
-        //     'Trips done': w?.tripsDone,
-        //     "Driver's/Operator's Comment": w.comment,
-        //     Customer: w.project?.customer,
-        //     Status: w.status,
-        //   }
 
         datesPosted.map((dP) => {
           if (
@@ -1979,8 +1935,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             });
           }
         });
-
-        
 
         dateNotPosted.map((dNP) => {
           if (
@@ -2166,31 +2120,6 @@ router.get("/detailed/:canViewRevenues", async (req, res) => {
             !_.includes(datesPendingPosted, d) &&
             moment().diff(moment(d, "DD-MMM-YYYY")) >= 0
         );
-        // {
-        //     'Dispatch date': moment(Date.parse(w.dispatch?.date),
-        //     'Dispatch Shift': w.dispatch?.shift?.toLocaleUpperCase(),
-        //     'Site work': w.siteWork ? 'YES' : 'NO',
-        //     'Project Description': w.project.prjDescription,
-        //     'Equipment-PlateNumber': w.equipment?.plateNumber,
-        //     'Equipment Type': w.equipment?.eqDescription,
-        //     'Duration (HRS)':
-        //       w.equipment?.uom === 'hour' ? msToTime(w.duration) : 0,
-        //     'Duration (DAYS)':
-        //       w.equipment?.uom === 'day'
-        //         ? Math.round(w.duration * 100) / 100
-        //         : 0,
-        //     'Work done': w?.workDone?.jobDescription,
-        //     'Other work description': w.dispatch?.otherJobType,
-        // 'Driver Names': w.driver
-        //   ? w?.driver?.firstName + ' ' + w?.driver?.lastName
-        //   : w.equipment?.eqOwner,
-        //     'Driver contacts': w.driver?.phone,
-        //     'Target trips': w.dispatch?.targetTrips,
-        //     'Trips done': w?.tripsDone,
-        //     "Driver's/Operator's Comment": w.comment,
-        //     Customer: w.project?.customer,
-        //     Status: w.status,
-        //   }
 
         datesPosted.map((dP) => {
           if (
@@ -4649,15 +4578,15 @@ router.put("/amend/:id", async (req, res) => {
 
     // if rate is per hour and we have target trips to be done
     if (uom === "hour") {
-      if (comment !== "Ibibazo bya panne") {
+      // if (comment !== "Ibibazo bya panne") {
         work.duration = duration > 0 ? duration * 3600000 : 0;
         revenue = (rate * work.duration) / 3600000;
         expenditure = (supplierRate * work.duration) / 3600000;
-      } else {
-        work.duration = duration > 0 ? duration * 3600000 : 0;
-        revenue = (tripsRatio * (rate * work.duration)) / 3600000;
-        expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
-      }
+      // } else {
+      //   work.duration = duration > 0 ? duration * 3600000 : 0;
+      //   revenue = (tripsRatio * (rate * work.duration)) / 3600000;
+      //   expenditure = (tripsRatio * (supplierRate * work.duration)) / 3600000;
+      // }
     }
 
     //if rate is per day
@@ -5008,6 +4937,13 @@ router.put("/driverassistants/", async (req, res) => {
     let list = await getEmployees(uniqueAssistants);
     res.send(list);
   } catch (err) {}
+});
+
+router.post("/reports/generate", (req, res) => {
+  works.captureDispatchDailyReport(req, res);
+});
+router.get("/reports/:date", (req, res) => {
+  works.getDispatchDailyReport(req, res);
 });
 
 async function getEmployees(listIds) {
